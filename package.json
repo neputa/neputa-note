@@ -62,7 +62,7 @@
     "@astrojs/sitemap": "3.1.6",
     "@astrojs/tailwind": "5.1.0",
     "@eslint/config-array": "^0.17.0",
-    "@eslint/js": "^9.6.0",
+    "@eslint/js": "^9.7.0",
     "@eslint/object-schema": "^2.1.4",
     "@pagefind/default-ui": "^1.1.0",
     "@playform/compress": "^0.0.13",
