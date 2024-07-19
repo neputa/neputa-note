@@ -1,0 +1,17 @@
+---
+import TitlePage from '@/components/widgets/TitlePage'
+import BaseLayout from '@/layouts/BaseLayout'
+import { getPermalink } from '@/utils'
+---
+
+<BaseLayout>
+  <TitlePage title='ページ一覧' />
+  <div class='prose dark:prose-invert'>
+    <ul class='text-lg'>
+      <li><a href={getPermalink('about-me', 'page')}>プロフィール</a></li>
+      <li><a href={getPermalink('archive', 'page')}>アーカイブ</a></li>
+      <li><a href={getPermalink('contact', 'page')}>問い合わせ</a></li>
+      <li><a href={getPermalink('privacy-policy', 'page')}>プライバシーポリシー</a></li>
+    </ul>
+  </div>
+</BaseLayout>

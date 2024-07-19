@@ -1,0 +1,282 @@
+---
+title: シンプルなブログカードとブックマークレットを作る【Astro】
+description: Blogでシンプルなブログカードを使いたい。Astroで構築したBlogサイトを例に、ブログカードのcomponent、追加したいサイトのmeta情報をブラウザ上でコピーできるブックマークレットを作成する。サンプルコードはこのBlogで実際に使用しているものを掲示する。
+pubDate: 2024-07-18T03:00:00.000Z
+modDate: 2024-07-18T03:00:00.000Z
+heroImage: ../../../../assets/images/blog/blogcard.webp
+category:
+  - DEV
+tags:
+  - Astro
+  - dev
+draft: false
+keywords:
+  - ブログカード
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事概要
+
+- 先日のBloggerからAstroへ移行した記事の別途詳細
+
+**※参考 - Blog移行記事**
+
+<BlogCard
+  title='BlogをBloggerからAstroへ移行した'
+  description='10年以上の期間お世話になったGoogle Bloggerに別れを告げ、この度AstroでBlogサイトを構築し移行した。Astroは静的サイトを手軽に開発できる軽量フレームワーク。無料のテンプレートをベースにカスタマイズを行った。それなりの作業ボリュームとなったので、詳細は別記事に分け、今回は移行作業全体をまとめる。'
+  url='https://www.neputa-note.net/2024/07/migrated-blogger-to-astro/'
+  domain='www.neputa-note.net'
+/>
+
+### 目的
+
+- Blog記事にシンプルなブログカードを表示できるようにする
+- Astroで構築したBlogサイトを例にブログカードのcomponentを実装する
+- 掲載したいサイトのmeta情報をcomponentのフォーマットでコピーするブックマークレットを作る
+- リンク先の画像が最適化されていないケースを考慮し、ブログカードに画像は載せない
+- styleは[Tailwind CSS](https://tailwindcss.com/)を使用する
+- Blog記事はcomponentを使用するためMDXで記述することを想定
+
+※↓このように表示されるブログカードを実装する
+
+<BlogCard
+  title='neputa note'
+  description='個人Blog。 Book感想、システム開発の備忘録、その他雑記など。'
+  url='https://neputa-note.pages.dev/'
+  domain='neputa-note.pages.dev'
+/>
+
+## 用語説明
+
+### ブログカード とは？
+
+> 「ブログカード」とは、ブログに掲載したい記事のタイトルや概要、アイキャッチ画像などを読みやすくまとめて表示する埋め込み形式です。 <cite>-- [ブログカード - はてなブログ ヘルプ](https://help.hatenablog.com/entry/blogcards)より引用</cite>
+
+### Astro とは？
+
+> Astroは、ブログやマーケティング、eコマースなど、コンテンツ駆動のウェブサイトを作成するためのウェブフレームワークです。Astroは、新しいフロントエンドアーキテクチャを開拓し、他のフレームワークと比較してJavaScriptのオーバーヘッドと複雑さを低減することで知られています。高速でSEOに優れたウェブサイトが必要なら、Astroが最適です。 <cite>-- [Astro公式Docs](https://docs.astro.build/ja/concepts/why-astro/) より引用をDeepLで翻訳</cite>
+
+- 参考記事
+  - [Webフレームワーク「Astro」とは？開発初心者からベテランまで注目する理由](https://codezine.jp/article/detail/17883)
+
+## 作業環境
+
+- OS - Ubuntu-22.04LTS on WSL2
+- Node.js - v20.14.0
+- pnpm - v9.4.0
+- Astro - v4.11.3
+- Tailwind CSS - v3.4.4
+
+## 作業概要
+
+- ブログカードコンポーネントを実装する
+- ブックマークレットを作成する
+- 実際に使ってみる
+
+## 作業詳細
+
+### ブログカードコンポーネントを実装する
+
+- propsはサイトのmeta情報の以下を使用することを想定
+  - title
+  - description
+  - url
+  - domain（favicon用）
+
+```astro BlogCard.astro
+---
+import { Image } from 'astro:assets'
+
+interface Props {
+  title: string
+  description: string
+  url: string
+  domain: string
+}
+
+const { title, description, url, domain } = Astro.props
+---
+
+<div
+  class='mx-auto mb-12 mt-4 w-full border border-gray-600 bg-white p-4 shadow dark:bg-inherit md:ml-4 md:w-10/12'
+>
+  <div>
+    <p class='m-0 truncate font-semibold hover:text-clip md:m-0'>
+      <a href={url} target='_blank'>
+        {title}
+      </a>
+    </p>
+    <p class='mt-2 line-clamp-3 text-ellipsis text-sm'>
+      {description}
+    </p>
+  </div>
+  <div class='mt-2'>
+    <a class='flex p-0' href={url} target='_blank'>
+      <Image
+        src={`https://www.google.com/s2/favicons?domain=${url}`}
+        width={16}
+        height={16}
+        format='webp'
+        alt='favicon for blog card'
+        class='m-0 md:m-0'
+      />
+      <span class='mx-2 my-0 text-sm leading-none'>{domain}</span>
+    </a>
+  </div>
+</div>
+```
+
+### ブックマークレットを作成する
+
+- ブラウザで使用するブックマークレットを実装する
+- ブラウザのBookmarkツールバーに配置して、ブログカードにしたいサイトを開いた状態で使用する
+- 実行するとクリップボードへのコピー、コピー内容のモーダル表示を行う
+
+次のコードをブラウザのブックマークに保存して使用する。
+
+```text bookmarklet
+javascript:(function(){const t=document.createElement("style");t.innerHTML="\n    .custom-dialog {\n      color: #fff;\n%20%20%20%20%20%20overflow:%20auto;\n%20%20%20%20%20%20max-width:%2080%;\n%20%20%20%20%20%20max-height:%2080%;\n%20%20%20%20%20%20position:%20fixed;\n%20%20%20%20%20%20top:%2050%;\n%20%20%20%20%20%20left:%2050%;\n%20%20%20%20%20%20transform:%20translate(-50%,%20-50%);\n%20%20%20%20%20%20padding:%2020px;\n%20%20%20%20%20%20background-color:%20#171717;\n%20%20%20%20%20%20box-shadow:%200%202px%2010px%20rgba(0,%200,%200,%200.1);\n%20%20%20%20%20%20z-index:%2010000;\n%20%20%20%20%20%20font-size:14px;\n%20%20%20%20}\n%20%20%20%20.custom-dialog-overlay%20{\n%20%20%20%20%20%20position:%20fixed;\n%20%20%20%20%20%20top:%200;\n%20%20%20%20%20%20left:%200;\n%20%20%20%20%20%20width:%20100%;\n%20%20%20%20%20%20height:%20100%;\n%20%20%20%20%20%20background:%20rgba(0,%200,%200,%200.4);\n%20%20%20%20%20%20z-index:%209999;\n%20%20%20%20}\n%20%20%20%20.custom-dialog-close%20{\n%20%20%20%20%20%20float:%20right;\n%20%20%20%20%20%20cursor:%20pointer;\n%20%20%20%20}\n%20%20",document.head.appendChild(t);const%20e=()=>document.title,n=t=>{const%20e=document.querySelector(`meta[property='${t}']`);return%20e?e.getAttribute("content"):void%200},o={title:n("og:title")||e(),desp:n("og:description")||"",url:document.URL,domain:location.host},r=t=>t.replace(/["'\\\n\r]/g,function(t){switch(t){case'"':return"&quot;";case"'":return"&#39;";case"\\":return"\\\\";case"\n":case"\r":return"";default:return%20t}}),c=`\n%20%20%20%20&lt;BlogCard\n%20%20%20%20title="${r(o.title)}"\n%20%20%20%20description="${r(o.desp)}"\n%20%20%20%20url='${o.url}'\n%20%20%20%20domain='${o.domain}'%20/&gt;\n%20%20`,a=document.createElement("div");a.className="custom-dialog-overlay";const%20i=document.createElement("div");i.className="custom-dialog",i.innerHTML=`<pre>${c}</pre><button%20class="custom-dialog-close">%E9%96%89%E3%81%98%E3%82%8B</button>`,a.appendChild(i),document.body.appendChild(a),i.querySelector(".custom-dialog-close").onclick=(()=>{document.body.removeChild(a)}),navigator.clipboard.writeText(c.trim().replace("&lt;","<").replace("&gt;",">")).then(()=>{alert("%E3%82%B3%E3%83%94%E3%83%BC%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F")}).catch(t=>{alert("%E3%82%B3%E3%83%94%E3%83%BC%E3%81%AB%E5%A4%B1%E6%95%97%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F:%20",t)})})();
+```
+
+<details>
+<summary>（クリックで開く）minifyする前のjavascript</summary>
+
+```javascript bookmarklet
+;(function () {
+  // スタイルを作成
+  const style = document.createElement('style')
+  style.innerHTML = `
+    .custom-dialog {
+      color: #fff;
+      overflow: auto;
+      max-width: 80%;
+      max-height: 80%;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      background-color: #171717;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 10000;
+      font-size:14px;
+    }
+    .custom-dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 9999;
+    }
+    .custom-dialog-close {
+      float: right;
+      cursor: pointer;
+    }
+  `
+  document.head.appendChild(style)
+
+  // タイトルタグの値を取得する関数
+  const getTitleTagValue = () => document.title
+
+  // メタタグの情報を取得する関数
+  const getMetaTagContent = (property) => {
+    const metaTag = document.querySelector(`meta[property='${property}']`)
+    return metaTag ? metaTag.getAttribute('content') : undefined
+  }
+
+  const obj = {
+    title: getMetaTagContent('og:title') || getTitleTagValue(),
+    desp: getMetaTagContent('og:description') || '',
+    url: document.URL,
+    domain: location.host
+  }
+
+  const escapeString = (str) => {
+    return str.replace(/["'\\\n\r]/g, function (match) {
+      switch (match) {
+        case '"':
+          return '&quot;'
+        case "'":
+          return '&#39;'
+        case '\\':
+          return '\\\\'
+        case '\n':
+        case '\r':
+          return ''
+        default:
+          return match
+      }
+    })
+  }
+
+  const textContent = `
+    &lt;BlogCard
+    title=\"${escapeString(obj.title)}\"
+    description=\"${escapeString(obj.desp)}\"
+    url='${obj.url}'
+    domain='${obj.domain}' /&gt;
+  `
+
+  // ダイアログを作成
+  const overlay = document.createElement('div')
+  overlay.className = 'custom-dialog-overlay'
+
+  const dialog = document.createElement('div')
+  dialog.className = 'custom-dialog'
+  dialog.innerHTML = `<pre>${textContent}</pre><button class="custom-dialog-close">閉じる</button>`
+
+  overlay.appendChild(dialog)
+  document.body.appendChild(overlay)
+
+  // 閉じるボタンの動作を追加
+  dialog.querySelector('.custom-dialog-close').onclick = () => {
+    document.body.removeChild(overlay)
+  }
+
+  // コピー実行
+  navigator.clipboard
+    .writeText(textContent.trim().replace('&lt;', '<').replace('&gt;', '>'))
+    .then(() => {
+      alert('コピーしました')
+    })
+    .catch((err) => {
+      alert('コピーに失敗しました: ', err)
+    })
+})()
+```
+
+</details>
+
+### 実際に使ってみる
+
+1. 記事を書いているファイルにBlogCard componentをimport
+1. 先ほどのブックマークレットのコードコピーし、ブラウザのブックマークに保存
+1. ブログカードにしたいサイトを開く
+1. 保存したブックマークをクリック
+1. 記事ファイルにペースト
+
+```mdx blogcard-sample.mdx
+---
+title: blogcardサンプル
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## ブックマークレットを貼り付けてみる
+
+↓こんな感じになる↓
+
+<BlogCard
+  title='Home'
+  description='個人Blog。 Book感想、システム開発の備忘録、その他雑記など。'
+  url='https://neputa-note.pages.dev/'
+  domain='neputa-note.pages.dev'
+/>
+```
+
+以上

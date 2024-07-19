@@ -1,0 +1,318 @@
+---
+title: 03．はじめてスマホアプリを作ってみた（調査フェーズ）
+description: 本記事概要 --スマホアプリ開発未経験者が個人で開発からリリースするまでを記録した。それなりのボリュームが見込まれるため、全7回に区切って投稿してみたい。今回は第3回目。
+pubDate: '2021-03-02 11:30:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/mobileapps-development.webp'
+category:
+  - DEV
+tags: ['dev', 'dotnet', 'Xamarin Forms']
+draft: false
+keywords: []
+type: blog
+---
+
+import { Image } from 'astro:assets'
+import imgGooglePlay from '@/images/blog/google-play.webp'
+import Alert from '@/components/mdx/Alert'
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 記事の概要
+
+こちらの一覧の3つ目、「調査フェーズ」の記事。
+
+1. [検討フェーズ（どんなアプリを作るか）](/2021/02/first-mobile-app-01/)
+1. [要件フェーズ（どんな要件のアプリにするか）](/2021/03/first-mobile-app-02/)
+1. 調査フェーズ（どんな技術を使うか）【今回】
+1. [設計フェーズ（どうやって作るか）](/2021/03/first-mobile-app-04/)
+1. [開発フェーズ（実際に作りはじめる）](/2021/03/first-mobile-app-05/)
+1. [公開フェーズ（アプリを公開する）](/2021/03/first-mobile-app-06/)
+1. [保守フェーズ（公開から現在まで）](/2021/03/first-mobile-app-07/)
+
+ダイジェストで読みたい方はこちらの記事を。
+
+<BlogCard
+  title='アラフォー初心者だけどスマホアプリを開発～リリースまでがんばってみた【Android・Xamarin.Forms】'
+  description='あらすじ この度、素人ながらスマホアプリ開発に挑戦してみた。今回の記事では概要と経緯について書き綴ってみたい。実際に行った作業の詳細は、全7回に分けた記事を別途作成'
+  url='https://www.neputa-note.net/2021/02/onethird-release/'
+  domain='www.neputa-note.net'
+/>
+
+インストールはこちらから。
+
+<Fragment>
+  <a
+    href='https://play.google.com/store/apps/details?id=com.neputafactory.onethird&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'
+    target='_blank'
+  >
+    <Image
+      src={imgGooglePlay}
+      alt={'Google Play で手に入れよう'}
+      width={200}
+      height={59}
+      format='webp'
+    />
+  </a>
+</Fragment>
+
+<Alert type='warning' content='Androidのみ iOS版は現在リリース未定' />
+
+## はじめてのスマホアプリ開発 調査フェーズ
+
+### スマホアプリってどんな技術を使うのか調べる
+
+![an image of tools](@/images/blog/8689248065548755509-pexels-anna-shvets-4312861.webp "Photo by：<a href='https://www.pexels.com/ja-jp/@shvetsa?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Anna Shvets</a> in <a href='https://www.pexels.com/ja-jp/photo/4312861/?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Pexels</a>")
+
+[前回](/2021/03/first-mobile-app-02/)は、大まかではあるが、アプリの要件を決定していく過程について書いた。
+
+今回は設計作業の前段として、「どうやって作るか」を決めていく過程をまとめてみたい。
+
+今回わたしが目指しているのは「シンプルに睡眠記録を登録・閲覧できるアプリ」。
+
+考えないといけないのは、だいたい以下の3つだろうとあたりを付け調べ始めた。
+
+- アプリのプラットフォーム
+- 開発フレームワーク・言語
+- データベース
+
+以上の各項目ごとに、考えたことや決定していく過程をまとめていく。
+
+### アプリのプラットフォームを考える
+
+![an image of platforms](@/images/blog/8689248065548755509-obi-onyeador-2JrpkyZ2ruQ-unsplash.webp "Photo by：<a href='https://unsplash.com/@thenewmalcolm?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText' target='_blank' rel='noopener'>Obi Onyeador</a> in <a href='https://unsplash.com/s/photos/osmobile-phones?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText' target='_blank' rel='noopener'>Unsplash</a>")
+
+まずこちらの記事を見てみると、世界全体では「Android」のシェアが多いが、日本では「iPhone」の方がシェアは高いらしい。
+
+<BlogCard
+  title='【iPhone VS Android】世界と日本におけるスマホOSのシェア比較 – XERA'
+  description='日本ではiPhoneが圧倒的に人気ですが、iOSシェア率は約70％。しかし世界ではAndroidの方がシェアが高い結果に。2017年の最新データで分析しています。'
+  url='https://xera.jp/entry/iphone-android-share'
+  domain='xera.jp'
+/>
+
+当初、定めた今回の要件の中に「多言語対応」がある。
+
+英語と日本語に対応したモノをつくろうと思っているが、国内で半数以上を占める「iPhone」は無視できないとの思いが頭をよぎる。
+
+しかし第一の条件は「自分が使う」、そしてわたしが普段利用しているのは「Android」。
+
+ということで、今回は「Androidアプリを作る」ことに決める。
+
+### 開発フレームワーク・言語を考える
+
+作るのは「Androidアプリ」に決定した。
+
+続いて、どのような言語、開発環境が必要かを調べる。
+
+まずはこちらの記事を参考にした。
+
+<BlogCard
+  title='Android開発目線でJavaとKotlinとDart(Flutter)を比較'
+  description='「Androidのアプリ開発には興味あるけど、Kotlinの方がいいのかな？」「最近は Flutterを使ったアプリ開発も盛んみたい...」「Android、どの言語を選べばいいの？」「Javaは学ばないほうがいいの？」という方向けに、 Java と Kotlin と Dart の違い、適性についてご紹介させて頂きます。'
+  url='https://blog.codecamp.jp/programming-android-java-kotlin-dart'
+  domain='blog.codecamp.jp'
+/>
+
+Googleが提供する「Android Studio」という開発環境で「Java」または「Kotlin」という言語で開発するのがスタンダードと言えそうだ。
+
+一方、「Flutter」というフレームワークと「Dart」という言語で開発する方法にも触れている。
+
+Flutter & DartでAndroidとiPhone両方のアプリを一度に開発できるというメリットあるとのこと。
+
+これはすごい、お得じゃないか！となるわけだが、上の記事にもある通りJavaやKotlinに比べると圧倒的に情報量が少ないとのこと。
+
+作っていく過程で初心者は絶対つまずくことは知っている。
+
+ものすごい回数つまずくため情報量が多いことはとても重要。
+
+ということで、Flutterは却下とした。
+
+では、Android StudioをインストールしてJavaかKotlinどちらにするか決めるのかと思いきや、まだ早い。
+
+わたしはかつて、中途半端に「C#」という言語を使っていた経験がある。
+
+これが無ければ、迷わず「Android Studio」をインストールしていたと思う。
+
+そしてそれが正解だったなと思う。
+
+ところが、「Xamarin.Forms」なるものを知ってしまうのだ。
+
+<BlogCard
+  title='Xamarin.Forms の概要 - Xamarin'
+  description='この記事では、Xamarin.Forms と関連ライブラリについて紹介します。'
+  url='https://learn.microsoft.com/ja-jp/previous-versions/xamarin/get-started/what-is-xamarin-forms'
+  domain='learn.microsoft.com'
+/>
+
+なんと、「C#」でAndroidとiPhoneアプリを開発できるではないか。
+
+そして、Microsoftによるドキュメントやチュートリアルなども結構充実している。
+
+ということで、わたしは「Xamarin.Forms」を使ってアプリを作ることに決めた。
+
+が、のちのち細かいところで行き詰り、調べるたびに「Javaにしておけば良かった」という状況にしばしば直面する。
+
+やはり「情報量」は大事。
+
+公式ドキュメントが揃っているとはいえ、実際作り始めると細かい問題に直面し、さらなる情報を求めるようになる。
+
+そうなると、開発人口が多い言語の方が解決にたどり着くスピードが早まると思う。
+
+また、Xamarin.FormsはiPhoneアプリも同時に開発できるがリリースまで行うには最低限iPhone端末、できればMacが必要。
+
+<BlogCard
+  title='【Mac不要】.NET製iOSアプリをiPhone実機配備する手順 - Qiita'
+  description='2023/12/02 追記Xamarin.Forms の後継である MAUI を使った記事を投稿しました。【Mac不要】.NET MAUI 製 iOS アプリを iPhone に手軽にデバッグ配…'
+  url='https://qiita.com/kami_teru/items/58b6b5e4fd835248bf7a'
+  domain='qiita.com'
+/>
+
+結果的に、わたしは「Xamarin.Forms」を選択した。
+
+が、まったくのイチから考える場合、「Androidアプリを作りたければAndroid Studio & JavaまたはKotlin」、「iPhoneアプリを作りたければMac & Xcode & Swiftまたは
+Objective-Cなど」が良いと思う。
+
+わたしのように「C#」や「.NET」にあるていど親しみがあれば、プログラミング学習をスキップできるため「Xamarin.Forms」も良いかもしれない。
+
+ただ先ほども書いたとおりAndroidネイティブやiPhoneネイティブ開発に比べると情報量はグッと少ない。
+
+とりあえず、今回の選択は下記の通り。
+
+- 開発環境
+  - Visual Studio Community 2019
+- フレームワーク
+  - Xamarin.Forms
+- 言語
+  - C#
+
+### データベースを考える
+
+![an image of thinking](@/images/blog/8689248065548755509-tobias-fischer-PkbZahEG2Ng-unsplash.webp "Photo by：<a href='https://unsplash.com/@tofi?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText' target='_blank'>Tobias Fischer</a> in <a href='https://unsplash.com/s/photos/database?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText' target='_blank'>Unsplash</a>")
+
+前項がだいぶ長くなってしまったが、続いて「データベース」について書きたい。
+
+今回のアプリでは「睡眠記録を保存」そして「記録を閲覧」する機能を実装する予定。
+
+そうなると、データの永続化を考える必要がある。
+
+Xamarin.Forms公式にチュートリアルが掲載されている「SQLite」を使用することに、この時点では決めた。
+
+取り扱いも非常に簡単。
+
+<BlogCard
+  title='Xamarin.Forms ローカル データベース - Xamarin'
+  description='Xamarin.Forms は、SQLite データベース エンジンを使ったデータベース駆動型アプリケーションをサポートしています。これにより、共有コードでのオブジェクトの読み込みと保存が可能になります。 この記事では、Xamarin.Forms アプリケーションが SQLite.Net を使って、ローカルの SQLite データベースに対してデータの読み書きを行う方法について説明します。'
+  url='https://learn.microsoft.com/ja-jp/previous-versions/xamarin/xamarin-forms/data-cloud/data/databases'
+  domain='learn.microsoft.com'
+/>
+
+しかし、実際にリリースしたアプリではsqliteとは異なる2つのデータベースを使用した。
+
+ローカルDBは「Realm」、クラウドDBは「Azure CosmosDB」。
+
+当初、上にも書いた通り「SQLite」で開発を進めていたが、調べている過程で「Realm」を知った。
+
+<BlogCard
+  title='Realmの基礎知識 〜特徴と強みの再認識〜｜ 開発者ブログ ｜ 株式会社アイソルート'
+  description='「Realmの基礎知識 〜特徴と強みの再認識〜」「モバイル　データベース」で検索すると真っ先に出てくるRealm。既に広く使われているRealmの基礎と特徴を解説します。 '
+  url='https://www.isoroot.jp/blog/2271/'
+  domain='www.isoroot.jp'
+/>
+
+.NET用のドキュメントもある。
+
+<BlogCard
+  title='Atlas Device SDK for .NET - Atlas Device SDKs'
+  description=''
+  url='https://www.mongodb.com/docs/atlas/device-sdks/sdk/dotnet/'
+  domain='www.mongodb.com'
+/>
+
+当初はローカルだけ保存できればいいと考えていたが、機種変など別の端末に移った場合を考慮し、「サーバ上に保存したい」となった。
+
+そこで見つけたのが「Azure CosmosDB」。
+
+<BlogCard
+  title='統合 AI データベース - Azure Cosmos DB'
+  description='AI 時代のデータベース - Azure Cosmos DB は、オペレーショナル データのニーズに合わせて比類のない信頼性と柔軟性を提供する NoSQL、リレーショナル、ベクター データベースです。'
+  url='https://learn.microsoft.com/ja-jp/azure/cosmos-db/introduction'
+  domain='learn.microsoft.com'
+/>
+
+おそらく、同様のサービスであればamazonが提供する「AWS」などを利用したほうが安く、情報量もあることが分かった。
+
+ただ、.NET開発に関してはMicrosoftによる「Azure CosmosDB」の方がドキュメントがあると感じた。
+
+結果的に、サインアップせずに使用するユーザはローカルの「Realm」、サインアップしサーバ上にデータを保存した人は「CosmosDB」を使い分ける仕様に決めた。
+
+ただXamarin.Formsでローカルに保存したいだけであれば、「Realm」よりも「SQLite」の方が情報は多く見つかる。
+
+とりあえず、わたしが選択したのは下記の通り。
+
+- 開発当初
+  - SQLite
+- 最終的に採用
+  - Realm
+  - Azure CosmosDB
+
+### その他
+
+以下は、最初は考えていなかったことで、後から追加したモノ。
+
+最終的にサインアップする機能を追加したため「Azure Active Directory
+B2C」というサービスを使用することにした。
+
+<BlogCard
+  title='Azure Active Directory B2C のドキュメント'
+  description='Azure Active Directory B2C を使用して、アプリケーション使用時の顧客のサインアップ、サインイン、プロファイル管理をカスタマイズして制御する方法について説明します。'
+  url='https://learn.microsoft.com/ja-jp/azure/active-directory-b2c/'
+  domain='learn.microsoft.com'
+/>
+
+クラウドサービスを利用するため、ランニングコストが発生することになった。
+
+これを補うため、ごく一部に広告を入れることとし「Google AdMob」というサービスを使用した。
+
+<BlogCard
+  title='Google AdMob - モバイルアプリの収益化'
+  description='アプリ内広告を使ってモバイルアプリからの収益を増やしましょう。行動につながるインサイトも入手でき、使いやすいツールでアプリの成長も後押しできます。'
+  url='https://admob.google.com/intl/ja/home/'
+  domain='admob.google.com'
+/>
+
+## まとめ
+
+![blog image](@/images/blog/8689248065548755509-pexels-ann-h-1888005.webp "Photo by：<a href='https://www.pexels.com/ja-jp/@ann-h-45017?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Ann H</a> in <a href='https://www.pexels.com/ja-jp/photo/1888005/?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Pexels</a>")
+
+長くなったが、今回のアプリで「どんな技術を使うか」について考えた過程をまとめた。
+
+各フレームワーク、言語、サービスなど詳細については、つまずいた部分などにフォーカスして別途記事を書きたい。
+
+先日読んだ「Clean Architecture　達人に学ぶソフトウェアの構造と設計」という書籍は、今回書いたようなフレームワークやデータベースなどは「詳細」である、と書かれていた。
+
+<BlogCard
+  title='『Clean Architecture　達人に学ぶソフトウェアの構造と設計』を読んだ'
+  description='ソフトウェア開発から離れて10年以上が経過している。昨年夏ごろからスマホアプリでも開発してみようと一念発起。化石と化した脳みそをアップデートするために読んだ一冊。刺さった箇所などを備忘録としてメモしておく。第１章の冒頭にそもそも「アーキテクチャって何ぞ？」がある。何で設計するの？何でよい設計を'
+  url='https://www.neputa-note.net/2021/02/clean-architecture/'
+  domain='www.neputa-note.net'
+/>
+
+おそらく経験を積むと、そう考えることができると思うのだが、初心者にとって「実際に使う道具が何であるか」は、とても重要だと思う。
+
+どのような道具を使うのかまったくイメージせずにビジネスコアを詰めていく作業はとっても高度なスキルだと感じるからだ。
+
+またスマホアプリを作りたいと思う人であれば、言語やフレームワークへの興味も高いはず。
+
+これらを選定する作業は楽しいしやる気も上がる。 実際、わたしはそうだった。
+
+次回は、設計フェーズ（どうやって作るか）についてまとめていきたい。
+
+## はじめてスマホアプリを作ってみた 記事一覧
+
+1. [検討フェーズ（どんなアプリを作るか）](/2021/02/first-mobile-app-01/)
+1. [要件フェーズ（どんな要件のアプリにするか）](/2021/03/first-mobile-app-02/)
+1. 調査フェーズ（どんな技術を使うか）【今回】
+1. [設計フェーズ（どうやって作るか）](/2021/03/first-mobile-app-04/)
+1. [開発フェーズ（実際に作りはじめる）](/2021/03/first-mobile-app-05/)
+1. [公開フェーズ（アプリを公開する）](/2021/03/first-mobile-app-06/)
+1. [保守フェーズ（公開から現在まで）](/2021/03/first-mobile-app-07/)

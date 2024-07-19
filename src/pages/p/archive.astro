@@ -1,0 +1,73 @@
+---
+import SinglePageLayout from '@/layouts/SinglePageLayout'
+import { getPermalink, getPosts } from '@/utils'
+
+const posts = await getPosts()
+
+interface PostLink {
+  title: string
+  link: string
+  year: string
+  pubDate: Date
+}
+
+interface LinkList {
+  year: string
+  posts: PostLink[]
+}
+
+const target: PostLink[] = posts.map(
+  (post): PostLink => ({
+    title: post.data.title,
+    link: post.slug,
+    year: post.slug.substring(0, 4),
+    pubDate: post.data.pubDate
+  })
+)
+
+const linkLists = buildLists(target)
+
+function buildLists(posts: PostLink[]): LinkList[] {
+  const lists: LinkList[] = []
+  let currentList: LinkList | null = null
+
+  posts.forEach((post) => {
+    const currentYear = post.year
+
+    if (!currentList || currentList.year !== currentYear) {
+      if (currentList) {
+        lists.push(currentList)
+      }
+      currentList = { year: currentYear, posts: [] }
+    }
+
+    currentList.posts.push(post)
+  })
+
+  if (currentList) {
+    lists.push(currentList)
+  }
+
+  return lists
+}
+
+const title = '投稿一覧'
+const description = 'ブログに投稿した全記事を年別に一覧化したページです。'
+---
+
+<SinglePageLayout title={title} description={description}>
+  {
+    linkLists.map((list) => (
+      <>
+        <h2 class='border-b-2 border-b-gray-500 pl-4'>{list.year}年</h2>
+        <ul>
+          {list.posts.map((post) => (
+            <li>
+              <a href={getPermalink(post.link, 'post')}>{post.title}</a>
+            </li>
+          ))}
+        </ul>
+      </>
+    ))
+  }
+</SinglePageLayout>

@@ -1,0 +1,515 @@
+---
+title: 05．はじめてスマホアプリを作ってみた（開発フェーズ）
+description: 本記事概要 --スマホアプリ開発未経験者が個人で開発からリリースするまでを記録した。それなりのボリュームが見込まれるため、全7回に区切って投稿してみたい。今回は第5回目。
+pubDate: '2021-03-04 11:30:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/mobileapps-development.webp'
+category:
+  - DEV
+tags: ['dev', 'dotnet', 'Xamarin Forms']
+draft: false
+keywords: []
+type: blog
+---
+
+import { Image } from 'astro:assets'
+import imgGooglePlay from '@/images/blog/google-play.webp'
+import Alert from '@/components/mdx/Alert'
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 記事の概要
+
+こちらの一覧の5つ目、「開発フェーズ」の記事。
+
+1. [検討フェーズ（どんなアプリを作るか）](/2021/02/first-mobile-app-01//)
+1. [要件フェーズ（どんな要件のアプリにするか）](/2021/03/first-mobile-app-02/)
+1. [調査フェーズ（どんな技術を使うか）](/2021/03/first-mobile-app-03/)
+1. [設計フェーズ（どうやって作るか）](/2021/03/first-mobile-app-04/)
+1. 開発フェーズ（実際に作りはじめる）【今回】
+1. [公開フェーズ（アプリを公開する）](/2021/03/first-mobile-app-06/)
+1. [保守フェーズ（公開から現在まで）](/2021/03/first-mobile-app-07/)
+
+ダイジェストで読みたい方はこちらの記事を。
+
+<BlogCard
+  title='アラフォー初心者だけどスマホアプリを開発～リリースまでがんばってみた【Android・Xamarin.Forms】'
+  description='あらすじ この度、素人ながらスマホアプリ開発に挑戦してみた。今回の記事では概要と経緯について書き綴ってみたい。実際に行った作業の詳細は、全7回に分けた記事を別途作成'
+  url='https://www.neputa-note.net/2021/02/onethird-release/'
+  domain='www.neputa-note.net'
+/>
+
+インストールはこちらから。
+
+<Fragment>
+  <a
+    href='https://play.google.com/store/apps/details?id=com.neputafactory.onethird&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'
+    target='_blank'
+  >
+    <Image
+      src={imgGooglePlay}
+      alt={'Google Play で手に入れよう'}
+      width={200}
+      height={59}
+      format='webp'
+    />
+  </a>
+</Fragment>
+
+<Alert type='warning' content='Androidのみ iOS版は現在リリース未定' />
+
+## はじめてのスマホアプリ開発 開発フェーズ
+
+[前回](/2021/03/first-mobile-app-04/)は、設計作業の工程で行ったことについて書いた。
+
+Visual Studioで必要なプロジェクトを追加し、フォルダ構成を整え、クラスファイルを配置しながらの設計作業だった。
+
+全体の骨組みはできた。今回は実際にコーディングをどのように進めていったかをまとめたい。
+
+### どこから着手していくか
+
+![an image of design](@/images/blog/1243699140040483286-gia-oris-_uM5_nG2ssc-unsplash.webp "Photo by：<a href='https://unsplash.com/@giabyte?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText' target='_blank'>Gia Oris</a> in <a href='https://unsplash.com/photos/_uM5_nG2ssc' target='_blank'>Unsplash</a>")
+
+さてまずはどこからコーディングをしていけばいいか。
+
+まずは、前回の設計作業で作ったコンポーネント図を見てみたい。
+
+![Project構成図](@/images/blog/3426260346263224275-onethird-project-diagram.webp 'Project構成図')
+
+この図の「Domain」が「アプリのもっとも重要な場所」、と本に書いてあった。
+
+今回は睡眠記録を保存・閲覧するアプリ。
+
+睡眠記録の定義、ルールなど、アプリの肝となるコードはこの「Domain」に書いていく。
+
+Domainは、追加でウェブアプリを作ることになったり、データベースがRDBからドキュメントDBになっても、変わることのない中核を担う部分。
+
+ということで、Domainが無ければ始まらない、ここから着手する。
+
+まずは、「就寝時間」「起床時間」といった、「睡眠記録」が持つ情報。
+
+これらは「Value Objet」として書き、それぞれが持つルールなどと併せて実装した。
+
+それらを「Entity」として、起床時間は就寝時間より未来の日時であるなど複合的なルールと一緒にまとめあげる。
+
+睡眠記録のEntityはこんな感じになた。
+
+```csharp
+using System;
+using OneThird.Domain.Exceptions;
+using OneThird.Domain.Models.Slogs.ValueObjects;
+
+namespace OneThird.Domain.Models.Slogs
+{
+    /// <summary>
+    /// 睡眠記録のEntityクラス
+    /// ・WakeupDateTimeはSleepDateTimeより後であること
+    /// ・WakeUpdateの日付はTargetDateと同じであること
+    /// ・SleepDateTimeはTargetDateの前日17時からTargetDate当日16時59分までであること
+    /// </summary>
+    public class SlogEntity : Entity<SlogId>
+    {
+        /// <summary> コンストラクタ (Create) </summary>
+        /// <param name="slogId">SlogId</param>
+        /// <param name="targetDate">TargetDate</param>
+        /// <param name="sleepDateTime">SleepDateTime</param>
+        /// <param name="wakeupDateTime">WakeupDateTime</param>
+        /// <param name="rating">Rating</param>
+        /// <param name="note">Note</param>
+        /// <param name="userId">UserId</param>
+        public SlogEntity(
+            SlogId slogId,
+            TargetDate targetDate,
+            SleepDateTime sleepDateTime,
+            WakeupDateTime wakeupDateTime,
+            Rating rating,
+            Note note,
+            UserId userId)
+        {
+            Id = slogId ?? throw new ArgumentNullException(nameof(slogId));
+            TargetDate = targetDate ?? throw new ArgumentNullException(nameof(targetDate));
+            SleepDateTime = sleepDateTime ?? throw new ArgumentNullException(nameof(sleepDateTime));
+            WakeupDateTime = wakeupDateTime ?? throw new ArgumentNullException(nameof(wakeupDateTime));
+            Rating = rating ?? throw new ArgumentNullException(nameof(rating));
+            Note = note ?? throw new ArgumentNullException(nameof(note));
+            UserId = userId ?? throw new ArgumentNullException(nameof(userId));
+
+            ValidatePreAndPostDates(sleepDateTime, wakeupDateTime);
+            ValidateSleepDateTime(sleepDateTime);
+            ValidateWakeupDateTime(wakeupDateTime);
+        }
+
+        /// <summary> Gets TargetDate </summary>
+        public TargetDate TargetDate { get; }
+
+        /// <summary> Gets SleepDateTime </summary>
+        public SleepDateTime SleepDateTime { get; }
+
+        /// <summary> Gets WakeupDateTime </summary>
+        public WakeupDateTime WakeupDateTime { get; }
+
+        /// <summary> Gets Rating </summary>
+        public Rating Rating { get; }
+
+        /// <summary> Gets Note </summary>
+        public Note Note { get; }
+
+        /// <summary> Gets UserId </summary>
+        public UserId UserId { get; }
+
+        /// <summary> 睡眠時間(TimeSpan) </summary>
+        public TimeSpan SleepHours => WakeupDateTime.Value - SleepDateTime.Value;
+
+        /// <summary>
+        /// 起床日時(WakeupDateTime)の日付が対象日付(TargetDate)と同日であると
+        /// </summary>
+        /// <param name="target">SleepDateTime</param>
+        private void ValidateWakeupDateTime(WakeupDateTime target)
+        {
+            if (target.Value.Date != TargetDate.Value)
+            {
+                throw new OutOfRangeException($"{nameof(WakeupDateTime)}:{target.Value}");
+            }
+        }
+
+        /// <summary>
+        /// SleepDateTime の条件 - 以下２条件を満たすこと
+        ///   Condition A : TargetDateの前日17:00 ～ 当日16:59の範囲内
+        /// ・Condition B : または、TargetDateの当日17:00以降の場合、
+        ///                WakeupDateTimeが当日23:59以前
+        /// </summary>
+        /// <param name="sleepDateTime">SleepDateTime</param>
+        private void ValidateSleepDateTime(SleepDateTime sleepDateTime)
+        {
+            if (!GetResultOfConditionA(sleepDateTime) &&
+                !GetResultOfConditionB(sleepDateTime))
+            {
+                throw new OutOfRangeException(
+                    $"{nameof(SleepDateTime)}:{sleepDateTime.Value}");
+            }
+        }
+
+        // Condition A : TargetDateの前日17:00 ～ 当日16:59の範囲内
+        private bool GetResultOfConditionA(SleepDateTime sleepDateTime)
+        {
+            var conditionStart = TargetDate.Value.Date.AddDays(-1).AddHours(17);
+            var conditionEnd = TargetDate.Value.Date.Add(new TimeSpan(16, 59, 59));
+
+            return conditionStart <= sleepDateTime.Value &&
+                   sleepDateTime.Value <= conditionEnd;
+        }
+
+        // Condition B : または、TargetDateの当日17:00以降の場合、
+        //              WakeupDateTimeが当日23:59以前
+        private bool GetResultOfConditionB(SleepDateTime sleepDateTime)
+        {
+            var condition1 = TargetDate.Value.Date.AddHours(17);
+            var condition2 = TargetDate.Value.Date.Add(new TimeSpan(23, 59, 59));
+
+            return condition1 <= sleepDateTime.Value &&
+                   WakeupDateTime.Value <= condition2;
+        }
+
+        /// <summary> 睡眠日時と起床日時の前後関係を検証する </summary>
+        /// <param name="sleepDateTime">SleepDateTime</param>
+        /// <param name="wakeupDateTime">WakeupDateTime</param>
+        private void ValidatePreAndPostDates(SleepDateTime sleepDateTime, WakeupDateTime wakeupDateTime)
+        {
+            if (sleepDateTime.Value > wakeupDateTime.Value)
+            {
+                throw new PreAndPostDateException(
+                    $"Sleep DateTime:{sleepDateTime.Value.ToString("yyyy/MM/dd hh:mm")}{Environment.NewLine}Wakeup DateTime:{wakeupDateTime.Value.ToString("yyyy/MM/dd hh:mm")}");
+            }
+        }
+    }
+}
+```
+
+「Slog」というのは、「Sleep Log」の略称として付けた名称。
+
+今回のアプリにおいてもっとも使用する頻度の高いワードのため、使いやすいよう命名した。
+
+続いて、後々Entityを元にデータベースとやり取りする実装を「Infrastructureプロジェクト」に行う。
+
+そこで必要となるインターフェイスもこのDomainに作っておく。
+
+```csharp
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using OneThird.Domain.Models.Slogs.ValueObjects;
+using OneThird.Domain.Models.YearMonths;
+
+namespace OneThird.Domain.Models.Slogs
+{
+    /// <summary> SlogRepository Interface </summary>
+    public interface ISlogRepository
+    {
+        /// <summary> Save new Entity </summary>
+        /// <param name="slogEntity">target SlogEntity</param>
+        /// <returns>Task</returns>
+        Task SaveAsync(SlogEntity slogEntity);
+
+        /// <summary> Delete Entity </summary>
+        /// <param name="slogEntity">target SlogEntity</param>
+        /// <returns>Task</returns>
+        Task DeleteAsync(SlogEntity slogEntity);
+
+        /// <summary> Find one entity by Guid </summary>
+        /// <param name="slogEntity">target SlogEntity</param>
+        /// <returns>a entity</returns>
+        Task<SlogEntity> FindAsync(SlogEntity slogEntity);
+
+        /// <summary> Find all entities </summary>
+        /// <param name="userId">target UserId</param>
+        /// <returns>IEnumerable entities</returns>
+        Task<IEnumerable<SlogEntity>> FindAllAsync(UserId userId);
+
+        /// <summary> 特定期間を指定したクエリメソッド実装 </summary>
+        /// <param name="userId">target UserId</param>
+        /// <param name="fromDate">from TargetDate</param>
+        /// <param name="toDate">targetto TargetDate</param>
+        /// <returns>IEnumerable SlogEntities</returns>
+        Task<IEnumerable<SlogEntity>> FindSpecificPeriod(UserId userId, TargetDate fromDate, TargetDate toDate);
+
+        /// <summary> TargetDateの年と月をDistinctで取得する </summary>
+        /// <param name="userId">target UserId</param>
+        /// <returns>IEnumerable YearMonthEntity</returns>
+        Task<IEnumerable<YearMonthEntity>> GetYearMonthOfTargetDateWithNoDuplicatesAsync(UserId userId);
+    }
+}
+```
+
+上記は完成したもので、最初はもっとスカスカだった。
+
+実装を進めていくと、後から「こういうルールが必要だ」とか、「パフォーマンスを考慮したクエリを追加しよう」など思いつく。
+
+そのたびに、このDomainを充実させる。
+
+UIやDBが変わっても不変となるルールは、最終的に必要となる先々ではなく、このDomainに立ち戻ってコーディングする。
+
+またルールをユーザに意識させないよう入力させる工夫などはUI側の責務として、Xamarin側に実装する。
+
+こんな具合に、Infrastructure、Application、最後にXamarin（UI）の順番でコーディングを進めていった。
+
+Infrastructureを実装している時点では、Sqliteを使うつもりでいた。まだいろいろ調べている途中だった。
+
+作業を次に進められるようにとりあえず「List\<T\>」を使った仮想DBを実装している。
+
+ドメイン駆動開発の実装については、こちらの本を参考にした。
+
+初心者にも理解しやすい説明となるよう構成されている。
+
+「C#」でサンプルが書かれているため、.NET開発者にとっては重宝する一冊。
+
+<div class='not-prose'>
+  <div data-vc_mylinkbox_id='886996199'></div>
+</div>
+
+### テスト駆動開発を参考に実装していく
+
+![blog image](@/images/blog/1243699140040483286-test-driven-development-TDD.webp "Photo by：<a href='https://marsner.com/blog/why-test-driven-development-tdd/' target='_blank'>MARSNER</a>")
+
+実装の流れは前項の通りだが、もう1つ、「テスト駆動開発」について書きたい。
+
+#### ユニットテストについて
+
+前項で、Domainから開発し、UIの実装は最後に行ったと書いた。
+
+しかし、これでは最後までDomainやApplicationなどのプロジェクトに実装したコードが正しく動作するのか分からない。
+
+UIを仕上げてようやくデバッグとか恐ろしくてチビる。
+
+また、わたしの低スペックPCでエミュレータを使ったデバッグは時間がかかる。
+
+これらを解決してくれる手段として、「ユニットテスト」は欠かせない。
+
+最初にValue ObjetやEntityに実装したルールなど、UI無しに検証できる。
+
+エミュレータを使わずコードを実行できるため処理時間も短く済む。
+
+今回使用したのは、「xUnit」というテストフレームワーク。
+
+[xUnit.net でユニットテストを始める](https://qiita.com/takutoy/items/84fa6498f0726418825d)
+
+また、記事にある「Chainning Assertion」というプラグインも大変便利。
+
+#### ユニットテストを書いておくことのメリット
+
+ユニットテストを書いておくメリットは他にもある。
+
+初心者のとって一発でよいコードを書くことはとても難しい。
+
+一度実装しても、後から修正することは何度も起こる。
+
+しかし修正作業は、せっかく正しく実装した箇所を破壊してしまうリスクが伴う。
+
+そこで、ユニットテストを書いておき、ビルドのたび実行するようにしておくと「テストの失敗」として教えてくれる。
+
+また、小さなメソッドを書く習慣が自然と身につく。
+
+慣れないうちは、ひとつのメソッドに複数の処理を突っ込んでいき、でかいメソッドを書いてしまいがち。
+
+ひとつのメソッドにはひとつの目的を実装するのが良いと、あちこちで目にする。
+
+単機能のメソッドを複数組み合わせて処理を行うよう実装したほうがメンテナンス性は非常に高まる。
+
+そして可読性も増す。
+
+ではユニットテストが小さいメソッドを書く習慣にどう作用するか。
+
+巨大なメソッドのユニットテストを書くのはつらい。これがポイント。
+
+おのずとシンプルなメソッドを書き、テストも短く済む、相互に作用するのが狙いだと感じている。
+
+#### テストファーストによるメリット
+
+実装し、テストを書いて検証する、これが普通だと考えていた。
+
+だがしかし、この世界には「テスト駆動開発」略して「TDD」なるものが存在することを知った。
+
+<BlogCard
+  title='テスト駆動開発とは - IT用語辞典'
+  description='テスト駆動開発【TDD / テストドリブン開発】とは、ソフトウェア開発の手法の一つで、プログラム本体より先にテストコードを書き、そのテストに通るように本体のコードを記述していく方式。「テストファースト」(test first)と呼ばれる原則に従って開発を進めていく手法で、まずプログラムの機能や仕様に基づいて、そのプログラムが通るべきテスト条件やテストコードを記述していく。'
+  url='https://e-words.jp/w/%E3%83%86%E3%82%B9%E3%83%88%E9%A7%86%E5%8B%95%E9%96%8B%E7%99%BA.html'
+  domain='e-words.jp'
+/>
+
+「テストを先に書くとか正気か？？」と最初は思った。
+
+だが、これには大きな恩恵があると知る。
+
+この「最初にテストを書く」ことは、つまり「実装するコードはどのような条件を満たすかを最初に考える」につながる。
+
+最初にテストコードを書きながら、詳細な実装コードの設計を行うイメージか。
+
+そして、テストをパスするよう実装する。
+
+結果として、スッキリとしたコードを書くことができる。
+
+慣れるまではかなりたいへんだが慣れてしまえばこっちのもの。
+
+「テスト駆動開発」については、以下の本を参考にした。
+
+<div class='not-prose'>
+  <div data-vc_mylinkbox_id='886996198'></div>
+</div>
+
+ここまで書いたのはこの本の受け売り。
+
+実際に、どういったことを考えながらテストを書き、実装し、また練り直していくかをコードを交えながら説明してくれる。非常にわかりやすかった。
+
+個人開発は、ミスを指摘してくれる人もいないため、自分で自分のコードを保全する必要がある。
+
+また自分のコードを洗練させていく作業も自分。
+
+TTDはこれらの恩恵を同時に受けることができる。わたしにとって、とってもありがたい開発手法だと感じている。
+
+### 調べる力がモノを言う
+
+![an image of design](@/images/blog/1243699140040483286-markus-winkler-afW1hht0NSs-unsplash.webp "Photo by：<a href='https://unsplash.com/@markuswinkler?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText' target='_blank'>Markus Winkler</a> in <a href='https://unsplash.com/photos/afW1hht0NSs' target='_blank'>Unsplash</a>")
+
+設計を考えている段階でも調べる作業はとても重要だったが、実装段階ではより困難さが増すと実感している。
+
+初心者にとって行き詰ったとき、基本的な情報をゲットし応用するような器用な真似はまだ厳しいものがある。
+
+できることならば、ピンポイントで正解が書かれている情報にありつきたいもの。
+
+ネイティブ開発を行っているのであればだいぶ違うかもしれないが、今回は「Xamarin.Forms」という、開発人口がそれほど多くないフレームワークを使っている。
+
+開発人口が少なければ、転がっている情報も比例して少ない。
+
+たとえば、今回、睡眠を評価するレーティングオブジェクトを実装したいと考えた。
+
+これはXamarinにはないの。
+
+あるもので代替することもできる。1～5の数字を選ぶセレクタとか。
+
+だけど、どうしても5段階の星を選ぶようにしたかった。
+
+絶対に。
+
+ではどうやってこの問題を解決すれば良いか。
+
+- 1つ目は、「金の力にモノを言わせて有料のコンポーネントを買う」。
+  - わたしの経済力を舐めないでほしい。無理、却下。
+- 2つ目は、RatingBarが使える「ネイティブ開発に切り替える」。
+  - これは正直何度も頭をよぎったが、却下とした。
+- 3つ目は、「情報量を増やす」。
+  - つまり、日本語検索では見つからない、英語で探す。
+
+結果、複数の選択肢を得ることができ、目的通りの実装を行うことができた。
+
+情報量が多い言語やフレームワークでも同じだと思うが、調べる作業は英語で行った方が早く目的にたどり着けると思う。
+
+日本固有の習慣に基づくような実装であれば別だが、世界共通のコトであれば、もっとも話者が多い言語を使うことは大きなアドバンテージだと実感した。
+
+いまは高機能な翻訳ツールもある。
+
+きっと問題解決の大きな力になると思う。
+
+### ソース管理ツールを活用する（Git）
+
+![an image of design](@/images/blog/1243699140040483286-icon_git.webp)
+
+コードを書いていくと、「やっぱり元に戻したい」という状況にしばしば直面する。
+
+その対象は、ひとつのソースファイルだけの場合もあれば、プロジェクト全体だったり。
+
+もし、いつでも元に戻せるとなったら実験的にいろいろな実装を試してみたりすることもやりやすくなる。
+
+ほとんどの開発ツールと同様、Visual Studioでも「Git」を使用する機能が組み込まれている。
+
+<BlogCard
+  title='サル先生のGit入門'
+  description=''
+  url='https://backlog.com/ja/git-tutorial/'
+  domain='backlog.com'
+/>
+
+<BlogCard
+  title='Visual Studio での Git エクスペリエンス'
+  description='Visual Studio でのソース管理の Git オプションをご確認ください。また行ったコードの変更を時間の経過に合わせ追跡したり、それらを特定のバージョンに戻したりできます。'
+  url='https://learn.microsoft.com/ja-jp/visualstudio/version-control/git-with-visual-studio?view=vs-2019'
+  domain='learn.microsoft.com'
+/>
+
+ソースファイルをGitで管理すると、特定のファイルだけ元に戻したり、すべてを元に戻したりすることが容易にできるようになる。
+
+どのように実装するか定まっていない場合、実験用のブランチを作ってひと通り試すことも簡単にできる。
+
+トライ＆エラーを気軽に行える環境は心強い。
+
+Gitは自分のPC上でソース管理を行うが、Webを介してGithubや、Microsoftが提供するAzure DevOpsを組み合わせることで、オンライン上にリポジトリを置くことができる。
+
+個人開発であっても、別の端末からも作業できたり、後のリリース作業においてもメリットが多くある。
+
+それについては次回書きたい。
+
+## まとめ
+
+![an image of a conclusion](@/images/blog/1243699140040483286-pexels-ann-h-1888005.webp "Photo by：<a href='https://www.pexels.com/ja-jp/@ann-h-45017?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Ann H</a> in <a href='https://www.pexels.com/ja-jp/photo/1888005/?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Pexels</a>")
+
+今回は、実装作業をどのように進めていったかについて書いた。
+
+もっとシンプルに進めていくこともできると思うが、もっと厳密にやるべきところもあるとも思う。
+
+せっかくの個人開発、自分自身がもっとも恩恵を受けることができる手法を見つけていくのがよいと考えている。
+
+いま現時点の自分だけでなく、後から修正を行うときの自分など、少し未来の自分も考慮した方法を選ぶことがポイントだと思う。
+
+二度と振り返ることができないような突っ走り方だときっと後悔する。
+
+ただ、やり過ぎると開発自体が楽しくなくなってしまう。
+
+参考になったかはわからないが、自分なりの開発方法を見つけ出す一助になれば幸い。
+
+次回は、なんだかんだで一番面倒だった、リリース作業について書く予定。
+
+### はじめてスマホアプリを作ってみた 記事一覧
+
+1. [検討フェーズ（どんなアプリを作るか）](/2021/02/first-mobile-app-01)
+1. [要件フェーズ（どんな要件のアプリにするか）](/2021/03/first-mobile-app-02/)
+1. [調査フェーズ（どんな技術を使うか）](/2021/03/first-mobile-app-03/)
+1. [設計フェーズ（どうやって作るか）](/2021/03/first-mobile-app-04/)
+1. 開発フェーズ（実際に作りはじめる）【今回】
+1. [公開フェーズ（アプリを公開する）](/2021/03/first-mobile-app-06/)
+1. [保守フェーズ（公開から現在まで）](/2021/03/first-mobile-app-07/)

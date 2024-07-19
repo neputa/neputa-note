@@ -1,0 +1,300 @@
+---
+title: 'ConfigurationBuilderを理解する【.NET6.0】'
+description: 'これまで独自の方法で実装していた.NETアプリケーション開発における設定ファイル、とりわけシークレット情報の扱いについて。このたび初めてASP.NET Core開発を通じてConfigurationBuilderの威力を知った。ようやく最低限のレベルに追いつくことができたのでメモを残す。'
+pubDate: '2022-03-09 02:35:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/default.webp'
+category:
+  - DEV
+tags: ['dotnet', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 本記事の主旨
+
+.NETアプリケーション開発における設定ファイル、とりわけシークレット情報の扱いについて、ようやく最低限のレベルに追いつくことができたのでメモを残す。
+
+<BlogCard
+  title='構成 - .NET'
+  description='構成 API を使用して、.NET アプリケーションを構成する方法を説明します。 さまざまな組み込みの構成プロバイダーについて説明します。'
+  url='https://learn.microsoft.com/ja-jp/dotnet/core/extensions/configuration'
+  domain='learn.microsoft.com'
+/>
+
+これまで独自の手法で実装していた。
+
+このたびはじめてASP.NET Coreアプリケーション開発を経験し、ConfigurationBuilderの威力を知ることができた。
+
+なぜこれまで知らなかったか。
+
+ASP.NET Coreアプリケーションのテンプレートには、NugetPackageを追加せずとも標準でappsettings.json等を扱う構成関連の機能が備わっている。
+
+しかし、WPFやXamarin Formsといった私がこれまで開発してきたテンプレートにおいては、自身で準備する必要があった。
+
+私はここで道を誤った。
+
+「愚者は経験に学び、賢者は歴史に学ぶ」。
+
+もちろん前者の私は独自のスタイルで実装する愚を犯した。
+
+ベストプラクティスにアクセスできず、おかしな独自実装を行う現象は「個人開発者あるある」だ。（言い訳）
+
+「.NETアプリ開発の設定ファイル管理において、同じ轍を踏む方を一人でも減らしたい」が本記事の主旨である。
+
+ちなみにとりわけリポジトリに含めたくないシークレット情報の取扱いに絞った話となる。
+
+## 環境
+
+### 開発環境
+
+- IDE : Visual Studio 2022 Community
+- .NET Version : .NET 6.0
+- 言語 : C# 10
+
+### CI/CD環境
+
+- Azure DevOps pipelines
+
+### 本番環境
+
+- Azure App Service
+
+## 設定ファイル管理ビフォー・アフター
+
+### ビフォー：以前の設定ファイル管理状況
+
+まずはビフォー。
+
+設定情報の保存場所は以下のとおり。
+
+- development : UserSecrets.json
+- product : Azure DevOps Pipelines Library
+
+UserSecretsとAzure DevOps Pipelines Libraryの詳細は以下を参照
+
+- [ASP.NET Core での開発におけるアプリ シークレットの安全な保存 | Microsoft Docs](https://docs.microsoft.com/ja-jp/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows)
+- [Azure Pipelines 用のライブラリ - Azure Pipelines | Microsoft Docs](https://docs.microsoft.com/ja-jp/azure/devops/pipelines/library/?view=azure-devops)
+
+問題は、これら情報をアプリケーションに反映する方法である。
+
+無知な私はこのように実現した。
+
+- UserSecretsを読み込むUserSecretsManagerクラスを作成
+- アプリケーションでシークレットを読み込むためのConstantsクラスを作成
+- Constantsクラス内に #IF DEBUGによる分岐を作成
+- ローカルの開発環境ではUserSecretsManagerクラスを経由しUserSecretsの値を読み込む
+- productsはAzure DevOps Pipelinesのビルド実行時にShell Scriptで\[PLACE_HOLDER\]とした箇所をLibraryの値で置換し反映する。
+
+例としてはこんな感じ。
+
+```csharp {CosmosDBConstants.cs}
+namespace OneThirdCL.Infrastructure.CosmosDb;
+
+internal static class CosmosDBConstants
+{
+    internal static readonly string DatabaseId = "databaseId";
+    internal static readonly string CollectionId = "CollectionId";
+
+#if DEBUG
+    // Local Build
+    // UserSecrets.jsonの値を使用
+    internal static readonly string CosmosdbAccountUrl = UserSecretsManager.Settings["CosmosdbAccountUrl"];
+    internal static readonly string CosmosdbAccountKey = UserSecretsManager.Settings["CosmosdbAccountKey"];
+#else
+    // Azure DevOps Pipelines Build
+    // PLACE_HOLDER_ をshell scriptでLibraryの値と置換する
+    internal static readonly string CosmosdbAccountUrl = "[PLACE_HOLDER_CosmosdbAccountUrl]";
+    internal static readonly string CosmosdbAccountKey = "[PLACE_HOLDER_CosmosdbAccountKey]";
+#endif
+}
+```
+
+強引で美しくない。
+
+### アフター：ConfigurationBuilderを使用する
+
+ASP.NET Coreアプリケーションの場合、新規作成したアプリケーションのProgram.cs（.NET6.0以前はStartup.cs）でジェネレートされたこの一行にすべて含まれている。
+
+```csharp Program.cs
+var builder = WebApplication.CreateBuilder(args);
+```
+
+よってすぐに使用できる。
+
+```csharp Program.cs
+var builder = WebApplication.CreateBuilder(args);
+var movieApiKey = builder.Configuration["Movies:ServiceApiKey"];
+```
+
+ASP.NET Core以外の場合はこのように記述することで、同様に設定情報を使用することができる。
+
+```csharp
+var builder = new ConfigurationBuilder()
+  .AddJsonFile(path: "appsettings.json")
+  .AddEnvironmentVariables()
+  .AddUserSecrets<Program>(optional: true);
+var configuration = builder.Build();
+```
+
+この例ではappsettings.jsonファイル、環境変数、UserSecrets.jsonの3つを使用しており、ASP.NET Core以外の場合、これらのNugetPackageを自分でインストールしておく必要がある。
+
+- microsoft.extensions.configuration.fileextensions
+- microsoft.extensions.configuration.json
+- microsoft.extensions.configuration.environmentvariables
+- microsoft.extensions.configuration.usersecrets
+
+### ConfigurationManagerの仕様について
+
+複数定義された設定情報をConfigurationBuilderはどのように読み込んでいるのか。
+
+それは、ConfigurationBuilderでAddする順番に示されている。
+
+ConfigurationBuilderではプロバイダーを記述した順に読み込み、重複した分は上書きされていく。つまり、今回のコードでは
+
+> 1. appsettings.json<br />
+> 2. 環境変数<br />
+> 3. User Secrets<br />
+>    の順番で読み込まれる。appsettings.jsonに（Gitにコミット可能な）デフォルトの値を入れておき、開発環境で別な値が必要な時はUser Secrets、CD環境では環境変数から値を読み込む、みたいな運用ができます。 <cite class='text-sm text-right block mt-2'>-- [cloud.config Tech Blog](https://tech-blog.cloud-config.jp/2019-7-11-how-to-configuration-builder/)より引用</cite>
+
+1から3の順番に読み込み、後に読み込んだものが優先される。
+
+つまり、UserSecrets.jsonが実行環境にあればこれが最優先となる。
+
+UserSecrets.json無ければ環境変数で読み込んだ値が反映される。
+
+環境変数も存在しなければ最初に読み込むappsettings.jsonが反映される。appsettings.jsonファイルがないとビルドエラーとなる。
+
+環境変数はAzure App Service、Azure DevOps Pipelinesなど各環境で定義した変数が読み込まれる。
+
+ASP.NET Coreの場合はこれらの処理が上述したWebApplication.CreateBuilder(args) に含まれている。
+
+簡単・便利・素晴らしい。
+
+この仕様を知らずに生きてきたことを激しく悔いている。
+
+### 実装サンプル
+
+個人開発で作成したアプリでは、Azure CosmosDBを使用している。
+
+接続に関するシークレット情報はInfrastructureレイヤのクラスライブラリで扱っている。
+
+どなたかの参考になるかわからないが、サンプルとして掲載してみる。
+
+#### ConfigManagerクラス
+
+ConfigurationBuilderで設定ファイルプロバイダ作成するクラス。
+
+開始クラスがないのでassemblyからUserSecrets.jsonを読み込む。
+
+ConfigManager.Settings["NodeName"]; で、シークレット情報を読み込めるようにする。
+
+```csharp
+using System.IO;
+using System.Reflection;
+using Microsoft.Extensions.Configuration;
+
+namespace OneThirdCL.Infrastructure;
+
+internal class ConfigManager
+{
+    private static ConfigManager _instance;
+    private readonly IConfiguration _configuration;
+
+    private ConfigManager()
+    {
+        var assembly = IntrospectionExtensions.GetTypeInfo(typeof(ConfigManager)).Assembly;
+
+        _configuration = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json"), optional: true)
+            .AddEnvironmentVariables()
+            .AddUserSecrets(assembly)
+            .Build();
+    }
+
+    public static ConfigManager Settings
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = new ConfigManager();
+            }
+
+            return _instance;
+        }
+    }
+
+    public string this[string name] => _configuration[name];
+}
+```
+
+#### ConstantsCosmosDBクラス
+
+CosmosDbで使用するConstantsを定義するクラス。
+
+ConfigManagerクラスを使用してシークレット情報を設定している。
+
+```csharp
+namespace OneThirdCL.Infrastructure.CosmosDb;
+
+internal static class ConstantsCosmosDB
+{
+    internal static string DatabaseId { get; } =
+        ConfigManager.Settings["CosmosdbDatabaseId"];
+
+    internal static string CollectionId { get; } =
+        ConfigManager.Settings["CosmosdbCollectionId"];
+
+    internal static string CosmosdbAccountUrl { get; } =
+        ConfigManager.Settings["CosmosdbAccountUrl"];
+
+    internal static string CosmosdbAccountKey { get; } =
+        ConfigManager.Settings["CosmosdbAccountKey"];
+}
+```
+
+#### UserSecrets.json
+
+ローカルの開発環境で使用するCosmosDbの接続情報。
+
+```csharp
+{
+  "CosmosdbDatabaseId": "DatabaseId",
+  "CosmosdbCollectionId": "CollectionId",
+  "CosmosdbAccountUrl": "https://xxxxxxx.xx:0000",
+  "CosmosdbAccountKey": "xxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+#### Azure DevOps PipelinesのLibrary
+
+Azure DevOps Pipelinesのビルド時に実行するテストで使用する。
+
+この環境ではUserSecrets.jsonは存在しないため、2番目のAddEnvironmentVariables、つまりこの設定が反映される。
+
+![Azure Devops Library](@/images/blog/Yu2nGqCoYn2uXwEz-azure-devops-library.webp)
+
+YAMLファイルでLibraryに保存したVariable groupを呼びだすだけ。
+
+```yaml
+- job: Build
+  variables:
+    - group: CosmosDbVariables
+```
+
+#### 本番環境（Azure App Service）
+
+アプリケーション設定にシークレット情報を保存。Azure DevOpsと同様、この環境にはUserSecrets.jsonがないのでこれらの値が使用される。
+
+![Azure AppServiceアプリケーション設定](@/images/blog/5WbQJUNSbQQfMZ-azure-devops-library.webp)
+
+結果、ローカル開発環境時はUserSecrets.json、Azure DevOps Pipelinesにおけるビルド時はLibraryのVariable group、本番環境ではAzure App Serviceのアプリケーション設定の変数を読み込んでくれる。
+
+## 参考記事
+
+- [【.NET Core】ConfigurationBuilderを使ってC#で設定ファイルや環境変数を扱う | cloud.config Tech Blog](https://tech-blog.cloud-config.jp/2019-7-11-how-to-configuration-builder/#title5)
+- [Using environment variables in the DevOps pipeline | by Rituparna Goswami Mishra | medialesson | Medium](https://medium.com/medialesson/using-environment-variables-in-the-devops-pipeline-173e34d27f6b)

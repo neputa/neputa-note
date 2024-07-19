@@ -1,0 +1,109 @@
+---
+title: Ubuntu 20.04にアプリをインストールする
+description: 先日、購入した中古のノートPCに「Ubuntu 20.04LTS」をインストールした。 続けてOS周りの設定作業を行った。今回は必要なアプリケーションをインストールした作業の備忘録。画像・動画編集やエンタメ系のモノは入れない。低スペックだから。容量がもったいないから。どうせ動かないから。
+pubDate: '2021-11-08 15:34:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/3558960842902131456-ubuntu-logo.webp'
+category:
+  - DEV
+tags: ['Ubuntu', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## この記事の概要
+
+先日、購入した中古のノートPCに「Ubuntu 20.04LTS（日本語Remix版）」をインストールした。
+
+<BlogCard
+  title='「Ubuntu 20.04LTS」を中古ノートPC（Dell Latitude 3380）にインストールする'
+  description='この記事の概要 中古のモバイルノートPCを入手し「Linux OS」の「Ubuntu」をインストールした経緯及び手順をまとめたもの。インストール対象機種 DELL LATITUDE 3380 2015年モデル (中古 25,000円) インストールするOS  Ubuntu 20.04.1 LTS（日'
+  url='https://www.neputa-note.net/2021/10/blogpost01/'
+  domain='www.neputa-note.net'
+/>
+
+続けてOS周りの設定作業を行った。
+
+<BlogCard
+  title='「Ubuntu 20.04LTS（日本語Remix）」をインストールして最初にやったこと 17項目'
+  description='先日、中古ノートPCを購入しUbuntu20.04LTSをインストールした。今回はUbuntuインストール後に行ったことをまとめる。作業項目としては、後述する参考サイトから以下の条件で行うべきと判断したものをピックアップした。Ubuntuのバージョンは「20.04LTS」の「日本語Rmeix版」英語'
+  url='https://www.neputa-note.net/2021/11/ubuntu-initial-settings/'
+  domain='www.neputa-note.net'
+/>
+
+今回は必要なアプリケーションをインストールした作業の備忘録。
+
+画像・動画編集やエンタメ系のモノは入れない。低スペックだから。容量がもったいないから。どうせ動かないから。
+
+ブログを書いたりノートをまとめたりとテキスト操作オンリーのストロングスタイル端末の話なので悪しからず。
+
+## アプリケーションのインストール
+
+### LibreOffice
+
+マイクロソフトのOffice互換アプリケーション。念のため入れておく。
+
+```bash
+$ sudo add-apt-repository -n ppa:libreoffice/ppa
+$ sudo apt update
+$ sudo apt dist-upgrade -y
+```
+
+私の低速端末でupgradeは結構な時間がかかった。
+
+### Ubuntu Cleaner
+
+よくあるCleanerアプリのUbuntu版
+
+```bash
+$ sudo apt install ubuntu-cleaner
+```
+
+### Joplin
+
+「Joplin」はノートアプリ。
+
+現在WindowsとAndroid端末で使用している。主に収集した情報整理したり永久保存したいWeb記事のスクラップが主な用途。
+
+興味がある方はこちらの記事を参考にされたし。
+
+<BlogCard
+  title='Joplin おすすめ無料ノートアプリ（EverNote → OneNoteを経て）'
+  description='Jopoinというノートアプリについて、特徴や使い方などを中心に解説します。Joplinはツリー構造でのメモ管理、複数のキーバインドを選択できるエディタ、マークダウン対応、異なる端末間での動機など充実した機能が揃ったアプリです。'
+  url='https://www.neputa-note.net/2020/10/joplin/'
+  domain='www.neputa-note.net'
+/>
+
+インストールは下記コマンドを実行する。
+
+```bash
+$ wget -O - https://raw.githubusercontent.com/laurent22/joplin/master/Joplin_install_and_update.sh | bash
+```
+
+参考サイト：
+
+<BlogCard
+  title='What is Joplin? | Joplin'
+  description='Joplin is a free, open source note taking and to-do application, which can handle a large number of notes organised into notebooks. The notes are searchable, can be copied, tagged and modified eith...'
+  url='https://joplinapp.org/help/#desktop-applications'
+  domain='joplinapp.org'
+/>
+
+### VSCode
+
+このブログはVSCodeで書いている。記事の他、ブログテンプレートやJavaScript等も同様。記事およびソースファイルはGit&Githubで管理している。ブログサービスは「Blogger」を使用しているのだが、エディタが非常に貧弱なのでVSCodeさまさまだ。
+
+「[Visual Studio Code - Code Editing. Redefined](https://code.visualstudio.com/)」から「.deb」ファイルをダウンロードする
+
+以下コマンドを実行しインストールする
+
+```bash
+$ sudo apt install ダウンロードした.debファイル
+$ sudo apt install -y apt-transport-https
+$ sudo apt update
+```
+
+参考サイト：[Ubuntu18にVisual Studio Codeをインストールする最も簡単な手順 #VSCode - Qiita](https://qiita.com/grgrjnjn/items/85aa7cab1475bf1aea54)

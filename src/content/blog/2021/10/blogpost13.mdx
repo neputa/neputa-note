@@ -1,0 +1,157 @@
+---
+title: 「Search Console」の「リダイレクト エラー」を解決する ～その２～【Blogger】
+description: 本記事の概要 -- 前回記事の続き、というか新たに得た知見についてをまとめる。内容は「Google Search Console」の「カバレッジ」における「リダイレクト エラー」の原因およびその解決方法。明確な仕様がどこにも見つからないため、あくまで実践により得た結果。対象は「Blogger」を利用しているこのブログ。
+pubDate: '2021-10-13 21:58:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/4497271816730289141-searchconsole-blogger-logo.webp'
+category:
+  - DEV
+tags: ['blogger', 'blog']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+<h2>本記事の概要</h2>
+
+- 前回記事の続き、というか新たに得た知見についてをまとめる。
+- 内容は「Google Search Console」の「カバレッジ」における「リダイレクト エラー」の原因およびその解決方法。
+- 明確な仕様がどこにも見つからないため、あくまで実践により得た結果。
+- 対象は「Blogger」を利用しているこのブログ。
+
+## 前回の振り返り
+
+前回記事では、URL（htmlファイル名）に問題があると結論付けた。
+
+<BlogCard
+  title='【解決】リダイレクトエラーでGoogleインデックスに記事が登録されないトラブル【Blogger】'
+  description='今年の六月に入って以降、新規に書いたブログ記事がGoogleインデックスに登録されないトラブルが発生していました。解決方法が分かったので備忘録を兼ね一連の対応をまとめました。Google Search Consoleで「カバレッジ」のエラーを表示してみると「リダイレクトエラー」が発生していた。'
+  url='https://www.neputa-note.net/2021/09/blog-post_14/'
+  domain='www.neputa-note.net'
+/>
+
+実際にBloggerのパーマリンクを修正することで「リダイレクト エラー」の表示が消え、インデックス登録された。
+
+しかし、パーマリンクに記号（ハイフン等）を含めないという前回の解決方法で運用していたところ、リダイレクトエラーが再発。
+
+調査を再開したところ下記のコメントを発見。
+
+[Redirect error - Google Search Central Community](https://support.google.com/webmasters/thread/125935729/redirect-error?hl=en&msgid=125948747)
+
+Blogger特有のモバイルページへのリダイレクト周りに問題がありそうだと考え検証を実施。
+
+## リダイレクト エラー発生原因
+
+結論を先に述べると、Bloggerの仕様であるモバイルアクセスによる「m=1」ページへのリダイレクト（302リダイレクト）が原因と思われる。（ドキュメントに書かれていないため断定はできない）
+
+以下、原因について詳細を記す。
+
+Bloggerで作成したページにスマホ等のモバイルデバイスでアクセスするとリダイレクトが発生する。
+
+「Redirect Checker」で試しにこのブログのページをチェックしてみる。
+
+[Redirect Checker | Check your Statuscode 301 vs 302](https://www.redirect-checker.org/index.php)
+
+このサイトの使い方は、チェックしたいページのURLを貼り付け、「Set User-Agent」を選択し、「analyze」ボタンをクリックするだけ。
+
+「User-Agent」はSearch Consoleによるクロールを想定して「Google Mobile Smartphone(2020 01-08 Chrome/41.0.2272.96)」を選択。
+
+結果はこうなる。
+
+![Redirect Checker結果](@/images/blog/4497271816730289141-redirect-checker-result.webp)
+
+正規URLの「https://www.neputa-note.net/2021/10/blogpost01」にアクセスすると、「302 Moved Temporarily」が発生し、「https://www.neputa-note.net/2021/10/blogpost01?m=1」にリダイレクトされる。
+
+この「?m=1」にリダイレクトされるのはBloggerの仕様。
+
+リダイレクトが発生すること自体は問題ないが、「302」であることが問題と思われる。
+
+「301」と「302」の違いについてはこちらの記事をどうぞ。
+
+<BlogCard
+  title='302リダイレクトの正しい使い方と301リダイレクトの違いを分かりやすく解説！｜Webマーケティング・SEO相談はデジ研'
+  description='適切なリダイレクト処理を行わなければ、SEO的に大きなマイナスになる可能性があります。この記事では、リダイレクトの中でも「302リダイレクト」に焦点を当て、どのようなケースで用いるべきかという判断基準や、よく間違われる301リダイレクトとの違いについて分かりやすく解説します。'
+  url='https://digital-marketing.jp/seo/correct-use-of-302-redirects/'
+  domain='digital-marketing.jp'
+/>
+
+[Search Console公式](https://support.google.com/webmasters/answer/7440203?hl=ja#multiple_redirects)におけるリダイレクトエラーの説明は下記の通り。
+
+- リダイレクト チェーンが長すぎる
+- リダイレクト ループが発生している
+- リダイレクトURLが最終的にURLの最大長を超えた
+- リダイレクト チェーンに不正または空のURLがある
+
+今回のケースはこのいずれにも該当していないが、公式にない要件として「302リダイレクト」が含まれるのではないか？
+
+要はインデックス登録を申請するのであれば、リダイレクト先のURL、もしくは301の永続リダイレクト対象のURLにしろよと。
+
+もう1つ疑問がある。
+
+PC等でアクセスした場合、リダイレクトは発生せず正規URLをそのまま表示する。
+
+しかし、Search Consoleでインデックス登録の申請をするとリダイレクト先のURLを参照しに行こうとする。
+
+これは、2020年5月からGoogleがWeb全体のインデックスをモバイルファーストとすることを宣言したため。
+
+[Announcing mobile first indexing for the whole web](https://developers.google.com/search/blog/2020/03/announcing-mobile-first-indexing-for)
+
+Search Consoleのリダイレクト エラーをよく見てみると、ユーザー エージェントは「スマートフォン用Googlebot」とある。
+
+![URL検査 結果](@/images/blog/4497271816730289141-search-console-redirecterror.webp)
+
+過去に登録されているURLは問題ないが、この仕様変更のあとは問答無用で最初にスマートフォン用のGooglebotによるクロールが行われる。
+
+そしてもう1つ分かったこと。スマートフォン用のGogletでリダイレクトエラーとなっても、いずれ解消する。
+
+ドキュメントにないので、あくまで仮説。
+
+1.  インデックス登録の申請をすると、まずスマートフォン用のGooglebotがクロールを行う。
+2.  Bloggerの正規URLは302リダイレクトとしてエラー判定となる。
+3.  その後、何日あるいは何週間かすると、PC用のGooglebotがクロールを行う。
+4.  ここで正規URLが問題ないと判断され、インデックス登録が行われる。
+
+しかし、いつPC用のクローラーが来るか分からないのでとりあえずの解決方法を考えた。
+
+## リダイレクト エラー解決方法
+
+正規URLを申請すると「302リダイレクト」が発生し、これを「リダイレクト エラー」として判定されてしまう。
+
+これを回避するため、「?m=1」パラメータをURL末尾につけてインデックス登録を申請する。
+
+以上。
+
+問題はないのか。
+
+1か月ほど、新規投稿した複数の記事を検証してみた結果を記す。
+
+1.  パラメータを付けることでインデックス登録が速やかに行われる。（長いもので24時間程）
+2.  サイトマップをSearch Consoleに登録しておくと、いずれそちらもクロールされる。（数日～数週間）
+3.  ここで正規URLがインデックス登録される。
+4.  この時点で、当初申請したパラメータ付きURLを「URL検査」してみると、「URLがGoogleに登録されていません」となる
+5.  一方、正規URLは問題なく「URLはGoogleに登録されています」となっている。
+6.  当初申請したパラメータ付きURLと正規URLが、おそらくマージされ正規URLのみがインデックス登録された状態となる。
+
+![URL検査 結果](@/images/blog/4497271816730289141-search-console-result-01.webp)
+
+![URL検査 結果](@/images/blog/4497271816730289141-search-console-result-02.webp)
+
+## 終わりに
+
+やや腑に落ちない面もあるが、これによりインデックス登録におけるBloggerのリダイレクトエラーは回避することができた。
+
+そもそもBloggerのモバイルリダイレクト仕様、いい加減いらんやろ、という話。
+
+Googleがあまり力を入れていないプロジェクトなのだろうから仕方がないが、せめてSearch Consoleの仕様に併せたアップデートをしてほしい。まあこれからもないだろうけど。
+
+当面、この方法で運用し、また問題が見つかったり、新たな知見を得た場合は記事を書こうと思います。
+
+少しでもお役に立ちましたら、この記事をシェアしていただけると喜びます。
+
+読んでいただきありがとうございます。
+
+<div class='not-prose'>
+  <div data-vc_mylinkbox_id='887423655'></div>
+</div>

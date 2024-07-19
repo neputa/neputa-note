@@ -1,0 +1,40 @@
+---
+import { Image } from 'astro:assets'
+
+interface Props {
+  title: string
+  description: string
+  url: string
+  domain: string
+}
+
+const { title, description, url, domain } = Astro.props
+---
+
+<div
+  class='mx-auto mb-12 mt-4 w-full border border-gray-600 bg-white p-4 shadow dark:bg-inherit md:ml-4 md:w-10/12'
+>
+  <div>
+    <p class='m-0 truncate font-semibold hover:text-clip md:m-0'>
+      <a href={url} target='_blank'>
+        {title}
+      </a>
+    </p>
+    <p class='mt-2 line-clamp-3 text-ellipsis text-sm'>
+      {description}
+    </p>
+  </div>
+  <div class='mt-2'>
+    <a class='flex p-0' href={url} target='_blank'>
+      <Image
+        src={`https://www.google.com/s2/favicons?domain=${url}`}
+        width={16}
+        height={16}
+        format='webp'
+        alt='favicon for blog card'
+        class='m-0 md:m-0'
+      />
+      <span class='mx-2 my-0 text-sm leading-none'>{domain}</span>
+    </a>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+---
+import SinglePageLayout from '@/layouts/SinglePageLayout'
+import { getPermalink } from '@/utils'
+
+const title = 'Thank you!'
+const description = '問い合わせの送信が成功しました'
+---
+
+<SinglePageLayout title={title} description={description}>
+  <div>
+    <p class='text-center text-lg'>{description}</p>
+    <div class='my-12'>
+      <a class='text-center' href={getPermalink('contact', 'page')}>前のページに戻る</a>
+    </div>
+  </div>
+</SinglePageLayout>

@@ -1,0 +1,364 @@
+---
+title: 'AndroidアプリをAzure Pipelinesでビルド・リリースする'
+description: 'Xamarin.Formsで作成したAndroidアプリを、AzureDevOps Pipelinesで、ビルドからGoogle Play Consoleへリリースするまでの手順をまとめる。'
+pubDate: '2021-12-31 02:31:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/azure-devops-pipeline.webp'
+category:
+  - DEV
+tags: ['Azure', 'dev', 'dotnet', 'devops']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 本記事の主旨
+
+Xamarin.Formsで作成したAndroidアプリを、AzureDevOps Pipelinesで、ビルドからGoogle Play Consoleへリリースするまでの手順をまとめる。
+
+### 環境
+
+#### Android開発フレームワーク
+
+Xamarin.Forms 5.0.0.2244
+
+#### ビルド・リリース環境
+
+Azure DevOps Pipelines
+
+#### リリース先
+
+Google Play Console（Google Cloud Platformのサービスアカウントを使用）
+
+### 前提条件
+
+- ソースファイルはAzure DevOpsのRepos（Git）で管理している
+- ビルドで使用するYAMLファイルは事前に作成しリポジトリに含めている
+- 成果物のフォーマットはaab
+- Google Play Consoleへのリリースに必要なGoogle Cloud Platformのサービスアカウントを事前に登録し鍵を取得している
+- Azure DevOpsに「[Google Playのプラグイン](https://marketplace.visualstudio.com/items?itemName=ms-vsclient.google-play)」をMarketplaceよりインストール済みである
+- リリース処理については、すでに一度Google Play Consoleにアプリを公開済みであること（初回は手動で行う必要があるため）
+
+## 作業詳細
+
+ビルドはYAMLファイルを事前に作成しPipelineで行う。 Google Play Consoleへの発行はPipelinesのReleaseをブラウザで設定し行う。
+
+### Azure DevOps Pipelinesによるビルド
+
+#### Library設定
+
+Azure DevOps PipelinesのLibraryに以下を登録する。
+
+- Variable group（Pipelineでソース上のProduct用シークレット情報を置換する際に使用）
+- Secure files（Google Play Consoleへaabをリリースる際に必要なKeyStoreファイル）
+
+Variable groupの登録手順は下記を参照
+
+<BlogCard
+  title='Azure DevOps の Pipelines の変数を使おう - かずきのBlog@hatena'
+  description="ハードコーディングされた値は死すべし！！ ということで Azure DevOps の Pipelines で変数使っていこうと思います。 docs.microsoft.com ハローワールド 何事もハローワルドから。variables で変数を定義できます。定義した変数は $(変数名) で参照できます。ということでさくっと以下のようはパイプラインの yaml を作ってみました。後々の確認のために特に必要はないのですが stage から定義しています。 trigger: - master variables: var1: Hello var2: World pool: vmImage: 'ubu…"
+  url='https://blog.okazuki.jp/entry/2020/03/02/002723'
+  domain='blog.okazuki.jp'
+/>
+
+<BlogCard
+  title='Azure Pipelines の変数グループ - Azure Pipelines'
+  description='変数グループを使用して、パイプライン間で共通の変数を共有します。'
+  url='https://learn.microsoft.com/ja-jp/azure/devops/pipelines/library/variable-groups?view=azure-devops&tabs=yaml'
+  domain='learn.microsoft.com'
+/>
+
+Secure fileの登録手順は下記を参照
+
+<BlogCard
+  title='Azure Pipelines のセキュア ファイル - Azure Pipelines'
+  description='Azure Pipelines にセキュア ファイルを追加して使用する方法について説明します。'
+  url='https://learn.microsoft.com/ja-jp/azure/devops/pipelines/library/secure-files?view=azure-devops'
+  domain='learn.microsoft.com'
+/>
+
+KeyStoreファイルについてはこちらを参照
+
+<BlogCard
+  title='Play アプリ署名を使用する - Play Console ヘルプ'
+  description=''
+  url='https://support.google.com/googleplay/android-developer/answer/9842756?hl=ja'
+  domain='support.google.com'
+/>
+
+作業後のLibraryはこんな感じ
+
+![Libraryのキャプチャ-01](@/images/blog/pipelines-library-capture-01.webp)
+
+![Libraryのキャプチャ-02](@/images/blog/pipelines-library-capture-02.webp)
+
+#### YAMLファイル作成
+
+Pipelineのビルドで使用するYAMLファイルを事前に作成しておく。（ブラウザポータル上で作成することも可能）
+
+処理の概要は以下のとおり。
+
+1.  変数の定義
+2.  ソースコード上のシークレット情報置換（Bash）
+3.  Android Manifestのバージョンコード置換（PowerShell）
+4.  NugetToolインストール
+5.  Keystoreファイルのダウンロード
+6.  ビルド
+7.  aabファイルの発行
+
+シークレットはjsonやXMLであれば置換するライブラリが用意されているが、C#の定数クラスを使っているので自力でシェルスクリプトによる置換を行っている。
+
+実際のYAMLファイルはこんな感じ。
+
+```yaml
+stages:
+  - stage: Build
+    # 他の環境ではAndroid ManifestのXMLファイルを処理する際にうまく置換が行われなかったためWindowsを使用
+    pool:
+      vmImage: 'windows-latest'
+
+    jobs:
+      - job: GenerateAab
+
+        variables:
+          # Libraryに登録したVariable groupを呼び出し
+          - group: SecretsForRelease
+          # メジャー＆マイナーバージョンコードを定義
+          - name: appVersion
+            value: '1.1'
+          - name: buildConfiguration
+            value: 'Release'
+
+        # Product用のシークレットを定義するクラスファイルの置換処理
+        # Variable groupに登録した変数を呼び出し、シェルで置換する
+        steps:
+          - task: Bash@3
+            displayName: 'Insert Secret Variables'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo '#######################################################'
+                echo ' Environment Variables data replace'
+                echo '#######################################################'
+                FilePathVariables='OneThird.Core/Constants/Variables.cs'
+                echo ''
+                echo '#######################################################'
+                echo ' Variables.cs'
+                echo ' Target file path - ' $FilePathVariables
+                echo '#######################################################'
+                echo ''
+                echo 'AdmobUnitIdBanner - $(AdmobUnitIdBanner)'
+                sed -i -e 's|\[AdmobUnitIdBanner\]|$(AdmobUnitIdBanner)|' $FilePathVariables
+                echo ''
+                echo 'AdmobUnitIdInterstitial - $(AdmobUnitIdInterstitial)'
+                sed -i -e 's|\[AdmobUnitIdInterstitial\]|$(AdmobUnitIdInterstitial)|' $FilePathVariables
+                echo ''
+                echo 'B2cPasswordResetPolicy - $(B2cPasswordResetPolicy)'
+                sed -i -e 's|\[B2cPasswordResetPolicy\]|$(B2cPasswordResetPolicy)|' $FilePathVariables
+                echo ''
+                echo 'B2cSignInPolicy - $(B2cSignInPolicy)'
+                sed -i -e 's|\[B2cSignInPolicy\]|$(B2cSignInPolicy)|' $FilePathVariables
+                echo ''
+                echo 'B2cTenantDomainName - $(B2cTenantDomainName)'
+                sed -i -e 's|\[B2cTenantDomainName\]|$(B2cTenantDomainName)|' $FilePathVariables
+                echo ''
+                echo 'B2cTenantDomainURL - $(B2cTenantDomainURL)'
+                sed -i -e 's|\[B2cTenantDomainURL\]|$(B2cTenantDomainURL)|' $FilePathVariables
+                echo ''
+                echo 'B2cAppMobileClientId - $(B2cAppMobileClientId)'
+                sed -i -e 's|\[B2cAppMobileClientId\]|$(B2cAppMobileClientId)|' $FilePathVariables
+                echo ''
+                echo '#######################################################'
+                echo " Show result"
+                echo '#######################################################'
+                cat $FilePathVariables
+                echo ''
+                echo ''
+                echo ''
+                FilePathCosmosDBConstants='OneThird.Infrastructure/CosmosDb/CosmosDBConstants.cs'
+                echo '#######################################################'
+                echo ' CosmosDBConstants.cs'
+                echo ' Target file path - ' $FilePathCosmosDBConstants
+                echo '#######################################################'
+                echo ''
+                echo 'CosmosdbAccountUrl - $(CosmosdbAccountUrl)'
+                sed -i -e 's|\[CosmosdbAccountUrl\]|$(CosmosdbAccountUrl)|' $FilePathCosmosDBConstants
+                echo ''
+                echo 'CosmosdbAccountKey - $(CosmosdbAccountKey)'
+                sed -i -e 's|\[CosmosdbAccountKey\]|$(CosmosdbAccountKey)|' $FilePathCosmosDBConstants
+                echo ''
+                echo '#######################################################'
+                echo " Show result"
+                echo '#######################################################'
+                cat $FilePathCosmosDBConstants
+                echo ''
+                echo ''
+                echo '#######################################################'
+                echo ' Finished - Environment Variables data replace'
+                echo '#######################################################'
+                echo ''
+                echo ''
+
+          # Android ManifestのVersionCodeおよびVersionNameを置換する
+          # VersionCodeは年月日時、VersionNameは最初に定義したappVersion.VersionCode
+          - task: PowerShell@2
+            displayName: 'Updating Version Code and Name in Android Manifest'
+            inputs:
+              targetType: 'inline'
+              script: |
+                [string] $sourcePath = "$(System.DefaultWorkingDirectory)\OneThird.Android\Properties\AndroidManifestRelease.xml"
+                [string] $appVersionName = "$(AppVersion).$(Build.BuildId)"
+                [string] $appVersionCode = Get-Date -Format "yyMMddHH"
+
+                [xml] $androidManifestXml = Get-Content -Path $sourcePath
+
+                Write-Host "Original Manifest:"
+                Get-Content $sourcePath | Write-Host
+
+                $VersionName= Select-Xml -xml $androidManifestXml  -Xpath "/manifest/@android:versionName" -namespace @{android = "http://schemas.android.com/apk/res/android" }
+
+                $oldVersionName= $VersionName.Node.Value;
+
+                Write-Host " (i) Original Version Name: $oldVersionName"
+
+                $VersionName.Node.Value = $appVersionName
+
+                Write-Host " (i) New Package Name: $appVersionName"
+
+                $VersionCode= Select-Xml -xml $androidManifestXml  -Xpath "/manifest/@android:versionCode" -namespace @{android = "http://schemas.android.com/apk/res/android" }
+
+                $oldVersionCode = $VersionCode.Node.Value;
+
+                Write-Host " (i) Old Version Code: $oldVersionCode"
+
+                $VersionCode.Node.Value = $appVersionCode
+
+                Write-Host " (i) New App Name: $appVersionCode "
+
+                $androidManifestXml.Save($sourcePath)
+
+                Write-Host "Final Manifest:"
+                Get-Content $sourcePath | Write-Host
+
+          # NugetToolインストール
+          - task: NuGetToolInstaller@1
+            displayName: 'Installing Nuget'
+
+          - task: NuGetCommand@2
+            displayName: 'Restoring Nugets'
+            inputs:
+              command: 'restore'
+              restoreSolution: '**/*.sln'
+
+          # LibraryからKeystoreファイルをダウンロード
+          - task: DownloadSecureFile@1
+            displayName: 'Download keystore'
+            name: keystore
+            inputs:
+              secureFile: 'upload_keystore.jks'
+
+          # ビルド
+          - task: XamarinAndroid@1
+            displayName: 'Build aab'
+            inputs:
+              projectFile: '**/OneThird.Android.csproj'
+              outputDirectory: '$(Build.BinariesDirectory)'
+              configuration: '$(BuildConfiguration)'
+              clean: true
+              msbuildVersionOption: 'latest'
+              msbuildArguments: '-restore -t:SignAndroidPackage -p:AndroidPackageFormat=aab -p:AndroidKeyStore=True -p:AndroidSigningKeyStore=$(keystore.secureFilePath) -p:AndroidSigningStorePass=$(KeystorePassword) -p:AndroidSigningKeyAlias=$(KeystoreAlias) -p:AndroidSigningKeyPass=$(KeystorePassword)'
+              jdkOption: 'JDKVersion'
+
+          # aabファイル発行
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publishing aab artifacts'
+            inputs:
+              targetPath: '$(Build.BinariesDirectory)'
+              artifact: AndroidAabPackage
+              publishLocation: 'pipeline'
+```
+
+このYAMLファイルを対象とした新規Pipelineを作成し、実行するとRelease可能なaabファイルを作成することができる。
+
+既存のYAMLファイルを対象とした新規Pipelineの作成手順は以下記事を参照。
+
+<BlogCard
+  title='【備忘録】既存のYAMLファイルを使用してPipelineを新規作成する【Azure DevOps Pipelines】'
+  description='モバイルアプリ（Xamarin Forms)を個人開発している。現在、Azure DevOps上のGitリポジトリからAppCenterを経由してGoogle Play Consoleにデプロイしている。これを、Azure DevOps Pipelines（以降、Pipelines）によりビルド及び'
+  url='https://www.neputa-note.net/2021/12/azure-devops-pipelines-existing-yaml/'
+  domain='www.neputa-note.net'
+/>
+
+### Azure DevOps Pipelinesによるリリース
+
+Azure DevOpsのPipelines→Releasesより、Create Releaseをクリック
+
+![Libraryのキャプチャ-03](@/images/blog/pipelines-library-capture-03.webp)
+
+「empty job」をクリック
+
+![Libraryのキャプチャ-04](@/images/blog/pipelines-library-capture-04.webp)
+
+Releaseジョブのstage nameを入力し右上の×で閉じる
+
+![Libraryのキャプチャ-05](@/images/blog/pipelines-library-capture-05.webp)
+
+「Add an artifact」をクリック
+
+![Libraryのキャプチャ-06](@/images/blog/pipelines-library-capture-06.webp)
+
+対象となるartifact（aabファイル）の条件を入力し、「add」をクリック
+
+![Libraryのキャプチャ-07](@/images/blog/pipelines-library-capture-07.webp)
+
+※ビルドをトリガーで自動実行するようにしたい場合は、Artifactのイナズマアイコンをクリックし、「Continuous deployment trigger」を「Enable」にする。
+
+Stagesの「1 job, 0 task」のハイパーリンクをクリック
+
+![Libraryのキャプチャ-08](@/images/blog/pipelines-library-capture-08.webp)
+
+「Agent job」の右横にある「＋」をクリック
+
+![Libraryのキャプチャ-09](@/images/blog/pipelines-library-capture-09.webp)
+
+Google Playで検索し、「Google Play - Release」の「Add」をクリック
+
+※Google Playプラグインを追加していない場合は、MarketplaceよりAzure DevOpsにインストールする →
+
+[Google Playのプラグイン](https://marketplace.visualstudio.com/items?itemName=ms-vsclient.google-play)
+
+![Libraryのキャプチャ-10](@/images/blog/pipelines-library-capture-10.webp)
+
+「Release to internal」を選択し、「Service connection」の「＋New」をクリック
+
+![Libraryのキャプチャ-11](@/images/blog/pipelines-library-capture-11.webp)
+
+Google Cloud Platformに登録してあるサービスアカウントの情報を入力し「Save」をクリック
+
+- サービスアカウントの作成手順は、「[Google Play Console APIを使う方法｜kosuke matsumura｜note](https://note.com/shcahill/n/n1c7d72df3c4d)」を参照
+- 「Private key」は、Google Cloud Platformのサービスアカウントに登録してあるjson形式の鍵ファイルの「private_key」の値（-----BEGIN PRIVATE KEY----- で始まる）を丸ごとコピペする
+- ここで登録したService connectionは、Project Settings→Service connectionsから変更できる
+
+![Libraryのキャプチャ-12](@/images/blog/pipelines-library-capture-12.webp)
+
+「Application id (com.google.MyApp)」、「Bundle path」、「Language code」を入力し、「Save」をクリック
+
+![Libraryのキャプチャ-13](@/images/blog/pipelines-library-capture-13.webp)
+
+RunでReleaseを実行すれば完了
+
+## まとめ
+
+Github Actions等にくらべ、情報がかなり少なく、公式ドキュメントのみでは理解しきれなかったため非常に苦労した。
+
+しかし、この一度の苦労で今後のビルドおよびリリースを自動化できることを思えばチャレンジするだけの価値はあると思う。
+
+間違いや、もっとこうすると良いよーや、その他ご意見ご感想などあれば、コメントや [Mastodon](https://fedibird.com/web/accounts/110804358773982782/about)で教えていただけるとうれしい。
+
+## 参考サイト
+
+- [Create Xamarin.Forms Android App Bundle (aab) and release it to Google Play Store with DevOps YAML - github.com](https://gist.github.com/mkieres/71f155a41975efa622c587ef680d72ac?utm_source=pocket_mylist)
+- [DevOps for Android App Bundles - Xamarin Blog](https://devblogs.microsoft.com/xamarin/android-app-bundles-azure-devops/?utm_source=pocket_mylist)
+- [How to setup CI CD pipelines for Android with Azure DevOps - Arjav Dave](https://arjavdave.com/2021/03/16/how-to-setup-ci-cd-pipelines-for-android-with-azure-devops/?utm_source=pocket_mylist)

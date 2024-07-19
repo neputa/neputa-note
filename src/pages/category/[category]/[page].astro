@@ -1,0 +1,43 @@
+---
+import BaseLayout from '@/layouts/BaseLayout'
+import ListPosts from '@/components/widgets/ListPosts'
+import ListCategories from '@/components/widgets/ListCategories'
+import TitlePage from '@/components/widgets/TitlePage'
+import { sluglify, unsluglify, getCategories, getPosts } from '@/utils'
+import { siteConfig } from '@/data/site.config'
+import Pagination from '@/components/widgets/Pagination'
+import GoogleAdsense from '@/components/widgets/GoogleAdsense'
+
+export async function getStaticPaths({ paginate }: any) {
+  const categories = getCategories()
+  const allPosts = await getPosts()
+
+  return categories.flatMap((category: string) => {
+    const unsluglifyNameCategory = unsluglify(category!.toLowerCase())
+    const filteredPosts =
+      category === '全記事'
+        ? allPosts
+        : allPosts.filter((post) => post.data.category[0].toLowerCase() === unsluglifyNameCategory)
+
+    return paginate(filteredPosts, {
+      params: {
+        category: sluglify(category.toLowerCase())
+      },
+      pageSize: siteConfig.paginationSize
+    })
+  })
+}
+const params = Astro.params
+const { page } = Astro.props
+
+const unsluglifyNameCategory = unsluglify(params.category!.toLowerCase())
+const posts = page.data
+---
+
+<BaseLayout title={params.category}>
+  <TitlePage title={unsluglifyNameCategory.toUpperCase()} />
+  <ListCategories activeCategory={params.category} />
+  <ListPosts posts={posts} />
+  <Pagination page={page} />
+  <GoogleAdsense />
+</BaseLayout>

@@ -1,0 +1,112 @@
+---
+title: 既存のYAMLを使用してAzure Pipelinesを作成する
+description: モバイルアプリ（Xamarin Forms）を個人開発している。現在、Azure DevOps上のGitリポジトリからAppCenterを経由しGoogle Play Consoleにデプロイしている。これを、Azure DevOps Pipelinesによりビルドおよびデプロイを一本化しようと試みている。
+pubDate: '2021-12-24 15:31:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/azure-devops-pipeline.webp'
+category:
+  - DEV
+tags: ['Azure', 'dev', 'devops']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 経緯と本記事の主旨
+
+モバイルアプリ（Xamarin Forms）を個人開発している。
+
+<BlogCard
+  title='アラフォー初心者だけどスマホアプリを開発～リリースまでがんばってみた【Android・Xamarin.Forms】'
+  description='この度、素人ながらスマホアプリ開発に挑戦してみました。今回の記事では概要と経緯について書き綴ってみたいと思います。実際に行った作業の詳細は、今後それぞれ記事を書き、こちらにリンクを追記します。作ったアプリ「OneThird」の概要 毎日の睡眠を入力によって記録するアプリです。寝た時間、起きた時間'
+  url='https://www.neputa-note.net/2021/02/onethird-release/'
+  domain='www.neputa-note.net'
+/>
+
+現在、Azure DevOps上のGitリポジトリからAppCenterを経由してGoogle Play Consoleにデプロイしている。
+
+<BlogCard
+  title='Azure DevOps Services | Microsoft Azure'
+  description='Azure DevOps Services (以前の Visual Studio Team Services) を利用して、よりスマートに計画を立て、より効率的に共同作業を行い、より迅速に出荷しましょう。アジャイル ツールや CI/CD などを利用できます。'
+  url='https://azure.microsoft.com/ja-jp/products/devops/'
+  domain='azure.microsoft.com'
+/>
+
+<BlogCard
+  title='Visual Studio App Center | Microsoft Azure'
+  description='Visual Studio App Center でアプリケーション ライフサイクルを自動化することで、iOS、Android、Windows、macOS 向けの高品質のアプリをより迅速に作成できます。'
+  url='https://azure.microsoft.com/ja-jp/products/app-center/#pricing'
+  domain='azure.microsoft.com'
+/>
+
+これを、Azure DevOps Pipelines（以降、Pipelines）によりビルドおよびデプロイを一本化しようと試みている。
+
+<BlogCard
+  title='Azure Pipelines とは - Azure Pipelines'
+  description='Azure Pipelines を使用してコードを自動的にビルド、テスト、デプロイする方法について説明します'
+  url='https://learn.microsoft.com/ja-jp/azure/devops/pipelines/get-started/what-is-azure-pipelines?view=azure-devops'
+  domain='learn.microsoft.com'
+/>
+
+もう少し詳しい経緯はこちらに書いた。
+
+<BlogCard
+  title='【個人開発・モバイルアプリ】今後の作業を整理する【Xamarin・Azure】'
+  description='日々の睡眠時間を手入力で記録するモバイルアプリ（アンドロイドのみ）を公開している。今年は身内でいろいろとあり、年初にリリースして以降バージョンアップをサボっていた。やらなければと思うことが溜まっているので整理のためメモを書いておく。自作のモバイルアプリ「OneThird」の開発環境・使用サービス'
+  url='https://www.neputa-note.net/2021/12/future-plans-for-mydev/'
+  domain='www.neputa-note.net'
+/>
+
+PipelinesはYAMLファイルに処理を記述していく。
+
+Azure DevOps上のエディタもタスクのテンプレートを追加できたりと便利なのだが、Visual Studio with VsVimで記述し、他のプログラムと一緒にリポジトリで管理したい。
+
+そして軽く躓いたのが、すでにYAMLファイルが存在する場合の新規Pipelinesの作成方法。
+
+大した話ではないのだが、やや分かりにくかった（MS製品のUIは原則不親切だと思っている）ので備忘録としてメモする。
+
+## 既存のYAMLで新規Pipelinesを作成する
+
+### 前提
+
+Pipelinesへ設定するリポジトリ上にYAMLファイルがすでにあること。
+
+### 作業詳細
+
+Pipelinesのページ右上の「New pipeline」をクリックする。
+
+![新規Pipelines作成キャプチャ-1](@/images/blog/pipelines-capture01.webp)
+
+ターゲットとなるリポジトリがある環境を選択する（ここではAzure DevOps上のGitリポジトリ）。
+
+![新規Pipelines作成キャプチャ-2](@/images/blog/pipelines-capture02.webp)
+
+リポジトリ名を選択する。
+
+![新規Pipelines作成キャプチャ-3](@/images/blog/pipelines-capture03.webp)
+
+ここが分かりにくかったがちゃんと書いてある。「Existing Azure Pipelines YAML file」を選択する。
+
+![新規Pipelines作成キャプチャ-4](@/images/blog/pipelines-capture04.webp)
+
+ターゲットとなるブランチとYAMLファイルを指定する。
+
+![新規Pipelines作成キャプチャ-5](@/images/blog/pipelines-capture05.webp)
+
+完成。あとは保存するなり実行するなり。
+
+![新規Pipelines作成キャプチャ-6](@/images/blog/pipelines-capture06.webp)
+
+## 参考
+
+[Create a new pipeline from existing YML file in the repository (Azure Pipelines) - Stack Overflow](https://stackoverflow.com/questions/59067096/create-a-new-pipeline-from-existing-yml-file-in-the-repository-azure-pipelines)
+
+## 終わりに
+
+YAMLテンプレートを選択するならびに「既存のYAMLファイルを〜」が混ざっているのが個人的に分かりづらく、あれこれ時間を食ってしまった。
+
+まだ学習を始めたばかりのPipelinesだけれど、AppCenterと違って処理を自分で細かく定義することができるのは非常に素晴らしい。
+
+他のCI/CDツールに比べると、Azure DevOpsはまだまだユーザが少ないとは思うので、ぜひ利用者がもっと増えて情報が多く得られるようになってほしい。

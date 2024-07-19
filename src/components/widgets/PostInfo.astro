@@ -1,0 +1,35 @@
+---
+import FormattedDate from '@/components/ui/FormattedDate'
+import { datesAreOnSameDay } from '@/utils'
+
+type Props = {
+  pubDate: Date
+  modDate?: Date | undefined
+  readTime?: string
+  classNames?: string
+}
+
+const { pubDate, modDate = undefined, readTime = undefined, classNames = undefined } = Astro.props
+---
+
+<div
+  class:list={[
+    'flex flex-wrap gap-x-1 text-xs md:text-sm text-opacity-50',
+    classNames && classNames
+  ]}
+>
+  <p>初稿:<FormattedDate date={pubDate} /></p>
+  {
+    modDate && !datesAreOnSameDay(modDate, pubDate) && (
+      <p>
+        <>
+          <span class='ml-1'>更新:</span>
+          <FormattedDate date={modDate} />
+        </>
+      </p>
+    )
+  }
+  <p>
+    {readTime && '- ' + readTime + ' -'}
+  </p>
+</div>

@@ -1,0 +1,315 @@
+---
+title: 【Astro/Shiki】markdownのコードブロックにファイル名とdiffを追加する
+description: AstroのmarkdwonまたはMDXで記述したコードブロックについて、ファイル名やコードのdiffを表示できるようにする。シンタックスハイライターはShikiを使用。remarkのpluginとコードブロックのcomponentを追加する。一連の実装手順をまとめた。
+pubDate: 2024-07-13T16:38:27.181Z
+modDate: 2024-07-13T16:38:27.181Z
+heroImage: ../../../../assets/images/blog/astro.webp
+category:
+  - DEV
+tags:
+  - Astro
+  - dev
+draft: false
+keywords:
+  - astro
+  - Shiki
+  - コードブロック
+  - diff
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事概要
+
+- 先日のBloggerからAstroへ移行した記事の別途詳細
+
+**※参考 - Blog移行記事**
+
+<BlogCard
+  title='BlogをBloggerからAstroへ移行した'
+  description='10年以上の期間お世話になったGoogle Bloggerに別れを告げ、この度AstroでBlogサイトを構築し移行した。Astroは静的サイトを手軽に開発できる軽量フレームワーク。無料のテンプレートをベースにカスタマイズを行った。それなりの作業ボリュームとなったので、詳細は別記事に分け、今回は移行作業全体をまとめる。'
+  url='https://www.neputa-note.net/2024/07/migrated-blogger-to-astro/'
+  domain='www.neputa-note.net'
+/>
+
+### 目的
+
+- AstroのmarkdwonまたはMDXで記述したコードブロックに以下を追加する
+  - ファイル名を表示できるようにする
+  - コードのdiffを表示できるようにする
+- シンタックスハイライトはAstroのデフォルトShikiを使用
+- cssフレームワークはTailwindを使用
+- 一連の実装手順について説明する
+
+## 用語説明
+
+### Astro とは？
+
+> Astroは、ブログやマーケティング、eコマースなど、コンテンツ駆動のウェブサイトを作成するためのウェブフレームワークです。Astroは、新しいフロントエンドアーキテクチャを開拓し、他のフレームワークと比較してJavaScriptのオーバーヘッドと複雑さを低減することで知られています。高速でSEOに優れたウェブサイトが必要なら、Astroが最適です。 <cite>-- [Astro公式Docs](https://docs.astro.build/ja/concepts/why-astro/) より引用をDeepLで翻訳</cite>
+
+- 参考記事
+  - [Webフレームワーク「Astro」とは？開発初心者からベテランまで注目する理由](https://codezine.jp/article/detail/17883)
+
+### Shiki とは？
+
+> Shiki（式、日本語で「スタイル」の意）は、VS Codeのシンタックスハイライトと同じエンジンであるTextMateの文法とテーマをベースにした、美しく強力なシンタックスハイライターです。ほとんどの主要なプログラミング言語に対して、非常に正確で高速なシンタックスハイライトを提供します。 <cite>-- [Shiki公式](https://shiki.style/guide/)より引用をDeepLで翻訳</cite>
+
+## 作業環境
+
+- OS - Ubuntu-22.04LTS on WSL2
+- Node.js - v20.14.0
+- pnpm - v9.4.0
+- Astro - v4.11.3
+- Shiki - v1.10.3
+
+## 作業概要
+
+- ファイル名表示
+  - remarkのplugin実装
+  - コードブロックのcomponent実装
+  - Blog記事componentに組み込む
+- コードのdiff表示
+  - @shikijs/transformersインストール
+  - コードブロックcomponentに組み込む
+
+## 作業詳細
+
+### ファイル名表示
+
+- remarkのpluginを実装しファイル名を表示する手順はこちらのサイトを参考に行った。
+
+<BlogCard
+  title='Astro でコードブロックのシンタックスハイライトをしつつタイトルも付ける'
+  description='Astro 標準のシンタックスハイライトには、タイトルを付ける仕組みが存在しない。remark-code-title という Remark のプラグインを使うことで実現できるが、シンタックスハイライトと干渉することを防ぐために、code 要素の手前に div 要素を置く形になって…'
+  url='https://blog.mono0x.net/2023/07/10/astro-syntax-highlight-with-title/'
+  domain='blog.mono0x.net'
+/>
+
+- pluginの実装、astro.configの設定、CodeBlockのcomponentを丁寧に解説している
+- remark-code-block.tsはそのまま実装させてもらっているため転載は避ける
+- 是非リンク先に飛んで参照を
+- コードブロックのcomponentは以下のとおり実装した
+- 次はこれをベースにdiffを組み込んでいく
+
+```astro CodeBlock.astro
+---
+import { Code } from 'astro:components'
+import { type BuiltinLanguage, type SpecialLanguage } from 'shikiji'
+interface Props {
+  lang?: string
+  title?: string
+  code: string
+}
+const { lang, title, code } = Astro.props
+---
+
+<figure class='code-block'>
+  <div>
+    <figcaption>
+      {title ? title : 'code'}
+    </figcaption>
+  </div>
+  <div>
+    <Code
+      lang={lang as BuiltinLanguage | SpecialLanguage | undefined}
+      code={decodeURIComponent(code)}
+      wrap={false}
+      theme={'dark-plus'}
+    />
+  </div>
+</figure>
+```
+
+#### Shikiのthemeについてメモ
+
+- AstroのCode componentのソースを読むと、**themes**というプロパティがあり、Shikiのdual themesに対応とある
+  - [Light/Dark Dual Themes | Shiki](https://shiki.style/guide/dual-themes)
+
+```jsx Code.astro
+	/**
+	 * Multiple themes to style with -- alternative to "theme" option.
+	 * Supports all themes found above; see https://shiki.style/guide/dual-themes for more information.
+	 */
+	themes?: Record<string, ThemePresets | ThemeRegistration | ThemeRegistrationRaw>;
+```
+
+- darkモードとthemeを分けたかったが試したところうまく動作しなかった
+- よってsingle theme決め打ちとした
+
+### diff 表示
+
+- diffの表示には@shikijs/transformersというパッケージを使用する
+  - [@shikijs/transformers | Shiki](https://shiki.style/packages/transformers)
+
+#### @shikijs/transformersインストール
+
+```bash pnpm
+$ pnpm add -D @shikijs/transformers
+```
+
+#### コードブロック componentに組み込む
+
+- frontmatterに@shikijs/transformersをimportする
+- Code componentのプロパティにtransformers（関数配列）を追加する
+
+```jsx CodeBlock.astro
+---
+import { Code } from 'astro:components'
+import { type BuiltinLanguage, type SpecialLanguage } from 'shikiji'
+import { transformerNotationDiff } from '@shikijs/transformers' // [!code ++]
+interface Props {
+  lang?: string
+  title?: string
+  code: string
+}
+const { lang, title, code } = Astro.props
+---
+
+<figure class='code-block'>
+  <div>
+    <figcaption>
+      {title ? title : 'code'}
+    </figcaption>
+  </div>
+  <div>
+    <Code
+      lang={lang as BuiltinLanguage | SpecialLanguage | undefined}
+      code={decodeURIComponent(code)}
+      wrap={false}
+      theme={'dark-plus'}
+      transformers={[ transformerNotationDiff() ]}{} // [!code ++]
+    />
+  </div>
+</figure>
+```
+
+#### diffのstyle
+
+{/* textlint-disable */}
+
+- transformerNotationDiffは "// [!code ++]" または "// [!code --]" が存在する行に、line diff add removeといったclassを追加する
+- これらclassにstyleを付けて表示を変更する
+- Tailwindのglobal.cssで作成したstyleを示す（Typography plugin使用）
+
+```css global.CSS
+/*
+  shiki
+*/
+.prose figure.code-block {
+  @apply mt-6 mb-12;
+}
+.prose pre {
+  @apply rounded-tl-none rounded-tr-none mt-0 px-0;
+}
+.prose code {
+  @apply grid grid-flow-row;
+}
+.line {
+  @apply indent-3;
+}
+.add {
+  @apply bg-[#122616] indent-1;
+}
+.remove {
+  @apply bg-[#301a1f] indent-1;
+}
+.add::before {
+  @apply content-['+'] text-green-500;
+}
+.remove::before {
+  @apply content-['-'] text-red-500;
+}
+```
+
+{/* textlint-enable */}
+
+### CodeBlock.astro 完成形
+
+- このBlogで実際に使用しているCodeBlock.astroを以下に示す
+- cssはTailwindを使用している
+- diff以外のtransformersについては下記リンクを参照
+  - [@shikijs/transformers | Shiki](https://shiki.style/packages/transformers)
+
+```astro CodeBlock.astro
+---
+import { Code } from 'astro:components'
+import { type BuiltinLanguage, type SpecialLanguage } from 'shikiji'
+import CopyIcon from '../icons/CopyIcon.astro'
+import CheckIcon from '../icons/CheckIcon.astro'
+import {
+  transformerNotationDiff,
+  transformerMetaHighlight,
+  transformerNotationFocus
+} from '@shikijs/transformers'
+interface Props {
+  lang?: string
+  title?: string
+  code: string
+}
+const { lang, title, code } = Astro.props
+---
+
+<figure class='code-block'>
+  <div class='rounded-tl-md rounded-tr-md bg-github/60'>
+    <figcaption
+      class='not-prose m-0 max-h-fit max-w-fit truncate rounded-tl-md rounded-tr-md bg-github px-4 py-1 font-["Consolas"] text-xs text-white'
+    >
+      {title ? title : 'code'}
+    </figcaption>
+  </div>
+  <div class='relative bg-inherit dark:shadow-2xl'>
+    <button
+      aria-label='copy-button'
+      class='copy-button absolute right-2 top-2 z-20 max-h-fit max-w-full rounded-md bg-github/50 text-gray-400 transition-all ease-in hover:text-primary-500 dark:text-gray-600 dark:hover:text-primary-400'
+      ><CopyIcon /></button
+    ><span
+      class='check-span absolute right-2 top-2 z-10 max-h-fit max-w-full rounded-md bg-github/50 text-green-600 opacity-0 transition-all ease-in dark:text-green-400'
+      ><CheckIcon /></span
+    >
+  </div>
+  <div>
+    <Code
+      lang={lang as BuiltinLanguage | SpecialLanguage | undefined}
+      code={decodeURIComponent(code)}
+      wrap={false}
+      theme={'dark-plus'}
+      transformers={[
+        transformerNotationDiff(),
+        transformerMetaHighlight(),
+        transformerNotationFocus()
+      ]}
+    />
+  </div>
+</figure>
+
+<script>
+  const coppyBlock = () => {
+    const codeBlock = document.querySelectorAll('.code-block')
+
+    codeBlock.forEach((code) => {
+      const button = code.querySelector('.copy-button')
+      const check = code.querySelector('.check-span')
+      const content = code.querySelector('code')
+
+      button!.addEventListener('click', () => {
+        navigator.clipboard.writeText(content?.textContent?.trim() || '')
+        check?.classList.remove('opacity-0')
+        button?.classList.add('opacity-0')
+        setTimeout(() => {
+          check?.classList.add('opacity-0')
+          button?.classList.remove('opacity-0')
+        }, 2000)
+      })
+    })
+  }
+  coppyBlock() // initial load
+  document.addEventListener('astro:after-swap', coppyBlock) // re-run after each page change
+</script>
+```
+
+## 参考サイト
+
+- [Astro でコードブロックのシンタックスハイライトをしつつタイトルも付ける | monolithic kernel](https://blog.mono0x.net/2023/07/10/astro-syntax-highlight-with-title/)
+- [Using Transformers for Shiki to enrich Syntax Highlighting in Astro](https://www.launchfa.st/blog/shiki)

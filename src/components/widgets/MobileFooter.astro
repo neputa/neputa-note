@@ -1,0 +1,98 @@
+---
+import type { MarkdownHeading } from 'astro'
+import TableOfContents from '@/components/ui/TableOfContents'
+import HomeIcon from '@/components/icons/HomeIcon'
+import CloseIcon from '@/components/icons/CloseIcon'
+import ToTopIcon from '@/components/icons/ToTopIcon'
+import TableOfContentsIcon from '@/components/icons/TableOfContentsIcon'
+
+type Props = {
+  headings: MarkdownHeading[]
+}
+const { headings } = Astro.props
+---
+
+<dialog
+  id='toc-dialog'
+  class='h-full w-full bg-white text-black backdrop:bg-gray-500 backdrop:opacity-80 dark:bg-gray-900 dark:text-white dark:backdrop:bg-gray-700'
+>
+  <div class='h-full w-full flex-wrap items-center justify-center p-4'>
+    <p class='mb-4 mt-2 border-b border-b-gray-300 pb-2 text-xl font-semibold'>目次</p>
+    {
+      headings && headings.length > 0 ? (
+        <TableOfContents {headings} />
+      ) : (
+        <p class='text-lg'>この記事に目次はありません</p>
+      )
+    }
+  </div>
+  <form>
+    <button
+      formmethod='dialog'
+      class='absolute right-4 top-4 z-40 h-8 w-8 rounded-md border border-gray-400 bg-white p-1 dark:bg-inherit'
+    >
+      <CloseIcon />
+    </button>
+  </form>
+</dialog>
+
+<div
+  id='fixed-footer-menu'
+  class='fixed bottom-0 z-50 block w-full bg-tertiary pb-2 pt-1 text-white dark:bg-slate-900 md:hidden'
+>
+  <ul class='m-0 flex w-full list-none p-0'>
+    <li class='m-0 w-1/3 items-center justify-center p-0'>
+      <a
+        href='/'
+        class='grid w-full place-items-center gap-1 pt-3 text-xxs no-underline sm:text-xs'
+      >
+        <HomeIcon />
+        <p class='m-0 p-0 text-xxs sm:text-xs'>ホーム</p>
+      </a>
+    </li>
+    <li class='m-0 w-1/3 items-center justify-center p-0'>
+      <button
+        id='toTop-button'
+        class='grid w-full place-items-center gap-1 pt-3 text-xxs no-underline sm:text-xs'
+      >
+        <ToTopIcon />
+        <p class='m-0 p-0 text-xxs sm:text-xs'>トップ</p>
+      </button>
+    </li>
+    <li class='m-0 w-1/3 items-center justify-center p-0'>
+      <button
+        id='show-toc-button'
+        class='grid w-full place-items-center gap-1 pt-3 text-xxs no-underline sm:text-xs'
+      >
+        <TableOfContentsIcon />
+        <p class='m-0 p-0 text-xxs sm:text-xs'>目　次</p>
+      </button>
+    </li>
+  </ul>
+</div>
+
+<script>
+  const tocDialog = () => {
+    const dialog = document.getElementById('toc-dialog') as HTMLDialogElement
+    const openBtn = document.getElementById('show-toc-button') as HTMLButtonElement
+    const toTopBtn = document.getElementById('toTop-button') as HTMLButtonElement
+
+    openBtn &&
+      openBtn.addEventListener('click', () => {
+        dialog.showModal()
+      })
+    dialog &&
+      dialog.addEventListener('click', () => {
+        dialog.close()
+      })
+    toTopBtn &&
+      toTopBtn.addEventListener('click', function () {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth' // スムーズスクロール
+        })
+      })
+  }
+  tocDialog()
+  document.addEventListener('astro:after-swap', tocDialog)
+</script>

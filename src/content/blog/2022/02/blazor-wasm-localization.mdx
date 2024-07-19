@@ -1,0 +1,219 @@
+---
+title: 'Blazor WebAssemblyの多言語対応'
+description: '以前、個人で日々の睡眠を記録する簡易なアプリを開発し公開した。PCでも読み書きできるようにWeb版をBlazor WebAssemblyで作成することにした。スマホアプリで多言語対応をしているので、Web版でも同様するべく調べたことを備忘録として残す。'
+pubDate: '2022-02-15 21:58:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/blazor-logo.webp'
+category:
+  - DEV
+tags: ['Blazor', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 経緯と目的
+
+以前、個人で日々の睡眠を記録する簡易なアプリを開発し公開した。
+
+<BlogCard
+  title='アラフォー初心者だけどスマホアプリを開発～リリースまでがんばってみた【Android・Xamarin.Forms】'
+  description='この度、素人ながらスマホアプリ開発に挑戦してみました。今回の記事では概要と経緯について書き綴ってみたいと思います。実際に行った作業の詳細は、今後それぞれ記事を書き、こちらにリンクを追記します。作ったアプリ「OneThird」の概要 毎日の睡眠を入力によって記録するアプリです。寝た時間、起きた時間'
+  url='https://www.neputa-note.net/2021/02/onethird-release/'
+  domain='www.neputa-note.net'
+/>
+
+PCでも読み書きできるようにWeb版をBlazor WebAssemblyで作成することにした。
+
+<BlogCard
+  title='ASP.NET Core Blazor'
+  description='ASP.NET Core アプリ内に .NET を使った対話型のクライアント側 Web UI を構築する方法である、ASP.NET Core Blazor について調べます。'
+  url='https://learn.microsoft.com/ja-jp/aspnet/core/blazor/?view=aspnetcore-6.0'
+  domain='learn.microsoft.com'
+/>
+
+スマホアプリで多言語対応をしているので、Web版でも同様するべく調べたことを備忘録として残す。
+
+## 環境
+
+- OS：Windows 10
+- .NET：6.0
+- Framework：Blazor WebAssembly
+
+## 仕様
+
+- 英語と日本語の2か国語に対応し、これら以外の場合は英語表示となる
+- Webストレージを使用し、ユーザの選択言語をローカル保存する
+- 初回やローカルデータ消去後は、ブラウザのLocaleから言語を選択する
+- ユーザはUIのSelectorで言語を切り替えることができる
+
+## 実装手順
+
+Nugetパッケージ「Microsoft.Extensions.Localization」をインストールする
+
+<BlogCard
+  title='Microsoft.Extensions.Localization 8.0.6'
+  description='Application localization services and default implementation based on ResourceManager to load localized assembly resources.This package was built from the source code at https://github.com/dotnet/aspnetcore/tree/b8139c5ee58f1708b0e3368a1b241400edd6cbc4'
+  url='https://www.nuget.org/packages/Microsoft.Extensions.Localization'
+  domain='www.nuget.org'
+/>
+
+Projectファイル「.csproj」に以下を追加する
+
+```xml
+<PropertyGroup>
+    <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+</PropertyGroup>
+```
+
+wwwroot配下にあるindex.htmlのbodyタグの終了タグ直前に以下のスクリプトを設置する。
+
+```html
+<script>
+  function getBrowserLocale() {
+    return navigator.languages && navigator.languages.length
+      ? navigator.languages[0]
+      : navigator.userLanguage || navigator.language || navigator.browserLanguage || 'en'
+  }
+  window.blazorCulture = {
+    get: () => window.localStorage['BlazorCulture'],
+    set: (value) => (window.localStorage['BlazorCulture'] = value)
+  }
+</script>
+```
+
+- getBrowserLocaleメソッドは、ブラウザからLocaleを取得するため
+- blazorCultureプロパティは、CultureをWebストレージに出し入れするため
+
+Program.csのawait builder.Build().RunAsync();を削除し、Cultureの設定処理を追加する。全体は以下のとおり。
+
+```csharp
+using BlazorApp1;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.JSInterop;
+using System.Globalization;
+
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
+
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+// await builder.Build().RunAsync();
+
+// 以下Cultureの設定
+builder.Services.AddLocalization();
+
+var host = builder.Build();
+
+CultureInfo culture;
+var js = host.Services.GetRequiredService<IJSRuntime>();
+var result = await js.InvokeAsync<string>("blazorCulture.get");
+
+// Webストレージにデータがあればそれを、無ければBrowserのLocaleを読み込む
+if (result != null)
+{
+    culture = new CultureInfo(result);
+}
+else
+{
+    var localCal = await js.InvokeAsync<string>("getBrowserLocale");
+    culture = new CultureInfo(localCal);
+    await js.InvokeVoidAsync("blazorCulture.set", culture.Name);
+}
+
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+await host.RunAsync();
+```
+
+Sharedフォルダに「CultureSelector.razor」の名前でヘッダーに設置する言語セレクターコンポーネントを作成する
+
+```razor
+@using System.Globalization
+@using BlazorApp1.Properties
+@inject IStringLocalizer<Resource> Loc
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Nav
+
+@Loc["SelectLanguage"] :
+<select @bind="Culture">
+    @foreach (var culture in supportedCultures)
+    {
+        <option value="@culture">@culture.DisplayName</option>
+    }
+</select>
+
+@code
+{
+    private CultureInfo[] supportedCultures = new[]
+    {
+        new CultureInfo("en-US"),
+        new CultureInfo("ja-JP"),
+    };
+
+    private CultureInfo Culture
+    {
+        get => CultureInfo.CurrentCulture;
+        set
+        {
+            if (CultureInfo.CurrentCulture != value)
+            {
+                var js = (IJSInProcessRuntime)JSRuntime;
+                js.InvokeVoid("blazorCulture.set", value.Name);
+
+                Nav.NavigateTo(Nav.Uri, forceLoad: true);
+            }
+        }
+    }
+}
+```
+
+MainLayout.razorに &lt;CultureSelector /&gt; を追加し、ヘッダに言語セレクターを設置する
+
+```razor
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <CultureSelector />
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+```
+
+Propertiesフォルダに、リソースファイルResource.resxとResource.ja.resxを作成し、以下のキーバリューを追加する
+
+| Key            | Neutral              | 日本語             |
+| -------------- | -------------------- | ------------------ |
+| Greeting       | Hello World !        | こんにちは、世界！ |
+| SelectLanguage | Select your language | 言語選択           |
+
+ちなみにResourceファイルの編集は、拡張機能「ResXManager」が便利ですね
+
+![ResXManagerスクリーンショット](@/images/blog/resxmanager-screenshot.webp)
+
+デバッグ実行し、初回起動時にブラウザLocaleから日本語表示、セレクター切り替えで英語表示になることを確認
+
+![Blazor デモ画面](@/images/blog/blazor-demo-1.webp)
+
+![Blazor デモ画面](@/images/blog/blazor-demo-2.webp)
+
+## 参考
+
+- [ASP.NET Core Blazor のグローバリゼーションおよびローカライズ | Microsoft Docs](https://docs.microsoft.com/ja-jp/aspnet/core/blazor/globalization-localization?pivots=webassembly&utm_source=pocket_mylist&view=aspnetcore-6.0)
+- [Simple Localisation in Blazor](https://chrissainty.com/simple-localisation-in-blazor/?utm_source=pocket_mylist)

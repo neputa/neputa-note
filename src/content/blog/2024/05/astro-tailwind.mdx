@@ -1,0 +1,348 @@
+---
+title: AstroとTailwindで静的サイトを作ってみた 【Jamstack】
+description: 先日このブログのアプリ開発情報をAstroとTailwindによる静的サイトへ移動した。（正しくはAstro & Tailwindで作成されたテンプレートを使用） これまでブログのカスタマイズ目的でHTML/CSS/JavaScriptの使用機会はあったがフレームワークは今回が初。色々と気づきがあったので備忘録を残す。
+pubDate: 2024-05-29 21:54:00
+modDate: 2024-05-29 21:54:00
+heroImage: ../../../../assets/images/blog/default.webp
+category:
+  - DEV
+tags:
+  - Astro
+  - Tailwind
+  - dev
+draft: false
+keywords:
+  - Astro
+  - Tailwind
+---
+
+import Alert from '@/components/mdx/Alert'
+
+## 概要
+
+先日、このブログに掲載していたアプリ開発の情報を切り分ける目的で、「Astro」と「Tailwind」による静的サイトを作成した。（正しくはAstro & Tailwindで作成されたテンプレートを使用）
+
+[まくた工房](https://www.makuta-kobo.net/)
+
+これまで、ブログのカスタマイズ目的でHTML/CSS/JavaScriptの使用機会はあった。Web関連のフレームワークは今回が初。色々と気づきがあったので備忘録を残す。
+
+本記事は、開発作業の全体を概観する内容であり、個別の詳細な手順などは後日、別記事にまとめる。
+
+## 背景
+
+本記事の対象者を示すため、開発時点における私の技術的背景を記す。
+
+- 趣味でモバイルアプリおよびバックエンドのサーバサイド開発経験あり
+- Webフロントエンド開発未経験（node.jsも今回初）
+- 本ブログの使用レベルのHTML/CSS/JavaScriptは理解できる
+
+個人的にサーバサイド/DB開発への関心が高く、デザインが絡むUI側は苦手。
+
+同様の傾向があり、静的サイトを素早く開発する手法を確保しておきたい方（かなり狭い）の参考になればうれしい。
+
+## 環境
+
+### OS
+
+- Ubuntu 22.04.2LTS on WSL2
+
+### 使用フレームワーク等
+
+- node.js: v20.12.1
+- astro: v4.9.2
+- tailwind: v5.1.0
+- react: v3.4.0
+- react-hook-form: v7.51.5
+- astro-breadcrumbs: v2.3.0
+
+## 本編
+
+### Astro / Tailwind を採用した理由
+
+### Astro採用の経緯
+
+- React、Vue.js、Angular、Next.jsの情報が多い
+- 今回の要求はサーバサイド不要のシンプルなWebサイト、SPAである必要なし
+- よって先に挙げた先頭3つを候補から外し、Next.jsを調査
+- 「静的サイトジェネレーター（SSG）」なる名称を知る
+- 以下サイト等を参照しAstroに決定
+  - [Jamstackの人気のある静的ジェネレーターの比較 25 選](https://www.commte.co.jp/blog/jamstack-static-generators-comparison)
+
+### Astro採用のポイント
+
+- 言語学習コスト（Ruby/Python/Goなど未知の言語を避けた）
+- コンポーネント指向アーキテクチャ
+- 他フレームワーク（Reactなど）のコンポーネントを組み込み可
+- 必要時に必要なJavaScriptのみロードするゼロJS
+- 日本語ドキュメント、チュートリアルがある
+
+コンポーネント指向に関心があり、これを機に学習したいと考えた。Astroの歴史は浅いが、人気フレームワークの異なるコンポーネントをページ上で混在させることが可能。つまり使えるアドオンが無数にあるようなもの。
+
+### Tailwind採用の経緯
+
+- 苦手なデザインの労力を減らしたい
+- CSSフレームワークはサイズがデカいと強く思い込んでいる（このブログで苦労した）
+- ページごとに必要なクラスのみビルドするフレームワークがあるらしい
+
+### Tailwind採用のポイント
+
+- 巨大なCSSファイルのロードが不要（ビルド時に最適化）
+- ユーティリティファースト仕様でクラス名を考える作業から解放される
+- Astroへ簡単に組み込める
+- 英語のみだがドキュメントが分かりやすい
+
+ただでさえデザインが苦手なうえ、Buttonで使用するクラスにButtonとわかる名前を付けるなど、そもそもCSSの仕様にストレスを感じることが多かった。Tailwindはこれらを一気に解決してくれる。
+
+### Astro / Tailwind について
+
+#### Astroについて
+
+[Astroを選ぶ理由 | Docs](https://docs.astro.build/ja/concepts/why-astro/)
+
+開発スタイルはReactなど流行りのフレームワーク同様、コンポーネントつまり部品を作成し、それをLayoutでテンプレート化、最終的なページへと集約する。JavaScriptで動的にHTMLを書き出すことでコンポーネントやレイアウトを流用、共通化する。
+
+言語は厳密なTypeScript、JavaScriptを混在等、設定で調節できる。
+
+これらは .astro拡張子のファイルで構成してくが、他フレームワークのコンポーネントを混在が可能。
+
+![Astroアイランド](@/images/blog/astro-island.webp)
+
+上記は今回作成したお問い合わせフォームページを簡略化したもの。基本的な骨組みは .astroで作成。フォーム部分は「[React Hook Form](https://react-hook-form.com/)」という、多様なバリデーションが実装済みのReact用コンポーネントを使用している。
+
+これは「[Astroアイランド](https://docs.astro.build/ja/concepts/islands/)」というAstroの特徴の1つ。これにより、公開されている無数のコンポーネントを使うことができる。
+
+Astroはビルドで最適化したWebサイトを出力する。
+
+- JavaScriptは各ページで必要なコードを必要なタイミングでロードする（[スクリプトとイベントハンドリング | Docs](https://docs.astro.build/ja/guides/client-side-scripts/)）
+- CSSも同様に各ページのみに適用されるようコンパイルされる（[CSSとスタイル | Docs](https://docs.astro.build/ja/guides/styling/)）
+- 画像は「Imageコンポーネント」を介して配置すると「[sharp](https://github.com/lovell/sharp)」や「[squoosh](https://github.com/GoogleChromeLabs/squoosh)」による最適化を行う（[画像 | Docs](https://docs.astro.build/ja/guides/images/)）
+- サイト内のリンクは。/src/navigation.jsを修正する
+
+結果、高速でレンダリングされる静的サイトが完成する。
+
+ドキュメントのほとんどが日本語化されている。非常にわかりやすいので「[Astroを自動CLIでインストール | Docs](https://docs.astro.build/ja/install/auto/)」にしたがい作業してみることをおススメする。
+
+さらに興味があれば、「[初めてのAstroブログ | Docs](https://docs.astro.build/ja/tutorial/0-introduction/)」にチャレンジすると、Astroの特徴的な機能をひととおりさらうことができるので併せておススメしたい。
+
+#### Tailwindについて
+
+[Installation - Tailwind CSS](https://tailwindcss.com/docs/installation)
+
+CSSの知識は必要だがCSSを書く必要がない。これがTailwindに感じた最大の利点だ。
+
+Bootstrapと一目でわかるサイトは避けたいが、クラス名を考えCSSをコツコツ記述するのもつらい。ユーティリティファーストを掲げるTailwindはこうなる。
+
+```html
+<h1 class="text-3xl font-bold underline">Hello world!</h1>
+```
+
+Tailwindは各プロパティごとにユーティリティが用意されている。細かい数値設定はTailwind原則に従うことでデザインの統一化を図ることができる。ユーティリティを組み合わせることで柔軟にデザイン実装が可能となる。
+
+先のユーティリティ内訳は以下のとおり
+
+- text-3xl: font-size: 1.875rem; line-height: 2.25rem;
+- font-bold: font-weight: 700;
+- underline: text-decoration-line;
+
+Gridレイアウトはこんな具合になる。
+
+```html
+<div class="grid grid-rows-4 grid-flow-col gap-4">
+  <div>01</div>
+  <div>02</div>
+  <div>03</div>
+</div>
+```
+
+TailwindはAstroのようなコンポーネント指向開発と非常に相性が良いと思う。
+
+複雑なデザインを実装したい場合、確かにTailwindではclass属性がすごいことになる。だが、コンポーネントであればその作業は一度で良い。
+
+見出し、段落、テーブルなどコンポーネントとして一度だけclass属性の中身を決めればよい。CSSを書く必要はなく、必要なユーティリティを組み合わせていくだけだ。
+
+慣れるまでドキュメントでユーティリティを探す機会は多いだろう。公式Docsの他、チートシートも数多く見つかる。
+
+- [Installation - Tailwind CSS](https://tailwindcss.com/docs/installation)
+- [Tailwind CSS Cheat Sheet](https://tailwindcomponents.com/cheatsheet/)
+
+VSCodeであれば便利な拡張機能がある。
+
+[Tailwind CSS IntelliSense - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
+
+チュートリアルとして以下サイトを利用した。
+
+[利用者爆増中 初めてでもわかるTailwind CSS入門 基礎編 | アールエフェクト](https://reffect.co.jp/html/tailwindcss-for-beginners)
+
+CSSのストレスから解放してくれたTailwindの設計思想や全体像を知りたくなり書籍を読んでみた。日本語の書籍はこれしか見つからなかった。知りたかったことが網羅的に掲載された良書。参考まで。
+
+<div class='not-prose'>
+	<div data-vc_mylinkbox_id='890572520'></div>
+</div>
+
+### テンプレートAstrowindについて
+
+AstroとTailwindをチュートリアルで大まかに学習し、いざWebサイトを開発するにあたり無償で利用できるテンプレートを使用した。
+
+Astro用のテンプレートは[こちら](https://astro.build/themes/)で探すことができる。
+
+Astroを最大限生かした開発方法を先駆者たちから学ばない手はない。Filterの「Technology」でTailwind、「Pricing」でFreeを選択し、もっともスターが多い「[AstroWind](https://github.com/onwidget/astrowind)」を使用することとした。
+
+デモサイト
+
+[AstroWind — Free template for creating websites with Astro + Tailwind CSS](https://astrowind.vercel.app/)
+
+特徴は以下のとおり
+
+> ✅PageSpeed Insightsレポートでのプロダクション対応スコア<br />
+> ✅ダークモードとRTLをサポートするTailwind CSSとの統合<br />
+> ✅自動RSSフィード、MDXサポート、カテゴリー＆タグ、ソーシャルシェア等を備えた高速でSEOフレンドリーなブログ<br />
+> ✅画像の最適化（新しいAstro AssetsとUnpic for Universal image CDNを使用）<br />
+> ✅ルートに基づいてプロジェクトサイトマップを生成<br />
+> ✅ソーシャルメディア共有のためのOpen Graphタグ<br />
+> ✅Google Analytics内蔵アナリティクス、Splitbee統合 <cite class='text-sm text-right block mt-2'>-- [AstroWind](https://github.com/onwidget/astrowind)より引用</cite>
+
+フォルダ構成は以下のとおり。（[AstroWind](https://github.com/onwidget/astrowind)より引用）
+
+```bash
+/
+├── public/
+│ ├── _headers
+│ └── robots.txt
+├── src/
+│ ├── assets/
+│ │ ├── favicons/
+│ │ ├── images/
+│ │ └── styles/
+│ │ └── tailwind.css
+│ ├── components/
+│ │ ├── blog/
+│ │ ├── common/
+│ │ ├── ui/
+│ │ ├── widgets/
+│ │ │ ├── Header.astro
+│ │ │ └── ...
+│ │ ├── CustomStyles.astro
+│ │ ├── Favicons.astro
+│ │ └── Logo.astro
+│ ├── content/
+│ │ ├── post/
+│ │ │ ├── post-slug-1.md
+│ │ │ ├── post-slug-2.mdx
+│ │ │ └── ...
+│ │ └-- config.ts
+│ ├── layouts/
+│ │ ├── Layout.astro
+│ │ ├── MarkdownLayout.astro
+│ │ └── PageLayout.astro
+│ ├── pages/
+│ │ ├── [...blog]/
+│ │ │ ├── [category]/
+│ │ │ ├── [tag]/
+│ │ │ ├── [...page].astro
+│ │ │ └── index.astro
+│ │ ├── index.astro
+│ │ ├── 404.astro
+│ │ ├-- rss.xml.ts
+│ │ └── ...
+│ ├── utils/
+│ ├── config.yaml
+│ └── navigation.js
+├── package.json
+├── astro.config.mjs
+└── ...
+```
+
+開発にはNode.jsが必要となる。インストール方法について以前記事を書いた。
+
+[Ubuntu22.04 on WSL2 にnode.jsとnpmの最新バージョンをインストールする - neputa note](https://www.neputa-note.net/2024/04/ubuntu-nodejs-install)
+
+Astrowindの使い方は以下のとおり
+
+- [こちら](https://github.com/onwidget/astrowind?tab=readme-ov-file) からリポジトリをダウンロード
+- 設定ファイル「./src/config.yaml」をリライト（apps ui以外を設定すればOK）
+- npm run devコマンドで開発プレビューを表示
+- CSSの変数やフォントなど基本的な定義は以下ファイルを修正
+- src/components/CustomStyles.astro
+- src/assets/styles/tailwind.css
+- コンポーネントは。/src/components/ui/、./src/components/widgets/ 配下に配置
+- ./src/layouts/にコンポーネントを組み込んだレイアウトを配置
+- ./src/pages/にレイアウトを組み込んだ実際に表示するページを配置
+- 静的サイトのためpages配下のディレクトリ構成がそのままルーティングに反映
+- ブログ記事は。/src/content/post/配下に。mdないし。mdxを配置
+
+その他のポイントは以下のとおり
+
+- 今回、不要なpagesのページを削除し、できるだけ既存のコンポーネントやレイアウトをそのまま流用する方法で開発した。
+- npm run devのプレビューは、各タグにdata-astro-source-file属性を出力する。よってブラウザの開発ツールで該当する。astroファイルを特定できる。
+- VSCodeであれば、カスタムタグの上で「定義へ移動」により、該当する。astroファイルを表示できる。
+- 画像は。/src/assets/images/に配置し、Imageコンポーネントで配置するとビルド時に最適化される。
+- npm run buildコマンドでビルドを実行し、最適化済みのWebサイトが。/dist/に出力される。
+- 今回は後述するCloudflareで公開し、ビルドはそちらで実施している。
+
+### 追加したオプション機能
+
+一部ページでパンくずリストが必要となり、Astro用のコンポーネントを。お問い合わせフォームの設置にReact用のコンポーネントを使用した。
+
+#### Breadcrumbs（パンくずリスト）
+
+使用したのは以下コンポーネント
+
+[felix-berlin/astro-breadcrumbs](https://github.com/felix-berlin/astro-breadcrumbs)
+
+使い方は以下ページ。非常に簡単。
+
+[Installation | Astro Breadcrumbs](https://docs.astro-breadcrumbs.kasimir.dev/start-here/getting-started/)
+
+アイコン使用やリストのセパレータの設定方法
+
+[Slots | Astro Breadcrumbs](https://docs.astro-breadcrumbs.kasimir.dev/configuration/slots/)
+
+コンポーネントをインストールしたらコンポーネントをインポートし、Breadcrumbsタグを設置するだけ。カスタマイズはBreadcrumbsタグ内のsvgタグで設定する。素晴らしい。
+
+#### お問い合わせフォーム
+
+スパム防止の「[reCAPTCHA](https://developers.google.com/recaptcha?hl=ja)」を使用したいので、reCAPTCHAが発行するシークレットキーを認証するサーバサイドでの処理が必要となる。
+
+このブログでは「[Google Apps Script](https://developers.google.com/apps-script/overview?hl=ja)」で実装した。
+
+今回より良い方法はないかと調べ、フォームサービスの存在を知る。簡単にいくつか比較してみた。
+
+<Alert type='info' content='2024/05/29時点' />
+
+| サービス名                                    | 無料プラン                                   | ベーシックプラン                                      | プロフェッショナルプラン                               |
+| --------------------------------------------- | -------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------ |
+| [Jotform](https://www.jotform.com/ja/)        | 5フォーム <br />100メッセージ <br />無料     | 25フォーム <br />1,000メッセージ <br />$34/月         | 50フォーム <br />2,500メッセージ <br />$39/月          |
+| [Wufoo](https://www.wufoo.com/)               | 5フォーム <br />100メッセージ <br />無料     | 10フォーム <br />1,000メッセージ <br />$14.08/月      | 20フォーム <br />5,000メッセージ <br />$29.08/月       |
+| [Zoho Forms](https://www.zoho.com/jp/forms/)  | 3フォーム <br />500メッセージ <br />無料     | 無制限フォーム <br />10,000メッセージ <br />$10/月    | 無制限フォーム <br />25,000メッセージ <br />$25/月     |
+| [Newt Form App](https://www.newt.so/form-app) | 無制限フォーム <br />30メッセージ <br />無料 | 無制限フォーム <br />1,000メッセージ <br />2,000円/月 | 無制限フォーム <br />10,000メッセージ <br />5,000円/月 |
+
+無料プランの月間メッセージ送信可能数わずか30の「[Newt Form App](https://www.newt.so/form-app)」を使用することに決めた。Astro & reCAPTCHAを実装する、わかりやすいチュートリアルを公開しているのがその理由。
+
+[NewtとAstroを利用して、問い合わせフォームを作成する](https://www.newt.so/docs/tutorials/contact-form-in-astro)
+
+このNewt Form AppとReact Hook Formを組み合わせてお問い合わせページを実装した。
+
+[Contact — MakutaKobo](https://www.makuta-kobo.net/contact/)
+
+### Cloudflareについて
+
+Webサーバとして、Cloudflare Pagesを利用した。
+
+[Cloudflare Pagesの紹介：JAMstack Webサイトを構築するための最良の方法](https://blog.cloudflare.com/ja-jp/cloudflare-pages-ja-jp/)
+
+無料プランだがカスタムドメイン、コンテンツキャッシュなどを利用でき、ドキュメントが充実している。ちなみにこのブログはGoogle Bloggerだがパフォーマンス向上目的でCloudflareのキャッシュサービスを使用している。
+
+デプロイはCloudflare Pages側で自動的にやってくれる。前提としてGithubにソースをPushしておく必要がある。あとはCloudflareでフレームワークプリセット：Astro、ビルド対象ディレクトリ、ビルドコマンドを設定すればよい。
+
+- [AstroサイトをCloudflare Pagesにデプロイする | Docs](https://docs.astro.build/ja/guides/deploy/cloudflare/#git%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%9F%E3%82%B5%E3%82%A4%E3%83%88%E3%81%AE%E3%83%87%E3%83%97%E3%83%AD%E3%82%A4%E6%96%B9%E6%B3%95)
+- [Astro · Cloudflare Pages docs](https://developers.cloudflare.com/pages/framework-guides/deploy-an-astro-site/#deploy-with-cloudflare-pages)
+
+## まとめ
+
+今回行った静的サイト開発の概観をまとめた。
+
+ReactやVue.jsなどWebフロントエンド開発の話題はよく目にするが、遠くにあるものと感じていた。今回Astroと巡り会ったことで、コンポーネント指向、TypeScriptがいくらか身近になった。気がする。
+
+Tailwindは思わぬ形でその魅力にハマった。書籍ではCSSの歴史的経緯、Tailwindの設計思想などもまとめられており、読み物としても非常に興味深い内容だった。
+
+前述したが、個別の作業は未来の自分への手順書として別途まとめたい。

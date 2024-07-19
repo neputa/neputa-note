@@ -1,0 +1,121 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import BaseLayout from '@/layouts/BaseLayout'
+import Tag from '@/components/ui/Tag'
+import type { MarkdownHeading } from 'astro'
+import { Image } from 'astro:assets'
+import PostInfo from '@/components/widgets/PostInfo'
+import MobileFooter from '@/components/widgets/MobileFooter'
+
+type Props = {
+  id: CollectionEntry<'blog'>['id']
+  data: CollectionEntry<'blog'>['data']
+  headings: MarkdownHeading[]
+  readTime: string
+}
+
+const { data, readTime, headings, id } = Astro.props
+const { title, description, pubDate, modDate, heroImage = null, tags } = data
+---
+
+<BaseLayout title={title} description={description} image={heroImage?.src} articleDate={pubDate}>
+  <article class='min-w-full sm:max-w-none md:max-w-none md:py-4'>
+    <header class='mb-3 flex flex-col items-center justify-center gap-6'>
+      <div class='flex flex-col gap-2'>
+        <h1 class='text-balance text-center text-3xl font-semibold md:pb-2.5 md:text-5xl'>
+          {title}
+        </h1>
+        {
+          pubDate && (
+            <PostInfo
+              pubDate={pubDate}
+              modDate={modDate}
+              classNames='items-center justify-center'
+              readTime={readTime}
+            />
+          )
+        }
+      </div>
+      <div class='flex flex-wrap items-center justify-center gap-2 gap-y-4 md:gap-5'>
+        {tags.map((tag: string) => <Tag tag={tag} />)}
+      </div>
+    </header>
+    <>
+      {
+        heroImage && (
+          <Image
+            src={heroImage}
+            width={1000}
+            height={500}
+            quality={100}
+            widths={[400, 600, 1000]}
+            sizes='(max-width:639px) 400px, (max-width: 1023px) 600px, 1000px'
+            format='webp'
+            loading='eager'
+            class='my-8 max-h-[200px] w-full rounded-md  object-cover sm:max-h-[300px] lg:max-h-[500px]'
+            alt={`img of ${title}`}
+          />
+        )
+      }
+    </>
+
+    <div>
+      <slot />
+    </div>
+  </article>
+
+  <MobileFooter slot='mobileFooter' headings={headings} />
+</BaseLayout>
+
+<script>
+  const fnObserver = () => {
+    function handleIntersection(
+      entries: IntersectionObserverEntry[],
+      observer: IntersectionObserver
+    ) {
+      entries.forEach((entry) => {
+        const index = document.querySelector(`aside a[href="#${entry.target.id}"]`)
+
+        if (entry.isIntersecting) {
+          index?.classList.remove('bg-slate-200', 'dark:bg-slate-800') // remove bg
+          index?.classList.add(
+            'bg-primary-600',
+            'dark:bg-primary-700',
+            'text-white',
+            'font-bold',
+            'transition-colors',
+            'duration-200'
+          )
+        } else {
+          index?.classList.add('bg-slate-200', 'dark:bg-slate-800') // add bg
+          index?.classList.remove(
+            'bg-primary-600',
+            'dark:bg-primary-700',
+            'text-white',
+            'font-bold',
+            'transition-colors',
+            'duration-200'
+          )
+        }
+      })
+    }
+
+    const headings = document.querySelectorAll(
+      'div.prose h1, div.prose h2, div.prose h3, div.prose h4, div.prose h5, div.prose h6'
+    )
+
+    const options = {
+      root: null,
+      rootMargin: ' 15% 0px 0% 0px ',
+      threshold: 1
+    }
+
+    const observer = new IntersectionObserver(handleIntersection, options)
+
+    headings.forEach((heading) => {
+      observer.observe(heading)
+    })
+  }
+  fnObserver()
+  document.addEventListener('astro:after-swap', fnObserver)
+</script>

@@ -1,0 +1,163 @@
+---
+title: 'Ubuntuにsnapで最新バージョンのNeovimをインストール'
+description: '本記事の目的 Ubuntuに最新バージョンのNeovimをsnapでインストールする手順をまとめる。経緯 *Ubuntuのパッケージリポジトリに登録されているNeovimはバージョンが古い。 *前回公式から.debパッケージをダウンロードできたが現在は不可。 *次回以降の更新を考慮し、snapを使用することにした。'
+pubDate: '2024-05-08 07:32:00'
+modDate: '2024-05-08 07:32:00'
+heroImage: '@/images/blog/default.webp'
+category:
+  - DEV
+tags: ['Neovim', 'Apps']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 記事概要
+
+### 目的
+
+Ubuntuに最新バージョンのNeovimをsnapでインストールする手順をまとめる。
+
+### 経緯
+
+- Ubuntuのパッケージリポジトリに登録されているNeovimはバージョンが古い。
+- 前回公式から。debパッケージをダウンロードできたが現在は不可。
+  [ci!: remove the .deb release by dundargoc · Pull Request #22773 · neovim/neovim](https://github.com/neovim/neovim/pull/22773)
+- 次回以降の更新を考慮し、snapを使用することにした。
+  [Snap(Snappy) コマンドの使い方 | Linux Magazine](https://mekou.com/linux-magazine/snapsnappy-%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%81%AE%E4%BD%BF%E3%81%84%E6%96%B9/)
+
+### 以前の記事
+
+<BlogCard
+  title='最新バージョンのNeovimを.debパッケージからインストールする （Ubuntu + WSL2）'
+  description='Neovimの最新バージョンを.debパッケージからインストールする手順をまとめる。'
+  url='https://www.neputa-note.net/2023/11/blog-post/'
+  domain='www.neputa-note.net'
+/>
+
+## 環境
+
+- 現在のNeovim最新バージョンは0.9.4
+- 実行環境は「Ubuntu on WSL2」
+- OSのバージョンは以下のとおり
+  - Ubuntu: 22.04.4 LTS
+  - WSL2: 2.1.5.0
+  - Windows: 11 Pro 23H2
+
+## 作業詳細
+
+作業概要は以下のとおり。
+
+1.  systemd有効化
+2.  旧Neovimアンインストール
+3.  snapによるNeovimインストール
+
+### systemd有効化
+
+snapを使用するにはsystemdが必要。 WSLのバージョン0.67.6以上でsystemdがサポートされている。 powershellでWSL2のバージョンを確認する。
+
+```powershell
+> wsl --version
+WSL バージョン: 2.1.5.0
+カーネル バージョン: 5.15.146.1-2
+WSLg バージョン: 1.0.60
+MSRDC バージョン: 1.2.5105
+Direct3D バージョン: 1.611.1-81528511
+DXCore バージョン: 10.0.25131.1002-220531-1700.rs-onecore-base2-hyp
+Windows バージョン: 10.0.22631.3527
+```
+
+古い場合はpowershellで以下コマンドを実行し、更新する。
+
+```powershell
+> wsl --update
+```
+
+次に、WSL2のUbuntu環境で設定ファイル「wsl.conf」を作成し保存する。
+
+```bash
+$ sudo vi /etc/wsl.conf
+# 以下を記載し保存する
+[boot]
+systemd=true
+```
+
+PowershellでWSL2を再起動する。
+
+```powershell
+> wsl --shutdown
+```
+
+Ubuntuでsystemctlを実行する。以下のようなログが出力されたらOK。
+
+```bash
+$ systemctl
+UNIT >
+sys-devices-LNXSYSTM:00-LNXSYBUS:00-ACPI0004:00-VMBUS:00-b1800c5a\x2d49d5\x2d487d\x2d9e4a\x2da9c7dea2a810-pci49d5:00->
+sys-devices-LNXSYSTM:00-LNXSYBUS:00-ACPI0004:00-VMBUS:00-b1800c5a\x2d49d5\x2d487d\x2d9e4a\x2da9c7dea2a810-pci49d5:00->
+sys-devices-LNXSYSTM:00-LNXSYBUS:00-ACPI0004:00-VMBUS:00-f8c114c2\x2d8522\x2d4829\x2d889d\x2d534f69dc9266-net-eth0.de>
+sys-devices-LNXSYSTM:00-LNXSYBUS:00-ACPI0004:00-VMBUS:00-fd1d2cbd\x2dce7c\x2d535c\x2d966b\x2deb5f811c95f0-host0-targe>
+sys-devices-LNXSYSTM:00-LNXSYBUS:00-ACPI0004:00-VMBUS:00-fd1d2cbd\x2dce7c\x2d535c\x2d966b\x2deb5f811c95f0-host0-targe>
+sys-devices-LNXSYSTM:00-LNXSYBUS:00-ACPI0004:00-VMBUS:00-fd1d2cbd\x2dce7c\x2d535c\x2d966b\x2deb5f811c95f0-host0-targe>
+sys-devices-platform-serial8250-tty-ttyS0.device >
+sys-devices-platform-serial8250-tty-ttyS1.device >
+sys-devices-platform-serial8250-tty-ttyS2.device >
+sys-devices-platform-serial8250-tty-ttyS3.device >
+sys-devices-virtual-block-ram0.device >
+sys-devices-virtual-block-ram1.device >
+sys-devices-virtual-block-ram10.device >
+sys-devices-virtual-block-ram11.device >
+sys-devices-virtual-block-ram12.device >
+# 省略
+```
+
+### snapによるNeovimインストール
+
+aptでインストールしている場合はremoveしておく。
+
+```bash
+$ sudo apt remove nvim
+```
+
+自分は前回。debパッケージからインストールしたので直接削除した。
+
+```bash
+$ sudo rm -rf /usr/bin/nvim
+```
+
+### その他作業
+
+以下コマンドでsnapによるNeovimインストール。
+
+```bash
+$ sudo snap install nvim --classic
+nvim v0.9.4 from neovim-snap (neovim-snap) installed
+```
+
+バージョンを確認
+
+```bash
+$ nvim -v
+NVIM v0.9.4
+Build type: RelWithDebInfo
+LuaJIT 2.1.1692716794
+```
+
+### その他
+
+デフォルトでsnapのインストールディレクトリはaptと異なる。
+
+```bash
+$ which nvim
+/snap/bin/nvim
+```
+
+VSCodeでneovim拡張機能を利用している場合は設定の指定パス修正を忘れずに。
+
+## 参考サイト
+
+- [【WSL2】systemdがサポートされたようなので試してみた - Crieit](https://crieit.net/posts/systemd-supported-in-wsl)
+- [Ubuntu on WSL2でsnapを利用する - 出力を入力へ](https://thaim.hatenablog.jp/entry/2020/05/24/135855)
+- [WSL2のUbuntuに最新のNeovimを入れる #Ubuntu - Qiita](https://qiita.com/lx-sasabo/items/123b95ada9a3a4813899)

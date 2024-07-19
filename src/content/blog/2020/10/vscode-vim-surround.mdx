@@ -1,0 +1,76 @@
+---
+title: '多階層の要素を一括削除したい【VSCode - Vim】'
+description: 'VSCodeのタグ付け言語のソースコードに関する作業備忘録。エディタはvim。vimコマンドでいい感じに実行できる方法は無いか検討したことなどをまとめた。'
+pubDate: '2020-10-05 16:25:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/default.webp'
+category:
+  - DEV
+tags: ['VSCode', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 対象のコード
+
+たとえばこんなHTMLコードがあった場合、大外のdivを含む全コードを少ない手数で削除したい。
+
+```html
+<div>
+  <div>
+    <p>この3層を削除したいよ！</p>
+  </div>
+</div>
+```
+
+## Vimの場合
+
+matchit.vimをONにしていれば、Visualモードで開始タグを行選択し、終了タグまで「%」でジャンプすることで削除に至ることができる。
+
+という手順を使用していたけれど、vim-sorroundを使用すればもっと簡単だった。（後述）
+
+## VSCodeVimの場合
+
+こちらのブログで、タグ間を移動するにはemmetのactionをキーに割り当てる方法が紹介されている。
+
+<BlogCard
+  title="[VSCode]htmlファイル編集中のみタグ移動ショートカットキーを有効にする(主にVSCodeVimユーザ向け) - dackdive's blog"
+  description='メモ。 Vim には対応する括弧にカーソルを移動する % キーがあるが、 matchit.vim というプラグインを使うと、html の場合に < から > までではなく 対応するタグ ( <body> ~ </body> ) にジャンプできる。 VSCode にも Vim エクステンション を入れて使っているが、これと同じ操作ができないか調べてみた。 まさにこれでした。 どうやら、 editor.emmet.action.matchTag というコマンドが標準でサポートされており、これにショートカットキーを割り当てればよさそう。 editor.emmet.action.matchTag ただ…'
+  url='https://dackdive.hateblo.jp/entry/2018/11/06/213845'
+  domain='dackdive.hateblo.jp'
+/>
+
+が、肝心な「まるっと削除」が未解決。
+
+## 結論 vim-sorroundで解決
+
+VSCodeVimには、surround.vimのエミュレータが含まれているとのこと。
+
+<BlogCard
+  title='Vim風VS Codeカスタマイズ詳細 - kick the base'
+  description='前回、Houdini: VEXをカスタマイズしたVS Codeで書くという記事でVS CodeのVimキーバインド設定について書きましたが、Vimキーバインドを提供してくれるvscodevimというプラグインが想像以上に良かったのでもう少し細かく見ていきたいと思います。 もちろん本家Vimにはカスタマイズ性能でかないませんが、プラグイン一個入れるだけでこれだけできるのはちょっとびっくりだったので備忘も兼ねて記しておきます。これ以上はあんまりいじらないんじゃないかな、と思ってます。'
+  url='https://kickbase.net/entry/vscode-settings'
+  domain='kickbase.net'
+/>
+
+動作しない場合、settings.jsonで有効化する。
+
+```json
+{
+  "vim.surround": true
+}
+```
+
+結果、動画の通り以下の手順で実行
+
+1. 削除対象の開始または終了タグに移動（Normalモードのまま）
+1. 「d, a, t」で削除対象を選択、削除
+
+あれこれ考えてしまっていたけれど、無事解決。
+
+<div class='not-prose'>
+	<div data-vc_mylinkbox_id='887423761'></div>
+</div>

@@ -1,0 +1,26 @@
+---
+import BaseLayout from '@/layouts/BaseLayout'
+import TitlePage from '@/components/widgets/TitlePage'
+import { getTagsWithCounts } from '@/utils'
+import { getPermalink } from '@/utils'
+import GoogleAdsense from '@/components/widgets/GoogleAdsense'
+
+const tags = await getTagsWithCounts()
+---
+
+<BaseLayout title='Tags'>
+  <TitlePage title='Tags' />
+  <div class='flex flex-wrap justify-center gap-4'>
+    {
+      tags.map((tag) => (
+        <a
+          href={getPermalink(tag.name, 'tag')}
+          class='mb-2 mr-2 inline-block rounded-full bg-gray-300 px-3  py-1 text-sm font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+        >
+          #{tag.name} ({tag.count})
+        </a>
+      ))
+    }
+  </div>
+  <GoogleAdsense />
+</BaseLayout>

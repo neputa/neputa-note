@@ -1,0 +1,246 @@
+---
+title: vscode-textlintで日本語の文章校正をしよう【mdx / md / html / txt】
+description: VSCodeの拡張機能「vscode-textlint」をインストールし、4種類のファイル（.mdx / .md / .txt / .html）でtextlintによる日本語の文章校正を自動化する。mdxは設定が複雑のため詳しい手順をまとめる。校正ルールはJTF日本語標準スタイルのルールセットを用いる。
+pubDate: 2024-07-07T14:47:00.174Z
+modDate: 2024-07-07T14:47:00.174Z
+heroImage: ../../../../assets/images/blog/textlint-vscode.webp
+category:
+  - DEV
+tags:
+  - VSCode
+  - dev
+draft: false
+keywords:
+  - vscode
+  - textlint
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事概要
+
+- 先日のBloggerからAstroへ移行した記事の別途詳細
+
+**※参考 - Blog移行記事**
+
+<BlogCard
+  title='BlogをBloggerからAstroへ移行した'
+  description='10年以上の期間お世話になったGoogle Bloggerに別れを告げ、この度AstroでBlogサイトを構築し移行した。Astroは静的サイトを手軽に開発できる軽量フレームワーク。無料のテンプレートをベースにカスタマイズを行った。それなりの作業ボリュームとなったので、詳細は別記事に分け、今回は移行作業全体をまとめる。'
+  url='https://www.neputa-note.net/2024/07/migrated-blogger-to-astro/'
+  domain='www.neputa-note.net'
+/>
+
+### 目的
+
+- VSCodeの拡張機能「vscode-textlint」をインストールし日本語の文章校正を自動化する
+- 校正対象ファイルは4種類
+  - .mdx
+  - .md
+  - .txt
+  - .html
+- mdxは設定が複雑のため詳しい手順をまとめる
+- 校正ルールはJTF日本語標準スタイルのルールセットを用いる
+
+### 作業概要
+
+1. textlint、rule、pluginインストール
+1. vscode-textlintインストール
+1. vscode-textlintの設定
+1. .textlintrcを作成
+
+### 前提
+
+- Node.jsがインストール済みであること
+  - [【2023 年 4 月版】Ubuntu に node.js と npm を入れたい（バージョン管理も） #Node.js - Qiita](https://qiita.com/nouernet/items/d6ad4d5f4f08857644de)
+
+## 環境
+
+- OS - Ubuntu-22.04LTS on WSL2
+- Node.js - v20.14.0
+- npm - v10.8.1
+- textlint - v14.0.4
+  - textlint-plugin-markdown - v14.0.4
+  - textlint-plugin-text - v14.0.4
+- VSCode - v1.90.2
+  - vscode-textlint - v0.11.0
+
+## textlint とは
+
+<BlogCard
+  title='textlint · The pluggable linting tool for text and markdown'
+  description='The pluggable linting tool for text and markdown'
+  url='https://textlint.github.io/'
+  domain='textlint.github.io'
+/>
+
+> textlintはJavaScriptで書かれたオープンソースのテキスト静的解析ユーティリティです。自然言語のテキストをリントするのは難しいが、私たちはプラガブル（プラグイン可能）なアプローチでこの問題を解決しようとしている。 <cite>-- [textlint公式](https://textlint.github.io/)より引用をDeepLで翻訳</cite>
+
+- 公式github
+  - [textlint/textlint: The pluggable natural language linter for text and markdown.](https://github.com/textlint/textlint)
+
+## JTF日本語標準スタイルとは
+
+<BlogCard
+  title='スタイルガイド｜JTF　日本翻訳連盟 | 日本翻訳連盟'
+  description='実務翻訳の業界団体である　日本翻訳連盟（JTF）。日本翻訳ジャーナルの発行、JTFほんやく検定、翻訳セミナー（東京・大阪）、翻訳祭、業界調査研究を実施。'
+  url='https://www.jtf.jp/tips/styleguide'
+  domain='www.jtf.jp'
+/>
+
+> 『JTF日本語標準スタイルガイド（翻訳用）』は、実務翻訳において和訳時に使用できる日本語表記ガイドラインです。2012年1月30日に初版を公開しました。『JTF日本語標準スタイルガイド』はどなたでも無償で使用できます。日本語の表記のゆらぎを防いで、スムーズに表記を統一するためのガイドラインとして活用してください。著作権および使用条件は文書本体に記載しています。 <cite>-- [JTF　日本翻訳連盟](https://www.jtf.jp/tips/styleguide)より引用</cite>
+
+- 公式github
+  - [textlint-rule-preset-JTF-style](https://github.com/textlint-ja/textlint-rule-preset-JTF-style)
+
+## 作業詳細
+
+### 作業ディレクトリの準備
+
+- VSCodeのプロジェクトディレクトリ作成
+
+```bash bash
+$ mkdir my-project
+$ cd my-project
+```
+
+### textlint、rule、pluginインストール
+
+- textlint本体とJTF日本語標準スタイルのruleをインストール
+
+```bash install-project
+$ npm install -D textlint textlint-rule-preset-jtf-style
+```
+
+- グローバルインストールの場合は以下
+
+```bash install-global
+$ npm install -g textlint textlint-rule-preset-jtf-style
+```
+
+- .txtと .mdxでtextlintを使用するためのpluginをインストール
+  - [@textlint/textlint-plugin-text](https://www.npmjs.com/package/@textlint/textlint-plugin-text)
+  - [textlint/textlint-plugin-mdx](https://github.com/textlint/textlint-plugin-mdx)
+
+```bash install-plugin
+npm install @textlint/textlint-plugin-text textlint-plugin-mdx
+```
+
+### vscode-textlintインストール
+
+- VSCodeの拡張機能からvscode-textlint（作者 taichi）を検索しインストール
+- または以下マーケットプレイスよりインストール
+  - [vscode-textlint - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=taichi.vscode-textlint)
+
+### vscode-textlintの設定
+
+- コマンドパレット（ctrl + shift + p）から「基本設定： ユーザ設定を開く（JSON）」を実行
+- settings.json に以下を追加
+
+```json settings.json
+{
+  "textlint.languages": ["mdx", "markdown", "plaintext", "html"]
+}
+```
+
+- VSCodeでtextlintを使用する場合、対象とするファイルをsettings.jsonで指定する必要がある（重要）
+- これらの値は、VSCodeのステータスバー「言語モードの選択」に表示される値と一致する必要がある
+
+### .textlintrcを作成
+
+- コマンドパレット（ctrl + shift + p）から「textlint: Create '.textlintrc' File」を選択
+- プロジェクトディレクトリ直下に、「.textlintrc」が作成される
+- .textlintrcに以下のルールとプラグインを記述する
+
+```json .textlintrc
+{
+  "plugins": {
+    "mdx": true,
+    "@textlint/text": {
+      "extensions": [".html"]
+    }
+  },
+  "rules": {
+    "preset-jtf-style": {
+      "1.1.3.箇条書き": false,
+      "2.2.1.ひらがなと漢字の使い分け": true
+    }
+  }
+}
+```
+
+#### pluginsの設定について
+
+- .mdxと .htmlに対応させている
+- markdownとtextファイルはtextlintの標準に含まれるため省略
+  - インストールしたtext用pluginを .htmlに指定し強引に動作させている
+  - 他にhtmlでtextlintを走らせる方法が分からない
+
+#### rulesの設定について
+
+- インストールしたpreset-jtf-styleを有効化している
+  - 例として特定のルールを1つずつ有効と無効にする設定をした
+  - 特定のルールを無効化する場合、以下PDFを参照しfalseを指定する
+  - [JTF日本語標準スタイルガイド 第3.0版 - jtf_style_guide.pdf](https://www.jtf.jp/pdf/jtf_style_guide.pdf)
+  - ルールの細かい設定は[textlint-rule-preset-JTF-style - ルール一覧](https://github.com/textlint-ja/textlint-rule-preset-JTF-style?tab=readme-ov-file#%E3%83%AB%E3%83%BC%E3%83%AB%E4%B8%80%E8%A6%A7)を参照
+
+## その他追加作業
+
+### ファイル内の特定箇所のみignoreする
+
+- [textlint-filter-rule-comments](https://github.com/textlint/textlint-filter-rule-comments)をインストールする
+
+```bash install-filter-rule-comments
+$ npm install -D textlint-filter-rule-comments
+```
+
+- .textlintrc に以下を追加
+
+```json .textlintrc
+{
+  "filters": {
+    "comments": true
+  }
+}
+```
+
+- コメントブロックで該当箇所を囲むと校正をスキップできる
+
+```html html
+<!-- textlint-disable -->
+
+このブロックは校正スキップ
+
+<!-- textlint-enable -->
+```
+
+- mdxではhtmlコメントでエラーとなるためこう書く
+- これはmdxプラグインの効果
+
+{/* prettier-ignore */}
+```mdx mdx
+{/* textlint-disable */}
+
+このブロックは校正スキップ。mdx はこのようにブロックを作る。
+
+{/* textlint-enable */}
+```
+
+## まとめ
+
+最後に備忘録として .htmlファイルでtextlintを動かすまでの経緯を残す
+
+- [textlint-plugin-html](https://github.com/textlint/textlint-plugin-html) は私の環境ではうまく動作しなかった
+- 下記の記事を参考に、 [@textlint/textlint-plugin-text](https://www.npmjs.com/package/@textlint/textlint-plugin-text) を使用し、.htmlを追加する形をとった
+  - [pre-commit と textlint を使って HTML に潜むゼロ幅スペース文字や表記ゆれを倒す #Node.js - Qiita](https://qiita.com/heppokofrontend/items/f4d9a8871a42ca94ff72)
+
+## 日本語用textlint ruleセット一覧
+
+- [Collection of textlint rule · textlint/textlint Wiki](https://github.com/textlint/textlint/wiki/Collection-of-textlint-rule#rule-presets-japanese)
+
+## 参考サイト
+
+- [textlintでMDXを校正するプラグインを作成した](https://zenn.dev/3w36zj6/articles/495be991794c41)
+- [Textlint を MDX に対して実行する - .snaka.log](https://scrapbox.io/snaka/Textlint_%E3%82%92_MDX_%E3%81%AB%E5%AF%BE%E3%81%97%E3%81%A6%E5%AE%9F%E8%A1%8C%E3%81%99%E3%82%8B)
+- [pre-commitとtextlintを使ってHTMLに潜むゼロ幅スペース文字や表記ゆれを倒す #Node.js - Qiita](https://qiita.com/heppokofrontend/items/f4d9a8871a42ca94ff72)

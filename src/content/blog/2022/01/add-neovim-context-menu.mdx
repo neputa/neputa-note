@@ -1,0 +1,117 @@
+---
+title: 「Neovimで編集」のコンテキストメニューを追加する【Windows10】
+description: VSCodeでVimエミュレータの拡張機能を使用しているが、何かと制限があり、かゆい所に手が届かず、小さなストレスがだいぶ蓄積されてきた今日このごろ。ふと目にしたこの記事が気になった。とくにこのくだり。VSCodeVimのようにVIMをエミュレートするのではなく、NeoVimとVSCodeを統合する拡張機能です。
+pubDate: '2022-01-21 23:22:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/win-neovim-logo.webp'
+category:
+  - DEV
+tags: ['Neovim', 'Apps']
+permalink: https://www.neputa-note.net/2022/01/add-neovim-context-menu
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 本記事の経緯と主旨
+
+VSCodeでVimエミュレータの拡張機能を使用しているが、何かと制限があり、かゆい所に手が届かず、小さなストレスがだいぶ蓄積されてきた今日このごろ。
+
+ふと目にしたこの記事が気になった。
+
+<BlogCard
+  title='VSCodeのvim操作を高速化！ vscode-neovimを導入してみた'
+  description='FIXERがお届けするアドベントカレンダー企画第2回、vscode-neovimでVSCodeのvim操作を高速化しつつ.vimrcも使えるようにしてみました。'
+  url='https://ascii.jp/elem/000/004/036/4036471/'
+  domain='ascii.jp'
+/>
+
+とくにこのくだり。
+
+> VSCodeVimのようにVIMをエミュレートするのではなく、NeoVimとVSCodeを統合する拡張機能です。ほとんどの操作を埋め込まれたNeoVimインスタンスで動作させるので速いらしい
+
+まさに求めているものではないか。
+
+しかし「Neovim」である。
+
+噂はずっと耳にしているがVimから移行するキッカケがなかったので完全に未知である。
+
+だがこれは神の啓示だ。
+
+オレのVimが、ついに「Neo」になる時がきたのだ。
+
+とりあえずWindows 10のメインPCとUbuntu20.04のノートPCにNeovimをインストールし、init.vimを共通化できるようにあれこれやりつつ、どうにか使える状態にこぎつけたのでこれは後日まとめる。
+
+今回の主題は、『Windowsのエクスプローラで、ファイル右クリックからのコンテキストメニューに「Neovimで編集する」を追加したい』である。
+
+## 本記事のゴール
+
+- ファイルを右クリックしたコンテキストメニューに「Neovimで編集する」を追加する
+- メニュー選択により、該当ファイルをPowerShell in Windows Terminalで開く
+
+## 環境
+
+- OS - Windows 10 Pro 21H2
+- Neovim - v0.6.1
+- Windows Terminal - v1.11.3471.0
+- PowerShell - v7.2.1
+
+## 作業手順
+
+エディタで下記コードを記述したファイルを拡張子「.reg」で任意の場所に保存する。
+
+※NeovimのパスはC:\Apps\Neovimを前提にしているので適宜修正を（6カ所）
+
+```reg
+Windows Registry Editor Version 5.00
+
+  [HKEY_CLASSES_ROOT\*\shell\nvim]
+  @="Edit with Neovim"
+  "Icon"="\"C:\\Apps\\Neovim\\bin\\nvim-qt.exe\""
+
+  [HKEY_CLASSES_ROOT\*\shell\nvim\command]
+  @="wt -p \"Windows PowerShell\" --title neovim C:\\Apps\\Neovim\\bin\\nvim.exe \"%1\""
+
+  [HKEY_CLASSES_ROOT\directory\shell\nvim]
+  @="Neovim Here"
+  "Icon"="\"C:\Apps\\Neovim\\bin\\nvim-qt.exe\""
+
+  [HKEY_CLASSES_ROOT\directory\shell\nvim\command]
+  @="wt -p \"Windows PowerShell\" --title neovim C:\\Apps\\Neovim\\bin\\nvim.exe \"%v\""
+
+  [HKEY_CLASSES_ROOT\directory\background\shell\nvim]
+  @="&Neovim Here"
+  "Icon"="\"C:\\Apps\\Neovim\\bin\\nvim-qt.exe\""
+
+  [HKEY_CLASSES_ROOT\directory\background\shell\nvim\command]
+  @="wt -p \"Windows PowerShell\" --title neovim C:\\Apps\\Neovim\\bin\\nvim.exe \"%v\""
+```
+
+作成した「reg」ファイルをダブルクリックまたはEnterで実行し、「はい」を選択。
+
+![スクリーンショット](@/images/blog/xJaSRZPo2mXRl7kMIr5O-screenshot.webp)
+
+この状態ではコンテキストメニューの表示が「Edit with Neovim」なのでレジストリエディタで編集する。「あとで編集するなら直接regファイルに書けばよかったじゃん」と思うのだが、日本語がうまく認識されなかったので、この手順とする。
+
+![スクリーンショット](@/images/blog/r3aSlZDo2mXRl7vMIr3s-screenshot.webp)
+
+Winキー + Rで「ファイル名を指定して実行」を開き、「regedit」と入力してEnterでレジストリエディタをオープン。
+
+HKEY_CLASSES_ROOT\\\*\shell\nvimの「既定」を右クリック→修正で、データの値を編集する
+
+![スクリーンショット](@/images/blog/3dhAM93d1Ko3XlqMIrN3-screenshot.webp)
+
+右クリック、オッケー。
+
+![スクリーンショット](@/images/blog/k39w5uxEd18iqdqM23sw-screenshot.webp)
+
+Windows TerminalのPowerShellで開いている、オッケー。
+
+![スクリーンショット](@/images/blog/1duyY8dMhba8D1d8Ji1l-screenshot.webp)
+
+以上。
+
+## 参考
+
+[Neovim Windows installer: Add "Edit with Neovim" to right click menu similar to gVim · Issue #7222 · neovim/neovim](https://github.com/neovim/neovim/issues/7222)

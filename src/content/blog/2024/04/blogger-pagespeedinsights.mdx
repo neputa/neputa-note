@@ -1,0 +1,592 @@
+---
+title: 'PageSpeed Insightsの4項目でオール100を達成・実施事項まとめ【Blogger】'
+description: '本記事の概要 PageSpeed Insightsのスコアでオール100を達成した。対象はこのブログ。Googleの提供するBloggerを使用しているため、独自の仕様にずいぶん苦しめられた。行った施策全体を概観するのが主な内容で、部分的に詳細の手順を記載した。'
+pubDate: '2024-04-25 06:21:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/default.webp'
+category:
+  - DEV
+tags: ['blogger', 'blog']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 記事概要
+
+「[PageSpeed Insights](https://pagespeed.web.dev/)」で4項目オール100を達成した。
+
+サイト最適化のため実施したことをまとめる。
+
+![PageSpeed Insights モバイルの結果](@/images/blog/pagespeed-insights-mobile.webp 'モバイル')
+
+![PageSpeed Insights デスクトップの結果](@/images/blog/pagespeed-insights-desktop.webp 'デスクトップ')
+
+## 前提条件
+
+- 本BlogはGoogleが提供する「[Blogger](https://www.blogger.com/about/?hl=ja)」を利用している。よってBlogger固有の作業が主となる。
+- Bloggerのテンプレートを大幅に修正するため、レイアウト機能、標準Widgetは使用しない。（というか出来ない）
+- テンプレートのバージョンは以下のとおり
+  - Layouts Version: 3
+  - Widget version: 2
+- 「[Cloudflare](https://www.cloudflare.com/)」の機能をいくつか利用するためカスタムドメインを使用している。
+
+## 最適化の実施事項
+
+### ベースとなるテンプレートの選定
+
+- イチからテンプレートを組み上げるのは骨が折れる。土台となるテンプレートを選定し徹底的に魔改造していく。
+- Layoutバージョン3の [レイアウト用データタグ](https://support.google.com/blogger/answer/47270?hl=ja) を使用する。
+- 標準テンプレートであれば「Essential」など、比較的新しいテーマを選択。
+- 配布されているテンプレートを使用する場合、JQueryが使われているものは速度・将来性の観点から避ける。
+
+### Widgetの厳選
+
+- 既存のWidgetは後述するBloggerの標準js/cssを必要とするため避ける。
+- Bloggerは大したWidgetがないので、先人たちが公開してくれている情報を頼りつつ作ってみることをオススメしたい。
+- 本Blogで実装したWidgetと参考にしたサイトを記す。
+
+#### ナビゲーションバー
+
+ドロップダウンリストが組み込まれたナビゲーションバーを、以下記事を参考に作成している。
+
+- [CSS Horizontal Navigation Bar](https://www.w3schools.com/css/css_navbar_horizontal.asp)
+- [CSS Dropdowns](https://www.w3schools.com/css/css_dropdowns.asp)
+
+#### Blog内検索
+
+下記記事でレイアウトを作成、中身は標準Widgetの検索フォームがデータタグのみで実装されているのでそのまま使用している。
+
+- [How To Create a Full Screen Search](https://www.w3schools.com/howto/howto_css_fullscreen_search.asp)
+
+#### 人気の投稿一覧
+
+BloggerのAPIで、PV数順に一覧を取得する方法が見つからず。 PV数上位はほぼ入れ替わらないので妥協案として、特定タグを付与、それらを取得し表示している。
+
+- [Listing Blog Posts by Label in Blogger Using JavaScript - IndianTechnoEra](https://www.indiantechnoera.in/2021/09/listing-blog-posts-by-label-in-blogger.html)
+- [Show Specific Label Posts In Blogger - Tutes Inside](https://www.tutesinside.net/2016/09/show-specific-label-posts-in-blogger.html)
+
+#### アーカイブ・タグ一覧（ページ）
+
+Google Apps Script（GAS）の日次処理で静的ページ（[投稿一覧](/p/archive.html)）に書き出している。
+
+アーカイブ・タグ一覧いずれも処理が重たいので最適解だと思う。
+
+作業ボリュームは大きいが、下記記事を参考に実装した。
+
+- [Bloggerのサイトマップ（投稿一覧）を自動作成する | バグ取りの日々](https://www.bugbugnow.net/2018/07/blogger.html)
+- [Bloggerの投稿一覧をGASで自動記入する | バグ取りの日々](https://www.bugbugnow.net/2018/02/googleappsscriptgas.html)
+- [Bloggerのページ一覧をGASで自動記入する | バグ取りの日々](https://www.bugbugnow.net/2018/06/bloggergas.html)
+
+#### 問い合わせフォーム（ページ）
+
+これも静的ページ・GASの組み合わせで実装している。
+
+- [GoogleAppsScriptでお問い合わせフォームを作成する | バグ取りの日々](https://www.bugbugnow.net/2018/11/conect-form.html)
+- [【コピペ】超絶シンプルな！お問い合わせフォームのHTML、CSSサンプルコード | ゆうやの雑記Blog](https://yuyauver98.me/contactform-coding-capok/)
+- [HTML5 + JavaScriptによるフォームバリデーション ~JavaScript編~ | 株式会社LIG(リグ)｜DX支援・システム開発・Web制作](https://liginc.co.jp/348438)
+
+#### コメント
+
+既存のコメントはごっそり削除、下記サイトを参考に差し替えた。javascriptは若干修正が必要だったが標準のコメント機能は顕著にパフォーマンスが低下するのでやる価値は大きい。
+
+- [Bloggerのコメント欄を標準jsなしで返信可能にする | バグ取りの日々](https://www.bugbugnow.net/2020/02/Blogger-comment-form-reply.html)
+
+記事内のmainメソッドを以下のように修正している。
+
+```javascript
+function main() {
+  document.addEventListener('DOMContentLoaded', function () {
+    const commentsElement = document.getElementById('comments')
+    if (commentsElement) {
+      new IntersectionObserver(
+        function (entries, observer) {
+          if (entries[0].intersectionRatio != 0) {
+            onLoadCommentForm()
+            observer.disconnect()
+          }
+        },
+        { rootMargin: '512px' }
+      ).observe(commentsElement)
+    } else {
+      console.error("Error: 'comments' element not found.")
+    }
+  })
+}
+```
+
+#### 画像ライトボックス
+
+Bloggerの設定から使用できる標準のライトボックスでも良かったが、簡単そうだったので下記記事を参考に実装した。非常に軽量で良い。
+
+- [とにかく軽いLightbox系スクリプト「Luminous」の使用方法 | web録](https://web-roku.com/luminous)
+- [strawdynamics/luminous: A simple, lightweight, no-dependencies JavaScript lightbox](https://github.com/strawdynamics/luminous)
+
+#### コードハイライト
+
+時々プログラムコードを記事に書くことがあるのでハイライトツールとして「[highlight.js](https://highlightjs.org/)」を使用している。
+
+パフォーマンスを稼ぐため、以下2点を行っている。
+
+1.  コードがある記事のみhighlight.jsを読み込む。
+2.  記事でコードを書く時、classに言語を指定する。
+
+1。について、コードを記述する記事には「dev」というタグを付けるようにしている。これを条件にhighlight.jsを読み込む。
+
+```xml
+<b:if cond='data:post.labels any (l => l.name == "dev")'>
+  <!-- highlight.js devタグの記事に追加 -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js'/>
+  <script>//<![CDATA[ hljs.highlightAll(); //]]></script>
+</b:if>
+```
+
+2。について、highlight.jsは記事内を走査・言語を特定・ハイライトを自動で行ってくれる。ただリソースを食うのであらかじめ言語指定することでいくらか処理時間を低減できる。
+
+```html
+<pre><code class="language-bash hljs">sudo apt update</code></pre>
+```
+
+記事内に多数か所のコードを書く場合などは2桁ミリ秒の違いが出るので馬鹿にならない。
+
+#### シェアボタン
+
+標準が使い物にならないので自作するに限る。 Bloggerに限ったものでなくても問題ない。好きなものを探し組み込むのが良いと思う。
+
+注意点として、Brand Iconのためだけに「Font Awesome」などを使うと一気に速度が低下する。 そこでオススメなのが「CSS Icon」。この2つのサイトでSNSロゴ以外にも便利なアイコンが見つかる。
+
+- [App - CSS Icons](https://css.gg/app)
+- [CSS ICON -- project by Wenting Zhang](https://cssicon.space/#/)
+
+「X」はないので以下を参考に。
+
+- [New Twitter Logo - Black X Pure CSS](https://codepen.io/stefhibbitt/pen/vYQzEZG)
+
+twitterの青い鳥をCSSで実装している猛者もいる
+
+- [Pure CSS Twitter logo](https://codepen.io/rafa>elcastrocouto/pen/qBVOEgG)
+
+使いたいアイコンのcssをBloggerのstyle内に組み込めば、あとはfont awesomeと同じ感じで使える。
+
+```html
+<div class="heart icon"></div>
+```
+
+### 標準js の読み込みを回避
+
+テーマ「Essential」で記事を表示してみる。
+
+![Blogger標準JSの読み込み結果](@/images/blog/blogger-scripts.webp)
+
+www.blogger.comが読み込んだjsファイルは「738.94KB」。ありえない。
+
+これらを読み込む発火ポイントは複数あるのでこれらを手当てする。
+
+1.  jsファイルを読み込むscriptタグを削除する
+2.  body終了タグのダミーを用意する（旧テンプレートの場合）
+
+#### 1.jsファイルを読み込むscriptタグを削除する
+
+これを行うと、クライアントサイドで行われる標準インタラクティブはすべて不能となる。 また、設定画面で登録できたGoogle AnalyticsやAdsenseも効かなくなる。
+
+代替手段は、前述した通りコメントは差し替え、AnalyticsやAdsenseは後述するjavascriptの遅延読み込みでの対応となる。
+
+結果として、読み込むjsファイルを軽減することが可能。
+
+#### 2.body終了タグのダミーを用意する
+
+これはクラシックと呼ばれる旧テンプレートを使用する場合の対処。 Bloggerの仕様で、bodyのエンドタグを起点にwidget.jsをはじめとする複数の標準jsやcssを読み込む。
+
+この仕様を逆手に取り、これら差し込みをコメントアウト状態にする。 具体的にこのようにする。
+
+```xml
+&lt;!--</body>--&gt;&lt;/body&gt;
+```
+
+何をやっているかは以下のとおり。
+
+- bodyの閉じタグを2つ並べる
+- 最初のbody閉じタグをコメントアウトした状態にする
+- Bloggerが最初のbody閉じタグにscriptタグを差し込むがコメント内なので読み込まれなくなる
+- 2つ目のbody閉じタグが正規のタグとして機能し、HTMLスキーマを維持する
+- 2つ目のみHTMLエスケープをする理由は、Bloggerのテンプレート保存時のチェックを交わすため。
+- Bloggerは、エスケープレスのbody閉じタグが1つのみ存在することを正常と判断する
+
+その他、「&lt;html b:js='false'&gt;」とする方法があったが、今回改めて検証したところ、新旧テンプレート共に変化がなかった。相変わらずBloggerからアナウンスはないが仕様が変わったものと思われる。
+
+### 標準cssの読み込みを回避
+
+- head終了タグのダミーを用意する
+
+これもBloggerの仕様を利用したギミック。headの終了タグをstyleタグとcssコメントでauthorization.cssをエスケープする。
+
+```xml
+&lt;!--</body>--&gt;&lt;/body&gt;
+```
+
+標準js同様、html開始タグに「b:css='false'」を追加する手段が以前存在したが、仕様が変わったのか、新旧どちらのテンプレートにおいても変化が見られなかった。
+
+### b:skinタグの削除
+
+不要なcssを読み込むため以下「b:skin」タグは削除し、HTML標準のstyleタグでcssを記述する。
+
+```xml
+<!-- 開始タグ -->
+<b:skin><!\[CDATA\[
+
+<!-- 終了タグ -->
+\]\]></b:skin>
+```
+
+### cssをすべてインライン化
+
+ここまでガッツリ標準cssを削除したため、崩れたレイアウトを好きなデザインに組んでいく。
+
+不要な解析を避け描画速度が低下しないようパフォーマンスを考慮し、理解できる範囲でcssを記述した。
+
+- [＜CSS＞サイトの表示速度を意識したセレクタの書き方 #CSS - Qiita](https://qiita.com/mamiyan/items/778183160e9e58546824)
+- [CSSの読み込みを高速化するための5つのポイント｜ferret](https://ferret-plus.com/7854)
+
+また、実際に書き出されたHTMLを元にcssを外部化したものを用意し、purgecssというツールで未使用cssを徹底的に削った。
+
+- [PurgeCSS - Remove unused CSS | PurgeCSS](https://purgecss.com/)
+
+### css / javascript の読込みを限定する
+
+インライン化しているcssやjavascriptのコードは、ページによって不要なものがある。 描画速度向上のため用途により分ける。
+
+本Blogでは、post、static page、その他（index、searchなど）の3種に分類し、cssやjsを区分している。テンプレートが整理され、のちのメンテナンスにも良い影響がある。
+
+```xml
+<b:if cond='data:blog.pageType == &amp;quot;item&amp;quot;'>
+</b:if>
+```
+
+新テンプレートであれば「in」も使用できる。
+
+```xml
+<b:if cond='data:blog.pageType in {&quot;item&quot; , &quot;static_page&quot;}'>
+</b:if>
+```
+
+### javascriptを遅延読込みする
+
+[addEventListener()メソッド](https://developer.mozilla.org/ja/docs/Web/API/EventTarget/addEventListener)を使用し、[First Contentful Paint](https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint?hl=ja)に影響がない部分は遅延読み込みする。
+
+個人的に難しく理解に手間取ったが、よく理解した上で読み込み順の設計を行わないと狙った効果が出ない。
+
+パフォーマンスを考慮すると必須と言える。
+
+本Blogで遅延読み込みを行っているのは以下のとおり。
+
+#### ユーザ操作起点（scroll、mouse操作、keydown）
+
+- twitterの埋め込み
+- Youtubeの埋め込み
+- Google Analytics
+- Adsense
+- valuecommerce
+
+#### load完了起点
+
+- コメント
+- youtubeの埋め込みのサムネイル
+
+### css / javascript をMinifyする
+
+テンプレート上にインライン化しているcss、javascriptいずれもMinifyをかけている。 私はVSCodeで作業をしているので拡張機能を利用している。
+
+Webツールでも色々ある。
+
+- [CSS Compressor](https://csscompressor.com/)
+- [JavaScript Minifier & Compressor | Toptal®](https://www.toptal.com/developers/javascript-minifier)
+
+例え1KBでも削る気持ちが大事。
+
+### 画像を最適化
+
+パフォーマンスのみを考慮すると画像は一切使用しないのが正解。
+
+だが読み手であれば文字だけの記事がしんどかったりするし、個人的に内容に合わせた一枚を掲載したい思いがある。
+
+以下に画像使用時のポイントを列挙する。
+
+#### 画像1枚当たり20KB以下に抑える
+
+PageSpeed Insightsで20KBを越えるとしばしば警告が出る。（必ずではない。なぜ？）サイズを絞り次に述べるフォーマットを考慮し20KBを越えないよう気をつけている。
+
+#### Webpフォーマットを使用する
+
+Webpとは？
+
+[WebP - Wikipedia](https://ja.wikipedia.org/wiki/WebP)
+
+PageSpeed InsightsではWebp必須と言わんばかりの指摘をしてくる。
+
+Squooshというツールでwebp変換・サイズ変更ができる。ここで20KBの調整を行っている。
+
+- [Squoosh](https://squoosh.app/)
+- [Googleアプリ『Squoosh』は最強の画像圧縮ツール【使い方・特徴】 - NOJI BLOG](https://nojiblog.com/squoosh/)
+
+Bloggerのエディターは最弱なのでwebpをアップロードしてもwebpに対応したhtmlを出力してくれない。 webpは以下のようにhtmlを組む必要がある。
+
+```html
+<figure>
+  <a href="https://www.blogger.com/s1600/image.webp">
+    <picture>
+      <source srcset="https://www.blogger.com/w320-rw/image.webp" type="image/webp" />
+      <img src="https://www.blogger.com/w320/image.webp" height="160" width="320" alt="画像" />
+    </picture>
+  </a>
+</figure>
+```
+
+これでwebp対応のブラウザの場合、webpが読み込まれる。
+
+Bloggerの画像URLが重要。srcsetの「w320-rw」のように、-rwを付与する必要がある。
+
+面倒な作業なので、Bloggerエディタで生成されたhtmlをvimコマンドで一発変換している。vimないしneovimユーザ限定となるが以下に記す。
+
+```vim
+command! Cimg call ConvertImgTag()
+function! ConvertImgTag() range
+  " 選択テキストを取得
+  let reg_save = getreg('"')
+  let regtype_save = getregtype('"')
+  let cb_save = &clipboard
+  set clipboard&
+  normal! ""gvy
+  let selection = getreg('"')
+  call setreg('"', reg_save, regtype_save)
+  let &clipboard = cb_save
+
+  " 属性値を取得
+  let alinkurl = matchstr(selection, '\vhref\="\zs\S+\ze"')
+  let srcurlorigin = matchstr(selection, '\vsrc\="\zs\S+\ze"')
+  let srcurlrw = substitute(srcurlorigin, '\v\/s(\d+)\/', '\/s\1-rw-e90\/', 'g')
+  let srcurl = substitute(srcurlorigin, '\v\/s(\d+)\/', '\/s\1-e90\/', 'g')
+  let owidth = str2float(matchstr(selection, '\vdata-original-width\="\zs\d+\ze"'))
+  let oheight = str2float(matchstr(selection, '\vdata-original-height\="\zs\d+\ze"'))
+
+  if owidth > oheight
+      let width = str2float(matchstr(selection, '\v[^-]width\="\zs\d+\ze"'))
+      let height = oheight * (width / owidth)
+  else
+      let height = str2float(matchstr(selection, '\v[^-]height\="\zs\d+\ze"'))
+      let width = owidth * (height / oheight)
+  endif
+
+  " new imgタグ作成
+  let newtag = [
+    \  '<div class="post-image">',
+    \  '  <figure>',
+    \  '    <a href="'.alinkurl.'" class="luminous">',
+    \  '      <picture>',
+    \  '        <source srcset="'.srcurlrw.'" type="image/webp" height="'.float2nr(height).'" width="'.float2nr(width).'" />',
+    \  '        <img alt="記事画像" height="'.float2nr(height).'" width="'.float2nr(width).'" loading="eager" src="'.srcurl.'" />',
+    \  '      </picture>',
+    \  '    </a>',
+    \  '    <figcaption class="post-image-caption">Photo by : <a href="#" target="_blank" rel="noopener"></a></figcaption>',
+    \  '  </figure>',
+    \  '</div>']
+
+  " new imgタグ書き込み
+  '<,'> d
+  let linenum = line(".") - 1
+  call append(linenum, newtag)
+endfunction
+```
+
+使い方は以下のとおり。
+
+1.  上記vimスクリプトをvimrc（neovimならinit.vim）に貼り付ける
+2.  Bloggerエディターで生成された画像のhtmlをコピーする
+3.  改行がない状態のまま、vimにペーストする
+4.  ペーストしたhtmlをVisualモードで行選択する
+5.  vimコマンドで「Cimg」を実行する
+6.  出力するhtmlはスクリプト内の「タグ作成」のブロックで改修できる
+
+手間はあるがwebpにすることで画像サイズが小さくなるので、使える画像の選択肢が増える。
+
+#### width / height / alt を指定する
+
+サイズ指定は描画速度、altは補助機能において必要な属性。PageSpeed Insightsでもチェックされ対象の項目。
+
+VSCodeの拡張機能「Emmet」には自動でwidthとheightを設定してくれる機能がある。
+
+[VSCodeでimgタグ内のwidthとheight属性を自動入力する方法 | パソコン実践BLOG -道すがら講堂-](https://michisugara.jp/vscode_image_sizes/)
+
+記事を書くたびに注意するのは限界があるのでツールを頼り、忘れずに属性が入る環境を整備しておきたい。
+
+#### URL構造パラメータを駆使する
+
+不必要に大きい画像を読み込むとパフォーマンスが一気に低下する。 幸いBloggerの数少ない良いところ、画像URLが構造化されている。使わない手はない。
+
+設定するのは画像URLのファイル名の1つ前。
+
+```html
+<!-- 「s320」がターゲット -->
+<img src="https://1.bp.blogspot.com/xxxxxxxx/xxxxxxxx/xxxxxxxx/s320/myimage.png" />
+```
+
+本Blogでは、サムネイルは72✖72、記事内画像はw320✖autoを基準としている。
+
+サムネイルはこう書くことができる。
+
+**s72-c**
+
+ｓ=size、c=crop（切り取り）、つまり72pxの正方形でトリミングした画像を出力してくれる。
+記事内画像はこう書く。
+
+**w320**
+
+widthのみ指定すれば、heightは同じアスペクト比で拡大・縮小してくれる。
+
+heightのみを指定する場合は「h320」、両方指定したい場合は「w320-h160」と書くこともできる。
+
+その他、Webpで使用する「-rw」もこのパラメータの一種。「-e90」で90日のTTLキャッシュを指定することもできる。ただし一定以上の数値を越えると90日固定となる謎仕様。
+
+- [Google/Blogger Image URL Parameters](https://gist.github.com/Sauerstoffdioxid/2a0206da9f44dde1fdfce290f38d2703)
+
+#### loading属性を使用する
+
+loading="lazy"を指定すれば、ユーザが該当画像のエリアに到達してから読み込みが始まる。つまり初期の読み込みデータ量圧縮につながる。
+
+[loading 属性（遅延読み込みを指定） - HTML （HTML Living Standard） タグリファレンス - W3 Watch Reference](https://reference.hyper-text.org/html/attribute/loading/)
+
+一方、First Contentful Paint（FCP）に影響する画像はloading="eager"を指定する。
+
+[FCP（First Contentful Paint）とは？改善方法・低下原因・測定方法を解説](https://digitalidentity.co.jp/blog/seo/fcp.html)
+
+Bloggerの設定で一律「lazy」を指定することもできる。これを利用し、FCPに影響するエリアのみeagerを明示的に指定するのも良い。
+
+アナウンスなしに仕様変更してくるのがBloggerなので、すべて明示的に指定するのも良し。
+
+### Youtubeの読込み対策
+
+Youtube動画を埋め込むとそのページのパフォーマンスが落ちる。
+
+遅延読み込みすると、動画は画像よりどうしても遅くなるのでCumulative Layout Shift（CLS）の要因となる。
+
+[Cumulative Layout Shift（CLS）  |  Articles  |  web.dev](https://web.dev/articles/cls?hl=ja)
+
+対策として、初期はサムネイルのみを読み込んで表示、ユーザがクリック・タップしたタイミングで動画を読み込むようにする。
+
+- [Lite Youtube Embeds - A Better Method for Embedding Youtube Videos on your Website - Digital Inspiration](https://www.labnol.org/internet/light-youtube-embeds/27941/)
+- [How to Lazy Load an Embedded Youtube Video - DEV Community](https://dev.to/darnocer/lazy-loading-responsive-youtube-video-with-image-thumbnail-fake-play-button-7l3)
+
+### CDNの利用（キャッシュ・リダイレクト）
+
+#### メリット・デメリット
+
+無料で利用できるサービスも多々ある。パフォーマンスの観点からすると良いことばかり。
+
+[CDNとは | CDNの仕組みとメリット | Cloudflare](https://www.cloudflare.com/ja-jp/learning/cdn/what-is-a-cdn/)
+
+Bloggerはオリジンサーバの設定が極めて限定的。CDNを間に入れることでできることが増える。
+何よりページキャッシュによるパフォーマンス向上の恩恵は大きい。
+
+[静的コンテンツと動的コンテンツのキャッシュ | 仕組みは？ | Cloudflare](https://www.cloudflare.com/ja-jp/learning/cdn/caching-static-and-dynamic-content/)
+
+モバイルからアクセスを受けた時に「?m=1」のURLにリダイレクトが発生する問題も、CDNであらかじめURLを書き換えてBloggerに渡すことで回避できる。
+
+一方、新規投稿やコメントの書き込みが即時反映されないなどデメリットもある。（多くのCDNがURL単位で任意にキャッシュをクリアすることはできる）
+
+#### 考えた末、導入を決定
+
+本来、ページ読み込みを優先しコンテンツを減らすのは、Blog運用において本末転倒。
+
+Bloggerのオリジンサーバはとにかく遅い。CDNでパフォーマンスを維持しつつ、掲載するコンテンツやWidgetの選択肢の幅が広がることを優先し導入することにした。
+
+日本語ドキュメントが充実していたので「[Cloudflare](https://www.cloudflare.com/)」を利用している。
+
+### OGP（Open Graph Protocol）の設定
+
+[OGP（Open Graph Protcol）とは？設定方法や画像の確認方法を詳しく解説](https://keywordmap.jp/academy/ogp/)
+
+SNSサービスや、自分の記事をBlogカードにして紹介してくれる方などは、OGPから情報を取得しているケースも多い。
+
+Bloggerでは以下のデータタグで自動生成してくれる。
+
+```xml
+<b:include data='blog' name='all-head-content'/>
+```
+
+どれほど違いがあるか検証はしていないが、Bloggerの仕様変更はアナウンスもなく……なので、下記サイトを参考に自分で書くようにしている。
+
+- [Blogger Header Inclusion all-head-content | BloggerBasics101](https://bloggerbasics101.blogspot.com/2018/11/blogger-all-head-content.html)
+- [Implement Open Graph Protocol For Blogger — Basic Blogger Template latest documentation](https://basic-blogger-template.readthedocs.io/en/latest/opengraphprotocol.html)
+
+### JSON-LDの設定
+
+[JSON-LD - Wikipedia](https://ja.wikipedia.org/wiki/JSON-LD)
+
+PageSpeed Insightsで警告ではないが構造化できていないと指摘される。W3C勧告でもあるので設定している。 バージョン3のテンプレートであれば、以下タグによりBlogger側で自動生成してくれる。
+
+```xml
+<b:include data='post' name='postMetadataJSON'/>
+```
+
+[JSON-LD: Using data:post.body in Blogger template - Stack Overflow](https://stackoverflow.com/questions/41696276/json-ld-using-datapost-body-in-blogger-template#comment72994375_41696276)
+
+見ての通り、postを見るので記事を定義しているエリアに設定している。別にheadないでなくともよいらしい。
+
+> JSON-LD\*（推奨） HTML ページの &lt;head&gt; および &lt;body&gt; 要素の &lt;script&gt;<br />
+> タグ内に埋め込まれる JavaScript 表記。 <cite class='text-sm text-right block mt-2'>[構造化データ マークアップとは | Google 検索セントラル  |  ドキュメント  |  Google for Developers](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=ja)より引用</cite>
+
+## まとめと今後について
+
+### 謝辞
+
+ユーザが少なく、日本語情報は古文書なみに希少なBlogger界隈において、「[バグ取りの日々](https://www.bugbugnow.net/)」というBlogを運営されているtoshiさんの記事は、情報価値はもちろんのこと、素人ながら技術理解に挑む私の大きな心の支えであった。
+
+この場をかりて、心より感謝の気持ちを記したい。
+
+<BlogCard
+  title='バグ取りの日々'
+  description='プログラミング関連の記事を中心に好きなことを書いてるブログです。'
+  url='https://www.bugbugnow.net/'
+  domain='www.bugbugnow.net'
+/>
+
+### あらためてBloggerとは
+
+鋭い方は気が付いたと思う。標準機能をいかに削るかがBloggerの攻略ポイントであり、そんなサービスは異常だと思う。
+
+Web標準に影響力のあるGoogleと同じグループに属するサービスにもかかわらず、改善・改良の回数は乏しく、広報は長らく無報、公式コミュニティは回答のない質問が屍となって山を築いている。
+
+なぜBloggerを使い続けているのかと言えば、はじめてBlogを作ったのがBloggerぐらいしか理由が見つからない。
+
+よく言えば、あまりに不便だから自分の技術や知識習得が嫌でもはかどる。
+
+いいぞ！と思った方、ようこそBloggerへ。
+
+### PageSpeed Insightsを含むサイト評価について
+
+お仕事で関わっている方々にとって、成果を示す指標として便利な存在だと思う。一方、個人ユーザの私にはハイスコアを目指すゲーム感覚でしかない。増してやハンデ増し増しBloggerでスコアを目指すのは過ちと言っても過言ではない。
+
+現代において、若い人からするとBlogは石板に文字を刻むぐらい遠い昔の営みかもしれない。だが私はまとまった文章を読むのが好きだし、言語化を試みることで頭が整理され、書いてみることで自分の嗜好や思考にあらためて気づくことが多い。
+
+つまり評価はほどほどに、書くこと、読むことを楽しむ、これをメインにBlogを続けたい。
+
+### 今後について
+
+Blogはオワコン、Googleは容赦なく放置→クローズする。
+
+[文字通りの墓場……これまでに終息したGoogleの製品やサービスの一覧が見られるサイト【やじうまWatch】 - INTERNET Watch](https://internet.watch.impress.co.jp/docs/yajiuma/1155157.html)
+
+プラットフォームの都合でBlog継続の意思を絶たれるわけにはいかない。備えは必要である。だがWordPressは検索すると、この本記事のような香ばしい情報が多いと感じる。noteは主義の不一致により避けたい。
+
+最近、Astroという静的サイトジェネレータが気になり学習している。
+
+[はじめに | Docs](https://docs.astro.build/ja/getting-started/)
+
+併せて、tailwindcssというcssフレームワークも。
+
+[Installation - Tailwind CSS](https://tailwindcss.com/docs/installation)
+
+いずれBloggerを巣立つ日は来るのかもしれないが、Blog文化の火が消えてしまわぬようこの界隈に参加し続けることを宣言し結びとしたい。
+
+よきBlogライフを！

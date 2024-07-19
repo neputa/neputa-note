@@ -1,0 +1,74 @@
+---
+import { Code } from 'astro:components'
+import { type BuiltinLanguage, type SpecialLanguage } from 'shikiji'
+import CopyIcon from '../icons/CopyIcon.astro'
+import CheckIcon from '../icons/CheckIcon.astro'
+import {
+  transformerNotationDiff,
+  transformerMetaHighlight,
+  transformerNotationFocus
+} from '@shikijs/transformers'
+interface Props {
+  lang?: string
+  title?: string
+  code: string
+}
+const { lang, title, code } = Astro.props
+---
+
+<figure class='code-block'>
+  <div class='rounded-tl-md rounded-tr-md bg-gray-700'>
+    <figcaption
+      class='not-prose m-0 max-h-fit max-w-fit truncate rounded-tl-md rounded-tr-md bg-github px-4 py-1 font-["Consolas"] text-xs text-white'
+    >
+      {title ? title : 'code'}
+    </figcaption>
+  </div>
+  <div class='relative bg-inherit dark:shadow-2xl'>
+    <button
+      aria-label='copy-button'
+      class='copy-button absolute right-2 top-2 z-20 max-h-fit max-w-full rounded-md bg-github/50 text-gray-400 transition-all ease-in hover:text-primary-500 dark:text-gray-600 dark:hover:text-primary-400'
+      ><CopyIcon /></button
+    ><span
+      class='check-span absolute right-2 top-2 z-10 max-h-fit max-w-full rounded-md bg-github/50 text-green-600 opacity-0 transition-all ease-in dark:text-green-400'
+      ><CheckIcon /></span
+    >
+  </div>
+  <div>
+    <Code
+      lang={lang as BuiltinLanguage | SpecialLanguage | undefined}
+      code={decodeURIComponent(code)}
+      wrap={false}
+      theme={'dark-plus'}
+      transformers={[
+        transformerNotationDiff(),
+        transformerMetaHighlight(),
+        transformerNotationFocus()
+      ]}
+    />
+  </div>
+</figure>
+
+<script>
+  const coppyBlock = () => {
+    const codeBlock = document.querySelectorAll('.code-block')
+
+    codeBlock.forEach((code) => {
+      const button = code.querySelector('.copy-button')
+      const check = code.querySelector('.check-span')
+      const content = code.querySelector('code')
+
+      button!.addEventListener('click', () => {
+        navigator.clipboard.writeText(content?.textContent?.trim() || '')
+        check?.classList.remove('opacity-0')
+        button?.classList.add('opacity-0')
+        setTimeout(() => {
+          check?.classList.add('opacity-0')
+          button?.classList.remove('opacity-0')
+        }, 2000)
+      })
+    })
+  }
+  coppyBlock() // initial load
+  document.addEventListener('astro:after-swap', coppyBlock) // re-run after each page change
+</script>

@@ -1,0 +1,23 @@
+---
+import SinglePageLayout from '@/layouts/SinglePageLayout'
+import ContactForm from 'src/components/ui/ContactForm'
+
+const title = 'お問い合わせ'
+const description = 'このブログに関する問い合わせフォームのページです。'
+
+const siteKey: string = import.meta.env.VITE_NEWT_KEY ?? process.env.VITE_NEWT_KEY
+const id = import.meta.env.VITE_NEWT_ID
+const formUrl = `https://neputa-note.form.newt.so/v1/${id}`
+---
+
+<SinglePageLayout title={title} description={description}>
+  <div class='mx-auto w-full max-w-3xl'>
+    <div
+      class='mx-auto flex flex-col rounded-lg border border-gray-200 bg-gray-100 p-4 shadow backdrop-blur dark:border-gray-700 dark:bg-slate-900 sm:p-6 lg:p-8'
+    >
+      <ContactForm siteKey={siteKey} formUrl={formUrl} client:load />
+    </div>
+  </div>
+</SinglePageLayout>
+
+<script is:inline src=`https://www.google.com/recaptcha/api.js?render=${siteKey}&hl=ja`></script>

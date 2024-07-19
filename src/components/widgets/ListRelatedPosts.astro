@@ -1,0 +1,69 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import { cn, getPosts } from '@/utils'
+import { Image } from 'astro:assets'
+import { getPermalink } from '@/utils'
+
+const posts = await getPosts()
+
+type Props = {
+  slug: string
+  tags: string[]
+  maxPosts: number
+}
+
+const { slug, tags, maxPosts } = Astro.props
+
+const relatedPosts = posts
+  .filter(
+    (post: CollectionEntry<'blog'>) =>
+      post.slug != slug && post.data.tags?.filter((tag: any) => tags.includes(tag)).length > 0
+  )
+  .map((post: CollectionEntry<'blog'>) => ({
+    ...post,
+    sameTagCount: post.data.tags.filter((tag: any) => tags.includes(tag)).length
+  }))
+  .sort((a, b) => {
+    if (a.sameTagCount > b.sameTagCount) return -1
+    if (b.sameTagCount > a.sameTagCount) return 1
+
+    if (a.data.pubDate > b.data.pubDate) return -1
+    if (a.data.pubDate < b.data.pubDate) return 1
+
+    return 0
+  })
+  .slice(0, maxPosts)
+---
+
+<section class={cn(`grid grid:row-auto lg:grid-cols-3 sm:justify-between gap-8`)}>
+  {
+    relatedPosts.length > 0 ? (
+      relatedPosts.map((post) => {
+        return (
+          <div class='flex flex-nowrap gap-4'>
+            <div class='min-w-fit'>
+              <Image
+                src={post.data.heroImage}
+                width={200}
+                height={200}
+                format='webp'
+                class='h-16 w-16 rounded-full object-cover'
+                alt={`img of ${post.data.title}`}
+              />
+            </div>
+            <header class='flex items-center justify-center'>
+              <a
+                class='line-clamp-2  text-ellipsis font-medium hover:underline'
+                href={getPermalink(post.slug, 'post')}
+              >
+                {post.data.title}
+              </a>
+            </header>
+          </div>
+        )
+      })
+    ) : (
+      <span class='text-gray-500'>この記事の関連記事はありません</span>
+    )
+  }
+</section>

@@ -1,0 +1,207 @@
+---
+title: 'VSCodeでもStyleCopを使いたい【C#】'
+description: 'Visual StudioでC#を記述する際に「StyleCopAnalyzers（以降StyleCop）」というコード解析ツールを使用しています。                                  '
+pubDate: '2020-10-10 15:34:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/7415825250118846598-visual-studio-code.webp'
+category:
+  - DEV
+tags: ['VSCode', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+{/* textlint-disable */}
+
+## StyleCopAnalyzersとは？
+
+Visual StudioでC#を記述する際に「StyleCopAnalyzers（以降StyleCop）」というコード解析ツールを使用しています。
+
+[DotNetAnalyzers/StyleCopAnalyzers](https://github.com/DotNetAnalyzers/StyleCopAnalyzers)
+
+<BlogCard
+  title='C#コーディングルール_#13_StyleCopAnalyzersについて - ピーコックアンダーソン'
+  description='前回まででローカルルールのお話は終わりです。今回からはStyleCopAnalyzers（スタイルコップアナラ'
+  url='https://anderson02.com/cs/cs-rules/cs-rules13/'
+  domain='anderson02.com'
+/>
+
+> StyleCopはNugetパッケージ管理で追加できるプラグイン。<br />
+> 例えば「プロパティ」と「コンストラクタ」ではどちらを上に書くのが正しいか？とか，XMLコメントが漏れている箇所とか，そういったものを全部まとめて警告にしてくれます。 <cite>-- [C#コーディングルール\_#13_StyleCopAnalyzersについて - ピーコックアンダーソン](https://anderson02.com/cs/cs-rules/cs-rules13/)</cite>
+
+という、チーム開発ではもちろん、個人開発においても整ったコーディングを支援してくれる強力なツールです。
+
+※Visual Studioでの使い方は上の記事にインストールから設定方法まで詳しく説明があります。
+
+## VSCodeでStyleCopを使うには
+
+### StyleCopのインストール
+
+で、本題です。
+
+StyleCopはVSCodeの拡張機能には対応していない。NugetPackageを管理する拡張機能を使用するか、以下のように、.csprojファイルに記述しrestoreを実行します。
+
+### インストール手順
+
+- StyleCopを適用したいプロジェクトの「.csproj」ファイルを開きます。
+- &lt;Project&gt;タグ内に、&lt;ItemGrcup&gt;タグを追加します。
+- 追加した&lt;ItemGroup&gt;タグ内に以下のコードを貼り付けます。
+
+```xml
+<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+  <PrivateAssets>all</PrivateAssets>
+  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+</PackageReference>
+```
+
+- ※最新バージョンのパッケージのコードは、[こちら](https://www.nuget.org/packages/stylecop.analyzers/)のページの「PackageReference」タブから取得できます。
+- コンソールで、「dotnet restore」を実行します。
+
+```PowerShell
+PS C:\Users\xxxxxx\> dotnet restore
+復元対象のプロジェクトを決定しています...
+C:\Users\xxxxxx\source\repos\TestApp\TestApp.csproj を復元しました (188 ms)。
+```
+
+### 不要なアラートを除去する
+
+StyleCopのインストールが完了すると、コード解析が始まり、一斉に警告が表示されます。
+
+![blog image](@/images/blog/7415825250118846598-stylecop_01.webp)
+
+警告の中には不要なものもあると思います。
+
+その場合は、「.editorconfig」にignore対象のCheckIDを追加します。（.editorconfigを有効化する手順は後述します）
+
+```ini
+[*.{cs}]
+
+### StyleCop Ignore ###
+# PrefixLocalCallsWithThis
+dotnet_diagnostic.SA1101.severity = none
+
+# UsingDirectivesMustBePlacedCorrectly
+dotnet_diagnostic.SA1200.severity = none
+
+# FieldNamesMustNotBeginWithUnderscore
+dotnet_diagnostic.SA1309.severity = none
+
+# PropertySummaryDocumentationMustMatchAccessors
+dotnet_diagnostic.SA1623.severity = none
+
+# DocumentationTextMustEndWithAPeriod
+dotnet_diagnostic.SA1629.severity = none
+
+# FileMustHaveHeader
+dotnet_diagnostic.SA1633.severity = none
+
+# ConstructorSummaryDocumentationMustBeginWithStandardText
+dotnet_diagnostic.SA1642.severity = none
+```
+
+CheckIDは波線にマウスをかざすか、「問題」ウインドウで参照できます。（下記画像のマーキング箇所）
+
+![blog image](@/images/blog/7415825250118846598-stylecop_02.webp)
+
+追加した後は、ctrl + shift + pからReload Windowを呼び出し、VSCodeを再読み込みすると反映されます。
+
+上記では、下記のCheckIdを無効にしています。
+
+#### SA1101
+
+クラス内のインスタンスメンバの接頭辞にthisが付いていない場合に警告。
+
+C#では、ローカルメンバのthisを省略できるので無効にしています。
+
+#### SA1200
+
+usingディレクティブがnamespaceエリア外に記述されている場合に警告。
+
+usingディレクティブはnamespaceの外側に書くものだと思って生きてきたので無効にしています。
+
+#### SA1309
+
+フィールド名が \_（アンダースコア）で始まる場合に警告。
+
+ローカルメンバであることを表すためにアンダースコアを付けるようにしています。よって無効に。
+
+#### SA1623
+
+プロパティのXMLドキュメントヘッダーのコメント内に、プロパティのアクセサと一致した記述がない場合に警告。
+
+たとえば、GetとSetを持つプロパティの場合、XMLコメントの先頭が「Gets or set」で始まっていないと怒られます。
+
+英語圏での作法でしょうか。私は無効にしています。
+
+#### SA1629
+
+XMLドキュメントヘッダーの文章がピリオドで終了していない場合に警告。<br />これも英文におけるルールだと思うので、無効にしています。
+
+#### SA1633
+
+ファイルのヘッダーコメントがない場合に警告。<br />ヘッダコメントは書かないので無効にしています。
+
+#### SA1642
+
+コンストラクターのXMLドキュメントヘッダーに適切な要約テキストが含まれていない場合に警告。
+
+これも英文でコメントが書かれることを前提に警告しているので、無効としています。
+
+この他のCheckIDについては、Githubに各CheckID毎の .mdファイルが用意されています。
+
+[StyleCopAnalyzers/documentation](https://github.com/DotNetAnalyzers/StyleCopAnalyzers/tree/master/documentation)
+
+### VSCodeで.editorconfigを使えるようにする手順
+
+拡張機能のインストールにより、editorconfigが使えるようになりますが、C#では別途、OmniSharpの設定変更をする必要があります。
+
+参考サイト：[Using the .editorconfig in VS2019 and VSCode](https://asp.net-hacker.rocks/2020/01/13/editorconfig.html)
+
+1. 拡張機能「EditorConfig for VS Code」をインストールします。
+   ![blog image](@/images/blog/7415825250118846598-stylecop_editorconfig.webp)
+
+1. エクスプローラーで右クリックをすると「Generate .editorconfig」が表示されるようになるので、クリックするとファイルが生成されます。
+   ![blog image](@/images/blog/7415825250118846598-stylecop_05.webp)
+
+1. C#でeditorconfigを有効化するには、さらに以下の作業が必要です。1.「メニュー→ファイル→ユーザ設定→設定」または ctrl + , で設定画面を開きます。1.「Enable Editor Config Support」で検索し、チェックボックスにチェックを入れます。
+   ![blog image](@/images/blog/7415825250118846598-stylecop_03.webp)
+
+1. 続いて「Enable Roslyn Analyzers」で検索し、同様にチェックボックスにチェックを入れます。
+   ![blog image](@/images/blog/7415825250118846598-stylecop_04.webp)
+
+1. VSCodeを再読み込みすると.editorconfigが使用可能になります。
+
+.editorconfigでも、いろいろとコーディングを規定するルールを設定できます。
+
+私はStyleCopと併用しています。
+
+詳細はそれなりのボリュームとなってしまいそうなので、後日、別途記事を書こうと思います。
+
+## 最後に まとめ
+
+VSCodeでNugetパッケージ「StyleCop」を使用する手順を紹介しました。
+
+Visual StudioでStyleCopを使い始めた当初は、一行書くたびにアラートが出て、とてもうざったいように感じていました。
+
+しかし、気づくといつの間にか警告が出ないようにコーディングをする癖が身についていました。
+
+本当に良いコードを書くには多くを学ぶ必要があると思いますが、最低限記述のルールを整えることによりチームであれば互いのレビューが効率化されると思いますし、個人であっても見直したときに可読性が増すと思います。
+
+コーディングはできるだけ余計なことをしない、できれば仕組みでさせない様に環境を整えたほうが良いと思っています。
+
+StyleCopは、あくまで警告をしてくれるツールですが、今回簡単に触れた
+
+.editorconfigも併せて使用するとより強力にコーディングルールを規定でき、かつリファクタリングの支援を受けることができるようになります。
+
+詳細はまた後日書きます。
+
+長文おつきあいありがとうございました。
+
+<div class='not-prose'>
+  <div data-vc_mylinkbox_id='887423761'></div>
+</div>
+
+{/* textlint-enable */}

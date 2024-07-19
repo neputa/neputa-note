@@ -1,0 +1,155 @@
+---
+title: VSCodeの背景画像（background）を設定してテンションを上げる
+description: VSCodeエディタのbackgroundに好きな背景画像があるとテンションが上がる。拡張機能を使用し、好きな背景画像を設置する手順についてまとめた。注意として、VSCodeサポート対象外の拡張機能を使用する。実施するにあたっては自己責任で。
+pubDate: 2022-02-05 13:10:00
+modDate: 2024-07-10T15:38:12.042Z
+heroImage: ../../../../assets/images/blog/vscode-logo.webp
+category:
+  - DEV
+tags:
+  - VSCode
+  - Apps
+draft: false
+keywords:
+  - vscode
+  - 背景画像
+  - background
+type: blog
+---
+
+import Alert from '@/components/mdx/Alert'
+
+## 本記事の目的
+
+- VSCodeエディタのbackgroundに好きな背景画像があるとテンションが上がる
+- 拡張機能を使用し、背景画像を設置する手順についてまとめた
+- 注意としてVSCodeサポート対象外の拡張機能を使用する
+
+<Alert type='danger' content='※VSCodeサポート対象外の拡張機能を使用する。試す際は自己責任で。' />
+
+## 環境
+
+- OS - Ubuntu 20.04LTS on WSL2
+- VSCode - v1.64.0
+
+## 作業詳細
+
+- VSCodeのエディタのbackgroundは以下スタイルシートを修正する必要がある。
+  - -path to VScode-\resources\app\out\vs\workbench.desktop.main.css
+  - 「-path to VScode-」の部分
+    - Windows 10: %USERPROFILE%/AppData/Local/Programs/Microsoft VS Code
+    - Ubuntu 20.04LTS: /usr/share/code
+- 複数の環境でVSCodeを使用している場合、全ての環境で修正が必要となる
+- これを解決するため拡張機能「background」をインストールする
+  - [background - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=shalldie.background)
+
+### 拡張機能 background インストール
+
+- VSCodeの拡張機能から「background」（作者 shalldie）で検索
+- または以下MarketPlaceからインストール
+  - [background - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=shalldie.background)
+
+### インストール後の注意事項
+
+- インストールするとインストールディレクトリ内のcssファイルを更新するため下記ポップアップが起動のたびに出る
+- 歯車アイコンから再表示しないようにすることもできる
+
+![VSCode アラートポップアップ](@/images/blog/vscode-alertwindow.webp)
+
+- またインストールディレクトリ内に変更をおよぼす拡張機能のため、タイトルバーに「サポート対象外」と表示されるようになる
+
+![VSCode サポート対象外の表示](@/images/blog/vscode-notsupport.webp)
+
+- どうしても気になる場合は下記拡張機能で消すことが可能とのこと。（試していない）
+
+  - [Fix VSCode Checksums - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=lehni.vscode-fix-checksums)
+
+- 拡張機能の設定を変更するたびに下記ポップアップが表示される
+- 設定した画像を読み込む場合はrestartする
+
+![VSCode リスタートのポップアップ](@/images/blog/vscode-restart-popup.webp)
+
+### VSCode settings.json修正
+
+- 「Ctrl + Shift + p」から「settings.json」を開く
+- 例として以下のように設定してみる
+
+```json
+"background.customImages": [
+    "file:///home/neputa/pictures/first-picture.jpg",
+    "file:///home/neputa/pictures/second-picture.jpg",
+],
+"background.style": {
+    "content": "''",
+    "pointer-events": "none",
+    "position": "absolute",
+    "width": "100%",
+    "height": "100%",
+    "z-index": "99999",
+    "background-repeat": "no-repeat",
+    "background-size": "cover",
+    "opacity": 0.1
+},
+"background.useFront": false,
+"background.useDefault": false,
+"background.loop": false,
+// customImagesは環境によってパスが異なるため私は同期対象外にしている
+"settingsSync.ignoredSettings": [
+"background.customImages"
+],
+```
+
+- ファイルパスは複数定義可能
+- ローカルファイルのパスは以下のように記述する
+
+  - Ubuntu: file:///home/neputa/pictures/ghost-in-the-shell.jpg
+  - Windows: file:///c:/Users/neputa/Pictures/ghost-in-the-shell.jpg
+
+- 各設定内容は以下のとおり
+  - 参考：[shalldie/vscode-background - github.com](https://github.com/shalldie/vscode-background)
+
+| Name                      | Type            | Description                                          |
+| ------------------------- | --------------- | ---------------------------------------------------- |
+| `background.enabled`      | `Boolean`       | この拡張機能の有効・無効フラグ                       |
+| `background.useDefault`   | `Boolean`       | デフォルトで設定される画像の使用有無フラグ           |
+| `background.customImages` | `Array<String>` | カスタム画像のファイルパス（配列で複数定義可）       |
+| `background.style`        | `Object`        | 背景画像のスタイル                                   |
+| `background.styles`       | `Array<Object>` | 複数画像使用時の個々のスタイル                       |
+| `background.useFront`     | `Boolean`       | 画像の設置位置（ソースコードの前後）フラグ           |
+| `background.loop`         | `Boolean`       | 複数の画像パスを指定している場合、ループするかフラグ |
+
+- Reload Windowすると、こんな具合に背景が設定された
+
+![VSCode背景画像](@/images/blog/vscode-backgroundimage.webp)
+
+### Ubuntuの場合 追加作業
+
+- UbuntuなどLinuxマシンの場合、VSCodeのインストールディレクトリの権限を変更しないと拡張機能が動作しない場合がある
+
+```bash
+$ sudo chown <your_username>/usr/share/code -R
+$ chmod ugo+rwx /usr/share/code
+```
+
+### backgroundをアンインストール時の注意
+
+- 公式に以下の説明がある
+
+> Set the config \{"background.enabled": false\} in settings.json, then uninstall the plugin. <cite>[shalldie / vscode-background - github.com](https://github.com/shalldie/vscode-background)</cite>
+
+- settings.jsonで設定した「background.enabled」をfalseにした状態で拡張機能をアンインストールする必要がある
+- 忘れるとデフォルトで設定される拡張機能のアイコン画像が背景に残ったままとなる
+
+## さいごに
+
+冒頭にも書いたが、本記事で使用した拡張機能はインストールディレクトリ内に影響がある。
+
+万一に備えてバックアップを取る、職場の環境でいきなり試さないことをおススメする。
+
+Windows Terminalのように、いずれ公式で背景画像が設定できるといい。やっぱ背景あると気分があがるもの。
+
+お役に立ちましたら、この記事をシェアしていただけたりすると泣いて喜びます。
+
+## 参考サイト
+
+[How to change VSCode background - LinuxPip](https://linuxpip.org/how-to-change-vscode-background/)

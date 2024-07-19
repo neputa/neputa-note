@@ -1,0 +1,109 @@
+---
+title: 'ノートアプリJoplinをVSCodeで使用する（拡張機能を使用）'
+description: '本記事のゴール 拡張機能を使用し、VSCodeでJoplinのノートを管理できるようにする。 本記事の対象者 *Joplinユーザでエディタに不満がある人 *VSCodeの環境でJoplinを使いたい人 *VScodeユーザでVScodeと親和性の高いノートアプリを検討している方 '
+pubDate: '2024-04-16 23:35:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/default.webp'
+category:
+  - DEV
+tags: ['Joplin', 'VSCode', 'Apps']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 記事概要
+
+### 本記事のゴール
+
+拡張機能を使用し、VSCodeでJoplinのノートを管理できるようにする。
+
+### 本記事の対象者
+
+- Joplinユーザでエディタに不満がある人
+- VSCodeの環境でJoplinを使いたい人
+- VScodeユーザでVScodeと親和性の高いノートアプリを検討している方
+
+### 背景
+
+- 現在まとまったメモを「Joplin」で管理している。
+- 概ね満足しているが肝心のエディタにややストレスがある。
+- これは私がvim入力（正確にはNeovim）に依存かつJoplinのvimに制限が多いことに起因する。
+- 私にとって現在もっとも快適なエディタはVSCode。（Neovimの設定が概ね通る）
+- つまり「Joplin」と「VSCode」がひとつになってしまえばいいのに。
+
+## Joplinとは
+
+公式サイト：
+
+[Joplin](https://joplinapp.org/)
+
+以前、Joplinの使い方について書いた記事。
+
+<BlogCard
+  title='Joplin おすすめ無料ノートアプリ（EverNote → OneNoteを経て）'
+  description='Jopoinというノートアプリについて、特徴や使い方などを中心に解説します。Joplinはツリー構造でのメモ管理、複数のキーバインドを選択できるエディタ、マークダウン対応、異なる端末間での動機など充実した機能が揃ったアプリです。'
+  url='https://www.neputa-note.net/2020/10/joplin/'
+  domain='www.neputa-note.net'
+/>
+
+## 環境
+
+- OS：WSL2 on Windows11
+- Joplin：version 2.14.20
+- VSCode：version 1.88.1
+
+## 作業概要
+
+1.  VSCodeにJoplinの拡張機能を追加する
+2.  Joplinの拡張機能にJoplinのWebClipの認証トークンを設定する
+3.  Joplinを常駐起動しておく
+
+## 作業詳細
+
+VSCodeを起動し、拡張機能「joplin-vscode-plugin」をインストールする。
+
+<BlogCard
+  title='joplin-vscode-plugin - Visual Studio Marketplace'
+  description="Extension for Visual Studio Code - joplin's vscode integration"
+  url='https://marketplace.visualstudio.com/items?itemName=rxliuli.joplin-vscode-plugin&utm_source=pocket_saves'
+  domain='marketplace.visualstudio.com'
+/>
+
+Joplinを起動し、メニュー → ツール → オプション → Webクリッパー を開く。
+
+「ステップ1」の「Webクリッパーサービスを有効にする」をクリックし有効化する。（VSCodeからJoplinのデータアクセスに、Webクリッパー用のAPIを利用する）
+
+![Joplin Webクリッパー有効化画面](@/images/blog/vscode-joplin-01.webp)
+
+同画面の最下部「詳細な設定」の「認証トークン」をコピーしておく。（VSCodeの拡張機能で使用する）
+
+![Joplin 認証トークン](@/images/blog/vscode-joplin-02.webp)
+
+VSCodeに戻り、「拡張機能の設定」を開く。
+
+![VSCode 拡張機能の設定](@/images/blog/vscode-joplin-03.webp)
+
+設定最下部の項目「Joplin: Token」に先ほどコピーしたトークンを貼り付ける。
+
+![VSCode Joplin Tokenを貼り付け](@/images/blog/vscode-joplin-04.webp)
+
+VSCodeをリロードすると画面左にJoplinのアイコンが表示される。これをクリックまたはショートカットキー[Ctrl]＋[j]→ +[J]で、VScode上にJoplinのノートを展開できる。
+
+条件として、Joplinを常駐起動させておく必要がある。
+
+![VSCodeでJoplinを表示](@/images/blog/vscode-joplin-05.webp)
+
+マークダウンのプレビューを隣に表示するショートカットキーは［Ctrl］＋［K］→［V］
+
+キーボードショートカットの基本設定→「joplin:」で拡張機能、「markdown:」でマークダウンのキー設定を変更できる。
+
+## まとめ
+
+JoplinにNeovimのプラグインが誕生すると良いなと思い続けていたが、VSCode側にJoplinを取り込む発想はなかった。
+
+VSCode＋Neovim拡張機能で整えたエディタ環境そのままにJoplinを利用できる。しかもすべて無償で利用できてしまっている。
+
+各ツール開発者の皆様、心より感謝申し上げる。

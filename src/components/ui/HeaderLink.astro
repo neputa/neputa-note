@@ -1,0 +1,23 @@
+---
+import type { HTMLAttributes } from 'astro/types'
+import { cn } from '@/utils'
+import { getPermalink } from '@/utils'
+
+interface Props extends HTMLAttributes<'a'> {
+  linkType?: string
+}
+
+const { href, linkType, class: className, ...props } = Astro.props
+const { pathname } = Astro.url
+const isActive = href === pathname || href === pathname.replace(/\/$/, '')
+const slug: string = href ? (href as string) : ''
+---
+
+<a
+  href={getPermalink(slug, linkType)}
+  class={cn(isActive ? 'text-opacity-100' : 'text-opacity-60', className)}
+  rel='noopener noreferrer '
+  {...props}
+>
+  <slot />
+</a>

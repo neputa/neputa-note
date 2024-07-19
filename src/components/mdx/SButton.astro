@@ -1,0 +1,8 @@
+---
+const props = Astro.props
+---
+
+<button {...props} class='rounded-full bg-primary-700 p-4 text-white'>
+  <slot />
+  <!-- Be sure to add a `<slot/>` for child content! -->
+</button>

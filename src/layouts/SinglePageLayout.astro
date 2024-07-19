@@ -1,0 +1,19 @@
+---
+import BaseLayout from '@/layouts/BaseLayout'
+import TitlePage from '@/components/widgets/TitlePage'
+
+interface Props {
+  title: string
+  description: string
+}
+const { title, description } = Astro.props
+---
+
+<BaseLayout title={title} description={description}>
+  <TitlePage title={title} />
+  <article class='prose prose-quoteless mb-12 min-w-full dark:prose-invert md:prose-lg xl:prose-xl'>
+    <div class='mx-auto md:w-11/12 lg:w-10/12'>
+      <slot />
+    </div>
+  </article>
+</BaseLayout>

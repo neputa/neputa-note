@@ -1,0 +1,97 @@
+---
+import { Image } from 'astro:assets'
+import FormattedDate from '@/components/ui/FormattedDate'
+import ArrowUp from '@/components/icons/ArrowUp'
+import { getPermalink } from '@/utils'
+
+const {
+  id,
+  data: { title, description, pubDate, heroImage, category },
+  readTime,
+  slug,
+  loading = 'lazy'
+} = Astro.props
+---
+
+<article class='group grid min-h-full grid-rows-[300px_auto] md:grid-rows-[300px_220px]'>
+  <a class='relative overflow-hidden' href={getPermalink(slug, 'post')}>
+    <Image
+      src={heroImage}
+      width={600}
+      height={200}
+      format='webp'
+      loading={loading}
+      class='h-full min-w-full rounded-[2px] object-cover transition-all duration-200 hover:scale-[101%]'
+      alt={`img of ${title}`}
+    />
+
+    <div class='absolute bottom-0 z-30 h-20 w-full'>
+      <div class='glass absolute bottom-0 -z-10 min-h-full w-full'></div>
+      <div class='flex items-center justify-between gap-x-1 px-6 py-4 text-white'>
+        <div class='flex flex-col items-center justify-center gap-1'>
+          <FormattedDate date={pubDate} />
+          <span class='text-sm'> {readTime}</span>
+        </div>
+
+        <span class='pb-4'>{category}</span>
+      </div>
+    </div>
+  </a>
+
+  <div class='flex flex-col justify-between gap-4 py-6 pl-1 md:gap-0'>
+    <div class='flex flex-col gap-3'>
+      <div class='flex flex-col gap-2'>
+        <a
+          class='line-clamp-2 text-2xl font-semibold -tracking-wider'
+          href={getPermalink(slug, 'post')}
+        >
+          {title}
+        </a>
+      </div>
+
+      <p
+        class='mb-5 line-clamp-3 overflow-hidden font-[400] text-gray-700 dark:text-white md:pr-[15%]'
+      >
+        {description}
+      </p>
+    </div>
+
+    <footer class='flex items-center justify-between'>
+      <a
+        href={getPermalink(slug, 'post')}
+        class='group flex items-center justify-center gap-1 rounded-full font-semibold transition-transform duration-150 ease-in-out hover:translate-x-1 dark:text-white'
+        aria-label={`go to ${title}`}
+      >
+        記事を読む <span
+          class='duration-250 mt-[1px] transition-transform ease-in-out group-hover:rotate-45'
+          ><ArrowUp width='18' height='18' /></span
+        >
+      </a>
+    </footer>
+  </div>
+</article>
+
+<script>
+  import { animate } from 'motion'
+
+  const images = document.querySelectorAll('img')
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const showAnimations = localStorage.getItem('animations') === 'true'
+
+    if (showAnimations) {
+      animate(
+        '.effect',
+        {
+          opacity: [0, 1],
+          clipPath: ['circle(0% at 0% 0%)', 'circle(100% at 50% 50%)']
+        },
+        { duration: 2, easing: 'ease' }
+      )
+    } else {
+      images.forEach((img) => {
+        img.classList.remove('opacity-0')
+      })
+    }
+  })
+</script>

@@ -1,0 +1,393 @@
+---
+title: 'Ubuntu 20.04LTS を中古ノートPCにインストールする'
+description: '記事の概要 中古のモバイルノートPCを入手し「Linux OS」の「Ubuntu」をインストールした経緯および手順をまとめた。'
+pubDate: '2021-10-02 08:24:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/3558960842902131456-ubuntu-logo.webp'
+category:
+  - DEV
+tags: ['Ubuntu', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## この記事の概要
+
+中古のモバイルノートPCを入手し「Linux OS」の「Ubuntu」をインストールした経緯および手順をまとめた。
+
+## 環境
+
+### インストール対象機種
+
+DELL LATITUDE 3380 2015年モデル（中古25,000円）
+
+[DELL公式サイト](https://japancatalog.dell.com/pd/latitude-3380-laptop.html)
+
+- 【CPU】Core i3 6006U 2.00GHz
+- 【メモリー】4GB
+- 【SSD】256GB
+- 【OS】Windows 10 Home 64bit
+- 【ワイヤレスLAN】あり
+- 【液晶】13インチ ワイド
+
+### インストールするOS
+
+Ubuntu 20.04.1 LTS（日本語Remix）
+
+### インストールに必要なもの
+
+- Ubuntuインストーラ用USBメディアを作成するためのPC
+- Ubuntuインストーラ用のUSBメディア（インストーラのサイズは3GB以下）
+
+## 今回作業の背景
+
+### 外でもブログを書きたい
+
+私は普段このブログを自宅のデスクトップPC（Windows）で書いている。
+
+PCで使用しているアプリケーションは以下のとおり。
+
+- VSCode（エディタ）
+- Git（バージョン管理）
+- Firefox（ブラウザ）
+
+※Firefoxは、Github、Blogger、Googleフォトを利用するために使用。
+
+この度、外出先でもブログを書きたいと思いたち、ノートPCを入手することにした。
+
+使い慣れているWindowsマシンがいいと思うものの、要求スペックを満たすと価格は上がる。
+
+10月にリリースされるWindows11でその要求はさらに厳しくなることもわかっている。
+
+<BlogCard
+  title="Windows 11 の要件 - What's new in Windows"
+  description='Windows 11を展開するためのハードウェア要件。'
+  url='https://learn.microsoft.com/ja-jp/windows/whats-new/windows-11-requirements#%E3%83%8F%E3%83%BC%E3%83%89%E3%82%A6%E3%82%A7%E3%82%A2%E3%81%AE%E8%A6%81%E4%BB%B6'
+  domain='learn.microsoft.com'
+/>
+
+先ほど挙げた3つのアプリケーションを使用することができ、かつ安く、そして長く利用できるノートPC。
+
+これらを満たす手段として、「中古低スペックノートPC」「Linux OS」（Ubuntu）と結論した。
+
+## Ubuntuを選択した理由
+
+### Ubuntuとは
+
+<BlogCard
+  title='Ubuntuとは | Ubuntu Japanese Team'
+  description=''
+  url='https://www.ubuntulinux.jp/ubuntu'
+  domain='www.ubuntulinux.jp'
+/>
+
+Linuxといってもさまざまなディストリビューションがある。
+
+今回はWindowsライクに使えること、情報が多いことなどを理由に「Ubuntu」を選択した。
+
+慣れない環境を扱っていくなかでもっとも懸念されるのはトラブル解決だろう。
+
+これまで何度かさわったことがあり、書籍が出版されるほど広く知られている「Ubuntu」。
+
+<div class='not-prose'>
+	<div data-vc_mylinkbox_id='887399730'></div>
+</div>
+
+あくまで目的はブログを書くこと。リスクは可能な限り抑えたい。
+
+ということで「Ubuntu」を使用することに決めた。
+
+## 中古ノートPCを購入する
+
+### 購入するPCのスペックを絞る
+
+Ubuntuは、半年ごとに新しいバージョンをリリースしているそうな。
+
+そして毎年ひとつのバージョンには「LTS（long term support」がバージョン番号に付与されており、5年間サポートを受けることができる。
+
+現在もっとも新しいLTSは「20.04LTS」、2025年4月がサポート期限。
+
+つまり最低5年間は使用できるPCを買えばよいだろうと考えた。
+
+10年前のモデルはかなり安い。しかし使い終わるとき15年目を迎えることになる。
+
+使い方にもよるが、バッテリーはおそらくもたないだろう。ハードディスクの破損も怖い。
+
+最低でも発売時期が「5年以内」に絞る。
+
+続いて細かいスペックを決める。Ubuntuのシステム要件を確認。
+
+<BlogCard
+  title='Ubuntuの特徴 | Ubuntu Japanese Team'
+  description=''
+  url='https://www.ubuntulinux.jp/ubuntu/features'
+  domain='www.ubuntulinux.jp'
+/>
+
+システム要件の欄には下記の通り説明があるが、これはあまりに下限過ぎる気配がプンプンする。
+
+> Ubuntuはx86 PC、64ビットPCで利用することができます。少なくとも1ギガバイトのRAMと5ギガバイトのストレージスペースが必要です。 <cite>-- [Ubuntu Japanese Team](https://www.ubuntulinux.jp/ubuntu/features)より引用</cite>
+
+本家サイトを見ると、バージョンごとの要求スペックが記されていた。20.04LTSの要求スペックは下記とあった。
+
+> Ubuntu 20.04.3 LTS<br />
+> 2 GHz dual core processor or better<br />
+> 4 GB system memory<br />
+> 25 GB of free hard drive space <cite>-- [ubuntu.com](https://ubuntu.com/download/desktop)より引用</cite>
+
+もろもろ検討した結果、要件はこんな具合に。
+
+- 発売時期が5年以内
+- CPUはIntel core i3またはAMD Ryzen 3以上
+- メモリは4GB以上
+- HDDは128GB以上のSSD（新品）
+- 無線LAN内臓
+- 重さは2Kg以下
+- 液晶はワイド14～15インチ
+- キーボードはUS配列
+
+価格次第だができればCeleron CPUは避ける。
+
+メモリは4GB、もしきついと感じたら後から8GBに交換する。
+
+ディスクはできれば新品が換装されているか、無ければ別途買って交換。
+
+重さと液晶サイズは悩みどころだが、目が悪いので2Kg以下でできるだけ大きいものを。
+
+### 中古ノートPCを購入
+
+メルカリや中古PCを扱うショップを色々調べ、一番ネックなのはUS配列のキーボードであることが判明。
+
+まず、そもそも中古ノートの絞り込み選択肢にキー配列などない。Googleの検索クエリを駆使して商品を探す。
+
+日本語配列と比べれば流通量がグッと少ないので選択肢はそうとう限られる。
+
+メルカリやヤフオクでもいくつか良さそうなのが見つかった。しかし中古の精密機器で「返品不可」と表明されたらこっちは怖気づくことこの上ない。
+
+ということで、ある程度保証期間をつけてくれているショップから買うことに決めた。
+
+『JUNK WORLD』というショップで見つけた「DELL LATITUDE 3380 2015年モデル（中古25,000円）」を購入した。
+
+「JUNK WORLD（ジャンクワールド）」
+
+<Fragment>
+  <script src='//ad.jp.ap.valuecommerce.com/servlet/jsbanner?sid=3213907&pid=887405198'></script>
+  <noscript>
+    <a
+      href='//ck.jp.ap.valuecommerce.com/servlet/referral?sid=3213907&pid=887405198'
+      rel='nofollow'
+    >
+      <img
+        src='//ad.jp.ap.valuecommerce.com/servlet/gifbanner?sid=3213907&pid=887405198'
+        alt='valuecommerce'
+      />
+    </a>
+  </noscript>
+</Fragment>
+
+「発売から5年以内」の条件は1年妥協した。
+
+ただ新品のSSDを搭載していること、30日間は故障パーツがあれば無償交換してくれる点を考慮し、このマシンをこれからのブログ書きを支えるパートナーと決めた。
+
+## 実際にUbuntu 20.04LTS をノートPCにインストールする
+
+2日後にしっかりした梱包で発送してもらった「DELL LATITUDE 3380」を早速開封し作業を開始する。
+
+参考にさせていただいたのはこちらの記事。
+
+<BlogCard
+  title='古いノートパソコンへLinux（ubuntu）をインストールしてみた | 60爺の手習い'
+  description='この度、嫁さんがノートパソコンを新調しまして、それまで使用していたノートパソコンが不要になりました。 PC名　DELL Inspiron 15 3000 メモリ　4G プロセッサ...'
+  url='https://www.mizutan.com/wordpress/?p=11015'
+  domain='www.mizutan.com'
+/>
+
+### インストール用USBメディアを作成する
+
+まずはUbuntuのインストーラとなるUSBメディアを作成する。
+
+iso（日本語Remix）ダウンロード先
+
+[Ubuntu Desktop 日本語 Remixのダウンロード | Ubuntu Japanese Team](https://www.ubuntulinux.jp/download/ja-remix)
+
+この日本語Remix版はこれを書いている時点でバージョンは「20.04.1」を購入した。
+
+本家サイトは「20.04.3」だ。
+
+少しでも新しい方がよいとは思うが、「日本語環境」となるといくつか問題があるようだ。
+
+[Ubuntu 18.04 LTS日本語Remixリリース！本家版との違いは？【徹底比較】 | LFI](https://linuxfan.info/ubuntu-18-04-ja-remix-compare)
+
+ということで、大事をとって日本語Remix版をインストールすることとした。
+
+続いてインストールメディアを作成するアプリをインストールする。
+
+参考にさせていただいたブログでは「Etcher」というアプリを使用していたが、私の環境ではうまくいかなかった。
+
+<BlogCard
+  title='Etcher'
+  description='Etcherで点滅するシンプルで無料のOSイメージ'
+  url='https://etcher.softonic.jp/'
+  domain='etcher.softonic.jp'
+/>
+
+現象としては、メディアの書き込み中にエラーが発生し、容量が激減するといったもの。
+
+こちらのサイトで復元するためのアプリや原因などが記されており参考になった。
+
+<BlogCard
+  title='USBメモリの容量がおかしい・減った…フォーマットしても戻らない！ | Report Hot Cafe'
+  description='USBメモリの総容量が減っていて、元の容量に戻らない…WindowsやUbuntuにはじめからあるツールを使う方法と、フリーソフトを使う方法があります。I-O DATA ハードディスクフォーマッタ（フリー）で元に戻せます。インストール不要で、他社のUSBメモリですがテストで利用できました。'
+  url='https://report.hot-cafe.net/usb-formatter-3136'
+  domain='report.hot-cafe.net'
+/>
+
+ということで、「Rufus」というアプリを使用しUSBメディアを作成することとした。
+
+<BlogCard
+  title='Rufus - 起動可能なUSBドライブを簡単に作成できます'
+  description=''
+  url='https://rufus.ie/ja/'
+  domain='rufus.ie'
+/>
+
+上記リンクの「ダウンロード」から「最新のアップデート」にある太字のリンクからRufusのインストーラをダウンロードしインストールする。
+
+ポータブル版もあるようなのでお好みで。
+
+USBメディアをPCにつなぎ、Rufusを起動する。
+
+「デバイス」に差し込んだUSBメディアが表示されていることを確認し、「選択」ボタンからダウンロードしておいたUbuntuのisoファイルを選択する
+
+![Rufus1](@/images/blog/3558960842902131456-rufus-01.webp)
+
+続いて「スタート」ボタンで処理を開始する。
+
+当然ながらUSBメディア内のデータはフォーマットされ消失するのでご注意を。
+
+![Rufus2](@/images/blog/3558960842902131456-rufus-02.webp)
+
+「スタート」ボタンをクリックすると、イメージの書き込みモードを問うメッセージが表示されるので、「ISO」を選択されていることを確認し、「OK」。
+
+![Rufus3](@/images/blog/3558960842902131456-rufus-03.webp)
+
+処理が終わるまでしばし待機。
+
+![Rufus4](@/images/blog/3558960842902131456-rufus-04.webp)
+
+「準備完了」が表示されたら「閉じる」ボタンでRufusを終了する。
+
+![Rufus5](@/images/blog/3558960842902131456-rufus-05.webp)
+
+Ubuntuのインストールメディア作成は以上で終わり。
+
+### Ubuntuをインストールする
+
+いよいよ購入したDell Latitude 3380にUbuntuをインストールする。
+
+プリインストールされていたWindows 10 Home 64bit版よ、さらば。
+
+メーカー等によりここからの手順や設定は異なるので、別のPCをお使いの場合は対象メーカーのサイトなどを参照されたし。
+
+まず前章で作成したUSBメディアをノートPCに差し込む。
+
+BIOSでBOOTをWindowsがインストールされたハードディスクではなく、差し込んだUSBメディアに変更する必要がある。
+
+ノートPCを起動し「F2」キーを連打する。（BIOS画面の表示はメーカーによって異なるので各メーカーのサイトを参照されたし）
+
+BIOSの画面が表示されたら、Settings → General → Boot Sequenceを選択する。
+
+![Ubuntu01](@/images/blog/3558960842902131456-ubuntu-01.webp)
+
+同じ画面の右側で上下の矢印を操作し、「UEFI: Generic Flash Disk X.XX」が上にくるように設定する。
+
+![Ubuntu02](@/images/blog/3558960842902131456-ubuntu-02.webp)
+
+画面右下のApplyボタンを押し、ポップアップで「Save as Custome User Settings？」にチェックが入っていることを確認のうえ、OKボタンを押す。
+
+![Ubuntu03](@/images/blog/3558960842902131456-ubuntu-03.webp)
+
+Exitボタンを押し、BIOSの設定を終了する。
+
+![Ubuntu04](@/images/blog/3558960842902131456-ubuntu-04.webp)
+
+ノートPCが再起動する。画面下にUbuntuの表示が。
+
+![Ubuntu05](@/images/blog/3558960842902131456-ubuntu-05.webp)
+
+再起動中にUbuntuの起動モードを選択するメニューが表示される場合、何もキー操作をせず待機していればOK。しばらくすると、この画面が表示される。
+
+![Ubuntu06](@/images/blog/3558960842902131456-ubuntu-06.webp)
+
+「Ubuntuをインストール」を選択し、最初にキーボードのレイアウトを設定する。日本語配列の場合は何もせず「続ける」ボタンを押せばOK。US配列の場合は、「English（US）」を選択する。
+
+![Ubuntu07](@/images/blog/3558960842902131456-ubuntu-07.webp)
+
+続いて「アップデートとほかのソフトウェア」の選択画面で、「グラフィックスとWi-Fiハードウェアと追加のメディアフォーマットのサードパーティ製ソフトウェアをインストールする」にチェックを入れる。（Wi-Fi不要などの場合は未チェックでOK）その他はデフォルト選択のまま、「続ける」ボタンを押す。
+
+![Ubuntu08](@/images/blog/3558960842902131456-ubuntu-08.webp)
+
+「インストールの種類」を選択する。今回はSSDにプリインストールされているWindowsはいらないので「ディスクを削除してUbuntuをインストール」を選択し、クリーンインストールを行う。
+
+![Ubuntu09](@/images/blog/3558960842902131456-ubuntu-09.webp)
+
+同画面の「高度な機能」というボタンをクリックすると、このようなウィンドウが表示されるが、今回はいずれも必要ないのでデフォルトの「なし」が選択されているでOK。
+
+![Ubuntu10](@/images/blog/3558960842902131456-ubuntu-10.webp)
+
+画面右下の「インストール」ボタンを押すとポップアップが立ち上がるので「続ける」を選択する。
+
+![Ubuntu11](@/images/blog/3558960842902131456-ubuntu-11.webp)
+
+どこに住んでるか聞いてくるので正直に答える。
+
+![Ubuntu12](@/images/blog/3558960842902131456-ubuntu-12.webp)
+
+ユーザ名やマシン名やパスワードを入力する。
+
+![Ubuntu13](@/images/blog/3558960842902131456-ubuntu-13.webp)
+
+インストール実行中。しばしご歓談。
+
+![Ubuntu14](@/images/blog/3558960842902131456-ubuntu-14.webp)
+
+インストール完了。「今すぐ再起動する」を押す。
+
+![Ubuntu15](@/images/blog/3558960842902131456-ubuntu-15.webp)
+
+起動画面に「Please remove the Installation medium, then press ENTER」と出る。USBのインストールメディアをぶっこ抜いてENTERを叩く。
+
+![Ubuntu16](@/images/blog/3558960842902131456-ubuntu-16.webp)
+
+はい来た。
+
+![Ubuntu17](@/images/blog/3558960842902131456-ubuntu-17.webp)
+
+以上でインストールは完了。
+
+写真を撮ったりしながらだが、事前の調査に1時間、作業自体も1時間の合計2時間程度で無事にUbuntuノートPCを作成することができた。
+
+このあとは、最初にやっておく設定作業あれこれや、ブログを書けるようにVSCodeやGitをインストールしていく。
+
+それについては、別途記事を書く予定。
+
+## 終わりに
+
+以前はむやみやたらと速いマシンを望んでいたりしましたが、年のせいでしょうか、目的にあった必要十分なマシンをお得にゲットできればいいと考えるようになりつつある。
+
+ハイスペックマシンをゲットしても、ユーザが低スペックでは手に余るというもの。
+
+多くのアプリケーションがブラウザアプリ化している現代において、OSへにこだわることの意味合いもだいぶ薄れてきている。
+
+第四世代インテルコアを搭載したメインマシンがまもなくやってくるWindows11に切り捨てらることもあり、メインもUbuntuでいいかなと思い始めている。
+
+何はともあれ、無事に安く望み通りのことを実践できるノートPCを作ることができ大満足だ。
+
+ニッチな話だけれど、どなたかのお役に立てたのであれば嬉しい限り。
+
+<div class='not-prose'>
+	<div data-vc_mylinkbox_id='887409868'></div>
+</div>

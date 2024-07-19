@@ -1,0 +1,80 @@
+---
+title: '最新バージョンのNeovimを.debパッケージからインストール'
+description: '本記事の概要 Neovimの最新バージョンを.debパッケージからインストールする手順をまとめる。'
+pubDate: '2023-11-01 17:51:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/win-neovim-logo.webp'
+category:
+  - DEV
+tags: ['Neovim', 'Apps']
+draft: false
+keywords: []
+type: blog
+---
+
+import Alert from '@/components/mdx/Alert'
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 追記
+
+<Alert
+  type='info'
+  content='2024/05/08 - .debパッケージの配布終了によりsnapによるインストールを以下記事にまとめた。'
+/>
+
+<BlogCard
+  title='Ubuntuにsnapで最新バージョンのNeovimをインストールする【WSL2】'
+  description='記事目的：Ubuntuに最新バージョンのNeovimをsnapを使用してインストールする。　Ubuntuのパッケージリポジトリに登録されているNeovimはバージョンが古いためapt installではなくsnapによるインストールを行う。前提として必要なsystemdの有効化と併せてまとめる。'
+  url='https://www.neputa-note.net/2024/05/neovim-snap/'
+  domain='www.neputa-note.net'
+/>
+
+## 本記事の概要
+
+- Neovimの最新バージョンを .debパッケージからインストールする手順をまとめる。
+
+## 背景
+
+「VSCode + WSL2 + Ubuntu」で使用しているNeovim拡張機能が、最新バージョンのNeovimを要求する事象が今年に入ってから数回あった。
+
+一方、UbuntuのPPAリポジトリにあるNeovimは常に最新というわけではない。
+
+よって別途手段にてバージョンを更新する必要が生じた。
+
+## 環境
+
+Ubuntu 22.04.3 LTS on WSL2 + Windows11 Home 22H2 x64
+
+## 参考記事
+
+- [How to install latest version (0.8+) of Neovim on Debian instead of apt-get | FRVfrvr](https://frvfrvr.github.io/2022/12/09/myvimsetup?utm_source=pocket_saves)
+- [drivers - dpkg-deb: error: paste subprocess was killed by signal (Broken pipe) - Ask Ubuntu](https://askubuntu.com/questions/1062171/dpkg-deb-error-paste-subprocess-was-killed-by-signal-broken-pipe)
+
+## 手順
+
+既存のneovimをアンインストールする。
+
+```bash
+$ sudo apt remove neovim
+```
+
+Neovim Githubリポジトリの最新の安定版ビルドから .debパッケージをダウンロードする。
+
+```bash
+curl -L -O "https://github.com/neovim/neovim/releases/download/stable/nvim-linux64.deb"
+```
+
+ダウンロードしたパッケージをインストールする。
+
+```bash
+sudo apt install ./nvim-linux64.deb
+```
+
+ここで「dpkg-deb」のエラー（Broken pipe）が発生した場合、以下の方法で再度パッケージをインストールする。
+
+```bash
+sudo dpkg -i --force-overwrite ./nvim-linux64.deb
+sudo apt -f install
+```
+
+以上

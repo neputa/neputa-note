@@ -1,0 +1,104 @@
+---
+title: 'Unit Testが実行できなくなった原因と対処【xUnit】'
+description: xUnitを使っている。Visual Studio 2019で突然UnitTestが実行できない状況に。原因と対処を備忘録としてノートする。
+pubDate: '2021-01-20 11:42:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/640913018085986405-xunit.webp'
+category:
+  - DEV
+tags: ['VisualStudio', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+xUnitを使っている。
+
+Visual Studio 2019で突然UnitTestが実行できない状況に。
+
+原因と対処を備忘録としてノートする。
+
+## 環境
+
+### OS
+
+- Windows 10 Pro (20H2)
+
+### IDEとFramework
+
+- Visual Studio 2019 (16.8.4)
+- .NET Core 3.1
+
+### UnitTestライブラリ
+
+- xunit v2.4.1
+- xunit.runner.visualstudio v2.4.3
+- Microsoft.NET.Test.Sdk v16.8.3
+
+## 事象
+
+Visual Studio上でUnit Testを実行するものの、テストがRunしない。
+
+ステータスバー以下メッセージが表示される。
+
+> 「予期しないエラーが検出されました。詳細については、テスト出力ペインをご確認ください。」
+
+![errorメッセージ](@/images/blog/640913018085986405-error_statusbar.webp)
+
+出力 → 出力元（S）: → テストを開くと下記のログが出力されていた。
+
+```log
+ログのレベルは、情報 (既定) に設定されています。 System.IO.FileLoadException:
+ファイルまたはアセンブリ 'Microsoft.VisualStudio.LiveShare, Version=1.16.0.0, Culture=neutral,
+  PublicKeyToken=b03f5f7f11d50a3a'、またはその依存関係の 1
+  つが読み込めませんでした。見つかったアセンブリのマニフェスト定義はアセンブリ参照に一致しません。
+  (HRESULT からの例外:0x80131040) ファイル名 'Microsoft.VisualStudio.LiveShare, Version=1.16.0.0,
+  Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' です。'Microsoft.VisualStudio.LiveShare,
+  Version=1.16.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' ---&gt;
+System.IO.FileLoadException: ファイルまたはアセンブリ 'Microsoft.VisualStudio.LiveShare,
+  Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'、またはその依存関係の 1
+  つが読み込めませんでした。見つかったアセンブリのマニフェスト定義はアセンブリ参照に一致しません。
+  (HRESULT からの例外:0x80131040) ファイル名 'Microsoft.VisualStudio.LiveShare, Version=1.1.0.0,
+  Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' です。'Microsoft.VisualStudio.LiveShare,
+  Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
+```
+
+## 原因
+
+上記ログにあるとおり、「Microsoft.VisualStudio.LiveShareのマニフェスト定義が参照に一致しない」とのこと。
+
+LiveShareは普段使用していないが、拡張機能 → 拡張機能の管理 → インストール済みで確認してみる。
+
+![拡張機能画面](@/images/blog/640913018085986405-LiveShare.webp)
+
+自動的に更新するにチェックを入れており、拡張機能のMarketplaceを見てみると、Last updatedは2021/1/14 7:45:21となっている。
+
+[Live Share - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=MS-vsliveshare.vsls-vs)
+
+この更新がうまくいかなかったと思われる。
+
+普段使わない拡張ではあるが、再インストールを試みる。
+
+## 対処
+
+とりあえず、Live ShareをUninstallしてみる。
+
+ツール → ツールと機能を取得からVisual Studio Installerを起動する。
+
+個別のコンポーネントタブを見るとLive Shareがあるのでチェックを外し、「変更」ボタンをクリック。
+
+![LiveShare uninstall](@/images/blog/640913018085986405-LiveShare_Off.webp)
+
+もう一度同じ画面から今度はチェックを入れて「変更」ボタンで再インストールが完了する。
+
+![LiveShare install](@/images/blog/640913018085986405-LiveShare_On.webp)
+
+そうするとテストは実行できるようになった。
+
+![test successfully](@/images/blog/640913018085986405-output.webp)
+
+とりあえず解決。
+
+<div class='not-prose'>
+  <div data-vc_mylinkbox_id='887423761'></div>
+</div>

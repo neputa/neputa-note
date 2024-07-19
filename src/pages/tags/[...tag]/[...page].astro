@@ -1,0 +1,40 @@
+---
+import BaseLayout from '@/layouts/BaseLayout'
+import ListPosts from '@/components/widgets/ListPosts'
+import TitlePage from '@/components/widgets/TitlePage'
+import { getTags, getPostByTag, getPosts } from '@/utils'
+import { siteConfig } from '@/data/site.config'
+import Pagination from '@/components/widgets/Pagination'
+import GoogleAdsense from '@/components/widgets/GoogleAdsense'
+
+export async function getStaticPaths({ paginate }: any) {
+  const tags = await getTags()
+  const allPosts = await getPosts()
+
+  return tags.flatMap((tag: string) => {
+    const filteredPosts = allPosts.filter((post) =>
+      post.data.tags.some((t) => t.toLowerCase() === tag.toLowerCase())
+    )
+
+    return paginate(filteredPosts, {
+      params: {
+        tag: tag
+      },
+      pageSize: siteConfig.paginationSize
+    })
+  })
+}
+
+const params = Astro.params
+const { page } = Astro.props
+
+const tag = params.tag
+const posts = page.data
+---
+
+<BaseLayout title={tag}>
+  <TitlePage title={`#${tag}`} />
+  <ListPosts posts={posts} />
+  <Pagination page={page} />
+  <GoogleAdsense />
+</BaseLayout>

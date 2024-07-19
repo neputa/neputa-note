@@ -1,0 +1,103 @@
+---
+title: 'Neovimのバージョン上げたらクリップボードのテキストが文字化けする'
+description: '本記事の概要 *Neovimのバージョンを0.7.2から0.8.3にバージョンをあげたところ、コピーした日本語テキストが文字化けする事象が発生した。*原因と対処を備忘録として残す。'
+pubDate: '2023-03-19 12:01:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/win-neovim-logo.webp'
+category:
+- DEV
+tags: ['Neovim', 'Apps']
+draft: false
+keywords: []
+type: blog
+---
+
+## 本記事の目的
+
+- Neovimのバージョンを0.7.2から0.8.3にバージョンをあげたところ、コピーした日本語テキストが文字化けする事象が発生した。
+- 原因と対処を備忘録として残す。
+
+## 環境
+
+### OS
+
+- Windows11 Pro 22H2
+
+### 仮想環境
+
+- WSL2 ＆ Ubuntu22.04LTS
+
+### アプリケーション
+
+- VSCode 1.76.2
+
+### VSCode拡張機能
+
+- VSCode Neovim 0.0.97（拡張機能）
+- Visual Studio Code WSL 0.76.1
+
+### その他
+
+- Neovim 0.8.3（Ubuntuにインストールしてある）
+
+## 事象
+
+- WSL-Ubuntuより起動したVSCodeで日本語を入力しコピーまたはヤンクしたテキストが文字化けする。
+- VSCode上で入力したテキストをWindows上で直接起動したブラウザ等にペーストする作業で発覚。
+- エディタ上でヤンク＆ペーストを行った場合も同様に文字化けする。
+- 前後の環境変化として思い当たるのはNeovimのバージョンをあげたこと（0.7.2→0.8.3）。
+
+## 原因
+
+- VSCodeのエディタは、拡張機能によりWSL-UbuntuにインストールしたNeovimの仕様が反映されている。
+- NeovimのレジスタとWindowsのクリップボードを連携するためinit.vimに設定を書いている。
+- この設定を削除しエディタ上でヤンク＆ペーストすると文字化けしない。
+- よって、レジスタからクリップボードにデータが入るところで文字化けが発生していると結論した。
+
+## 対処
+
+レジスタとクリップボード連携のスクリプトを以下のとおり修正した
+
+### 修正前
+
+```vim init.vim
+if system('uname -a | grep microsoft') != ''
+  augroup myYank
+    autocmd!
+    autocmd TextYankPost * :call system('clip.exe', @")
+  augroup END
+endif"
+```
+
+### 修正後
+
+```vim init.vim
+let g:clipboard = {
+  \   'name': 'myClipboard',
+  \   'copy': {
+  \      '+': 'win32yank.exe -i',
+  \      '*': 'win32yank.exe -i',
+  \    },
+  \   'paste': {
+  \      '+': 'win32yank.exe -o',
+  \      '*': 'win32yank.exe -o',
+  \   },
+  \   'cache_enabled': 1,
+  \ }
+```
+
+もしNeovimオンリーでインストールしている場合は手動でwin32yank.exeをインストールする必要がある。
+
+詳しくは以下記事を参照。
+
+[FAQ · neovim/neovim Wiki · GitHub](https://github.com/neovim/neovim/wiki/FAQ#how-to-use-the-windows-clipboard-from-wsl)
+
+## まとめ
+
+Neovim0.8のリリースノートをざっと眺めてみたが、わたしでは原因特定に至らなかった。 公式では今回の修正した設定をアナウンスしているので結果的に良しとしたい。
+
+## 参考サイト
+
+- [FAQ · neovim/neovim Wiki · GitHub](https://github.com/neovim/neovim/wiki/FAQ#how-to-use-the-windows-clipboard-from-wsl)
+- [WSL vim/neovimとwin32yankの設定 - Qiita](https://qiita.com/tMinamiii/items/0c6589806090c7fc3f8a)
+- [WSL2のneovimとwindows10でクリップボードを連携させる - LOGICKY BLOG](https://blog.logicky.com/2021/01/11/203719)

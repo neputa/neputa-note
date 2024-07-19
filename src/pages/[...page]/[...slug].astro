@@ -1,0 +1,104 @@
+---
+import { type CollectionEntry } from 'astro:content'
+import BlogPost from '@/layouts/BlogPost'
+import CodeBlock from '@/components/mdx/CodeBlock'
+import Table from '@/components/mdx/Table'
+import ListRelatedPosts from '@/components/widgets/ListRelatedPosts'
+import Share from '@/components/ui/Share'
+import TableOfContentsDetails from '@/components/widgets/TableOfContentsDetails'
+import { getPosts } from '@/utils'
+import SButton from '@/components/mdx/SButton'
+import Disqus from '@/components/widgets/Disqus'
+import { disqusConfig } from '@/data/disqus.config'
+import BlogImage from '@/components/mdx/BlogImage'
+import Tag from '@/components/ui/Tag'
+import GoogleAdsense from '@/components/widgets/GoogleAdsense'
+import ToTopIcon from '@/components/icons/ToTopIcon'
+
+const posts = await getPosts()
+export async function getStaticPaths() {
+  const posts = await getPosts()
+
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: post
+  }))
+}
+
+type Props = CollectionEntry<'blog'>
+
+const post = Astro.props
+const { slug } = post
+const tags = post.data.tags
+const MAX_POSTS = 6
+const { Content, headings, remarkPluginFrontmatter } = await post.render()
+const disqusEnabled = disqusConfig.enabled
+---
+
+<BlogPost
+  id={post.id}
+  data={post.data}
+  headings={headings}
+  readTime={remarkPluginFrontmatter.minutesRead}
+>
+  <div class='mt-8 grid w-full grid-cols-1 gap-10 md:grid-cols-[20%_auto] md:gap-4 lg:gap-6'>
+    <!-- aside  -->
+    <aside class='flex-col gap-8 md:flex'>
+      <div
+        class='sticky top-2 w-full self-start overflow-auto pr-2 transition-all duration-200 md:block md:max-h-screen'
+      >
+        <Share title={post.data.title} />
+        {headings && headings.length > 0 && <TableOfContentsDetails {headings} />}
+        <button
+          id='toTop-button-md'
+          class='mb-12 mt-4 hidden w-full place-items-center gap-1 no-underline md:flex'
+        >
+          <ToTopIcon />
+          <p class='m-0 p-0'>トップへ戻る</p>
+        </button>
+      </div>
+    </aside>
+
+    <!-- post -->
+    <article class='w-full max-w-full'>
+      <div class='prose prose-quoteless mb-12 min-w-full dark:prose-invert md:prose-lg xl:prose-xl'>
+        <Content components={{ 'code-block': CodeBlock, SButton, img: BlogImage, table: Table }} />
+      </div>
+
+      <div class='my-8'>
+        <Share title={post.data.title} heading='' />
+      </div>
+
+      <div class='mb-16 flex flex-wrap gap-2 gap-y-4 md:gap-5'>
+        {tags.map((tag: string) => <Tag tag={tag} />)}
+      </div>
+
+      <!-- related posts -->
+      <footer>
+        <h2 class='mb-6 border-t border-t-gray-300 pt-6 text-lg font-bold dark:text-white'>
+          閲覧した記事からのおすすめ
+        </h2>
+        <ListRelatedPosts slug={slug} tags={tags} maxPosts={MAX_POSTS} />
+        <GoogleAdsense />
+      </footer>
+    </article>
+  </div>
+
+  {disqusEnabled && <Disqus />}
+</BlogPost>
+
+<script>
+  const toTopScroll = () => {
+    const toTopBtn = document.getElementById('toTop-button-md') as HTMLButtonElement
+
+    toTopBtn &&
+      toTopBtn.addEventListener('click', function () {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        })
+      })
+  }
+  toTopScroll()
+  document.addEventListener('astro:after-swap', toTopScroll)
+</script>

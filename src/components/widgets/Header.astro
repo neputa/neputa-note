@@ -1,0 +1,141 @@
+---
+import HeaderLink from '@/components/ui/HeaderLink'
+import ThreadsIcon from '@/components/icons/ThreadsIcon'
+import GithubIcon from '@/components/icons/GithubIcon'
+import MenuIcon from '../icons/MenuIcon.astro'
+import Search from '@/components/widgets/Search'
+import TagIcon from '../icons/TagIcon.astro'
+import ToggleTheme from '../ToggleTheme.astro'
+import MastodonIcon from '../icons/MastodonIcon.astro'
+import BookmeterIcon from '../icons/BookmeterIcon.astro'
+import UserIcon from '../icons/UserIcon.astro'
+import ArchiveIcon from '../icons/ArchiveIcon.astro'
+import { Breadcrumbs } from 'astro-breadcrumbs'
+import 'astro-breadcrumbs/breadcrumbs.css'
+
+// ADD YOUR SOCIAL NETWORKS HERE
+const SOCIALNETWORKS = [
+  {
+    name: 'Mastodon',
+    url: 'https://fedibird.com/web/accounts/110804358773982782/about',
+    icon: MastodonIcon
+  },
+  {
+    name: 'Threads',
+    url: 'https://www.threads.net/@h_neputa',
+    icon: ThreadsIcon
+  },
+  {
+    name: 'BookMeter',
+    url: 'https://bookmeter.com/users/537950',
+    icon: BookmeterIcon
+  }
+]
+---
+
+<header class='relative h-12 items-center font-semibold'>
+  <div class='flex'>
+    <a class='mr-auto text-lg' href='/'>neputa note</a>
+
+    <div
+      id='astro-header-drawer'
+      class='absolute -right-5 top-12 z-50 h-fit w-[260px] translate-x-96 rounded-l-lg bg-white pb-4 pl-4 pt-6 shadow transition-transform duration-300 ease-in dark:bg-[#2a273b] md:static md:h-auto md:w-fit md:translate-x-0 md:rounded-none md:border-none md:bg-transparent md:p-0 md:shadow-none dark:md:bg-transparent'
+    >
+      <nav
+        class='flex h-full flex-col justify-between gap-12 text-left md:w-full md:flex-row md:gap-5'
+      >
+        <div
+          class='flex flex-col gap-4 border-black pr-4 dark:border-white md:flex-row md:border-r-2'
+        >
+          <HeaderLink href='/' linkType='tag' class='flex items-center gap-1 text-2xl md:text-base'>
+            <TagIcon /> Tags
+          </HeaderLink>
+          <HeaderLink
+            href='archive'
+            linkType='page'
+            class='flex items-center gap-1 text-2xl md:text-base'
+          >
+            <ArchiveIcon /> Archive
+          </HeaderLink>
+          <HeaderLink
+            href='about-me'
+            linkType='page'
+            class='flex items-center gap-1 text-2xl md:text-base'
+          >
+            <UserIcon /> About
+          </HeaderLink>
+        </div>
+
+        <div
+          class='flex items-center justify-center gap-3 border-black last:pr-4 dark:border-white md:justify-end md:border-r-2 md:p-0'
+        >
+          {
+            SOCIALNETWORKS.map((network) => (
+              <HeaderLink class='' href={network.url} target='_blank' aria-label={network.name}>
+                <span>{<network.icon />} </span>
+              </HeaderLink>
+            ))
+          }
+        </div>
+      </nav>
+    </div>
+
+    <div class='flex items-center gap-3 md:pl-5' transition:persist='navbar'>
+      <div>
+        <Search />
+      </div>
+      <ToggleTheme />
+      <button id='astro-header-drawer-button' type='button' class='md:ml-6 md:hidden'>
+        <MenuIcon />
+        <span class='sr-only'>Show Menu</span>
+      </button>
+    </div>
+  </div>
+  <div class='not-prose mt-4'>
+    <Breadcrumbs linkTextFormat='lower' ariaLabel='Breadcrumbs' truncated='true'>
+      <svg
+        slot='index'
+        aria-label='Home Page'
+        xmlns='http://www.w3.org/2000/svg'
+        width='24'
+        height='24'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+        ><path d='m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'> </path><polyline
+          points='9 22 9 12 15 12 15 22'></polyline>
+      </svg>
+      <svg
+        slot='separator'
+        xmlns='http://www.w3.org/2000/svg'
+        width='24'
+        height='24'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+        ><polyline points='9 18 15 12 9 6'></polyline>
+      </svg>
+    </Breadcrumbs>
+  </div>
+</header>
+<script>
+  document.addEventListener('click', (event) => {
+    const menu = document.getElementById('astro-header-drawer')
+    const menuButton = document.getElementById('astro-header-drawer-button')
+    const isClickInside =
+      menu?.contains(event.target as HTMLDivElement) ||
+      menuButton?.contains(event.target as HTMLButtonElement)
+
+    if (isClickInside) {
+      menu?.classList.toggle('translate-x-96')
+    } else {
+      menu?.classList.add('translate-x-96')
+    }
+  })
+</script>

@@ -1,0 +1,28 @@
+---
+import Alert from '@/components/mdx/Alert'
+
+interface type {
+  src: string
+  caption: string
+}
+const { src, caption = null } = Astro.props
+---
+
+<figure class='w-fit'>
+  <video class='w-full' controls>
+    <source src={src} type='video/mp4' />
+    <Alert
+      type='danger'
+      content='お使いのブラウザはビデオタグをサポートしていません。                          '
+    />
+  </video>
+  {
+    /* eslint-disable */
+    caption && (
+      <figcaption
+        class='text-sm mt-4 md:mt-2 dark:text-gray-300 text-center text-gray-700'
+        set:html={caption}
+      />
+    )
+  }
+</figure>

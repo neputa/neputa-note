@@ -1,0 +1,47 @@
+---
+import { siteConfig } from '@/data/site.config'
+import XIcon from '../icons/XIcon.astro'
+import LineIcon from '../icons/LineIcon.astro'
+import HatenaIcon from '../icons/HatenaIcon.astro'
+import LinkedinIcon from '../icons/linkedinIcon.astro'
+const message = siteConfig.shareMessage
+
+const URL = Astro.url.href
+const blogTitle = siteConfig.title
+const { title, heading = 'Share' } = Astro.props
+const shareText = title + ' - ' + blogTitle
+---
+
+<div class='flex flex-col gap-2'>
+  <span class='mb-1 hidden text-2xl font-bold md:block'>{heading}</span>
+  <ul class='flex w-full flex-wrap gap-3 text-black dark:text-white'>
+    <li>
+      <a
+        href={`https://x.com/intent/tweet?text=${shareText + ' ' + URL}`}
+        aria-label='Share on x'
+        target='_blank'><XIcon /></a
+      >
+    </li>
+    <li>
+      <a
+        href={`http://b.hatena.ne.jp/add?mode=confirm&url=${URL}&title=${shareText}`}
+        aria-label='Share on Hatena'
+        target='_blank'><HatenaIcon /></a
+      >
+    </li>
+    <li>
+      <a href={`https://line.me/R/msg/text/?${URL}`} aria-label='Share on LINE' target='_blank'>
+        <LineIcon /></a
+      >
+    </li>
+    <li>
+      <a
+        href={`https://www.linkedin.com/shareArticle?mini=true&url=${URL}`}
+        aria-label='Share on LinkedIn'
+        target='_blank'
+      >
+        <LinkedinIcon /></a
+      >
+    </li>
+  </ul>
+</div>

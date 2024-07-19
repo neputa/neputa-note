@@ -1,0 +1,136 @@
+---
+title: Astroのブログ記事にYouTubeをlazy loadingで埋め込む
+description: Astroで構築したBlogの記事にYouTube動画を埋め込む。パフォーマンスの影響を避けるため、astro-embedというパッケージを使用し、動画をlazy loadingする。
+pubDate: 2024-07-19T04:45:00.000Z
+modDate: 2024-07-19T04:45:00.000Z
+heroImage: ../../../../assets/images/blog/astro.webp
+category:
+  - DEV
+tags:
+  - Astro
+  - dev
+draft: false
+keywords:
+  - astro
+  - youtube
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事概要
+
+- 先日のBloggerからAstroへ移行した記事の別途詳細
+
+**※参考 - Blog移行記事**
+
+<BlogCard
+  title='BlogをBloggerからAstroへ移行した'
+  description='10年以上の期間お世話になったGoogle Bloggerに別れを告げ、この度AstroでBlogサイトを構築し移行した。Astroは静的サイトを手軽に開発できる軽量フレームワーク。無料のテンプレートをベースにカスタマイズを行った。それなりの作業ボリュームとなったので、詳細は別記事に分け、今回は移行作業全体をまとめる。'
+  url='https://www.neputa-note.net/2024/07/migrated-blogger-to-astro/'
+  domain='www.neputa-note.net'
+/>
+
+### 目的
+
+- Blog記事にYouTubeやXのポストを埋め込む
+- astro-embedというパッケージを使用し、遅延読み込みする
+  - [astro-embed](https://github.com/delucis/astro-embed)
+  - [ドキュメント](https://astro-embed.netlify.app/getting-started/)
+- 記事をMDXで記述することを前提（markdownは非対象）
+
+## 用語説明
+
+### Astro とは？
+
+> Astroは、ブログやマーケティング、eコマースなど、コンテンツ駆動のウェブサイトを作成するためのウェブフレームワークです。Astroは、新しいフロントエンドアーキテクチャを開拓し、他のフレームワークと比較してJavaScriptのオーバーヘッドと複雑さを低減することで知られています。高速でSEOに優れたウェブサイトが必要なら、Astroが最適です。 <cite>-- [Astro公式Docs](https://docs.astro.build/ja/concepts/why-astro/) より引用をDeepLで翻訳</cite>
+
+- 参考記事
+  - [Webフレームワーク「Astro」とは？開発初心者からベテランまで注目する理由](https://codezine.jp/article/detail/17883)
+
+## 作業環境
+
+- OS - Ubuntu-22.04LTS on WSL2
+- Node.js - v20.14.0
+- pnpm - v9.4.0
+- Astro - v4.11.3
+
+## 作業詳細
+
+### パッケージのインストール
+
+- プロジェクトにastro-embedをインストール
+
+```bash install
+$ pnpm add -D astro-embed
+```
+
+### 使用方法
+
+- mdxファイルにastro-embedをimport
+- Xの場合はURL、YouTubeの場合はURLまたは動画IDを使用してタグを設置
+
+```mdx astro-embed-test.mdx
+---
+title: 'astro-embedを試す'
+description: 'TwitterとYoutubeの埋め込みを表示してみる'
+pubDate: 'Jul 20 2024'
+heroImage: '/blog-placeholder-3.jpg'
+---
+
+import { Tweet, YouTube } from 'astro-embed'
+
+- embed Tweet
+
+<Tweet id='https://x.com/makuta_kobo/status/1797178590846693623' />
+
+- embed YouTube
+
+<YouTube id='-Sq_qwpl8Dw' />
+```
+
+- こんな感じで表示される
+
+![astro-embedによるYoutubeとTweet表示](@/images/blog/astro-embed.webp '表示結果')
+
+- ポストのCSSは以下サイトにあるものを使用した
+  - [Custom CSS | Docs | Twitter Developer Platform](https://developer.x.com/en/docs/twitter-for-websites/embedded-tweets/guides/css-for-embedded-tweets)
+
+```css embed-tweet
+blockquote.twitter-tweet {
+  display: inline-block;
+  font-family: 'Helvetica Neue', Roboto, 'Segoe UI', Calibri, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 16px;
+  border-color: #eee #ddd #bbb;
+  border-radius: 5px;
+  border-style: solid;
+  border-width: 1px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  margin: 10px 5px;
+  padding: 0 16px 16px 16px;
+  max-width: 468px;
+}
+
+blockquote.twitter-tweet p {
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 20px;
+}
+
+blockquote.twitter-tweet a {
+  color: inherit;
+  font-weight: normal;
+  text-decoration: none;
+  outline: 0 none;
+}
+
+blockquote.twitter-tweet a:hover,
+blockquote.twitter-tweet a:focus {
+  text-decoration: underline;
+}
+```
+
+以上

@@ -1,0 +1,435 @@
+---
+title: 06．はじめてスマホアプリを作ってみた（公開フェーズ）
+description: 本記事概要 --スマホアプリ開発未経験者が個人で開発からリリースするまでを記録した。それなりのボリュームが見込まれるため、全7回に区切って投稿してみたい。今回は第6回目。
+pubDate: '2021-03-05 11:30:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/mobileapps-development.webp'
+category:
+  - DEV
+tags: ['dev', 'dotnet', 'Xamarin Forms']
+draft: false
+keywords: []
+type: blog
+---
+
+import { Image } from 'astro:assets'
+import imgGooglePlay from '@/images/blog/google-play.webp'
+import Alert from '@/components/mdx/Alert'
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 記事の概要
+
+こちらの一覧の6つ目、「公開フェーズ（アプリを公開する）」の記事。
+
+1. [検討フェーズ（どんなアプリを作るか）](/2021/02/first-mobile-app-01/)
+1. [要件フェーズ（どんな要件のアプリにするか）](/2021/03/first-mobile-app-02/)
+1. [調査フェーズ（どんな技術を使うか）](/2021/03/first-mobile-app-03/)
+1. [設計フェーズ（どうやって作るか）](/2021/03/first-mobile-app-04/)
+1. [開発フェーズ（実際に作りはじめる）](/2021/03/first-mobile-app-05/)
+1. 公開フェーズ（アプリを公開する）【今回】
+1. [保守フェーズ（公開から現在まで）](/2021/03/first-mobile-app-07/)
+
+ダイジェストで読みたい方はこちらの記事を。
+
+<BlogCard
+  title='アラフォー初心者だけどスマホアプリを開発～リリースまでがんばってみた【Android・Xamarin.Forms】'
+  description='あらすじ この度、素人ながらスマホアプリ開発に挑戦してみた。今回の記事では概要と経緯について書き綴ってみたい。実際に行った作業の詳細は、全7回に分けた記事を別途作成'
+  url='https://www.neputa-note.net/2021/02/onethird-release/'
+  domain='www.neputa-note.net'
+/>
+
+インストールはこちらから。
+
+<Fragment>
+  <a
+    href='https://play.google.com/store/apps/details?id=com.neputafactory.onethird&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'
+    target='_blank'
+  >
+    <Image
+      src={imgGooglePlay}
+      alt={'Google Play で手に入れよう'}
+      width={200}
+      height={59}
+      format='webp'
+    />
+  </a>
+</Fragment>
+
+<Alert type='warning' content='Androidのみ iOS版は現在リリース未定' />
+
+## はじめてのスマホアプリ開発 公開フェーズ
+
+[前回](/2021/03/first-mobile-app-05/)は、実装作業の工程で行ったことについて書いた。
+
+今回はいよいよ作ったアプリをGoogle Playでリリースするまでに行ったことをまとめてみたい。
+
+以下はリリースで行った作業メニュー。
+
+- アップデートを見据えたリリース環境の設計
+- リリースに向けたアプリの準備
+- Google Playデベロッパー アカウントへの登録
+- Googl Play Store APIの準備
+- Google Play Consoleにアプリを登録
+- Visual Studio App Centerの準備
+
+ようやく開発を終え、一息付けたと思ったらリリース作業は思った以上に大変だった。
+
+この記事では、大まかにどのような作業が発生するかを記していきたい。
+
+### アップデートを見据えたリリース環境の設計
+
+単純に作成したアプリをGoogle Playに公開するだけであればローカルでビルド・アーカイブを行い、Google Playに手動でアップロードすればよい。
+
+しかし、リリース後にバグを発見したり、機能を追加するたび、公開のために慎重な作業を強いられるのは何かと面倒。
+
+ということで、リモートリポジトリから自動でビルド＆リリースができる環境を構築し、はじめてのリリースを目指すことにした。
+
+イメージとしてはこんな感じ。
+
+![a release diagram](@/images/blog/4844113936127893819-release-diagram.webp)
+
+では順を追って書いていく。
+
+### Google Play デベロッパーアカウントへの登録
+
+![an image of design](@/images/blog/4844113936127893819-googleplayconsole-logo.webp)
+
+AndroidアプリをGoogle Playで公開するには、「Google Playデベロッパーアカウント」に登録する必要がある。
+
+<BlogCard
+  title='Google Play Console の利用方法 - Play Console ヘルプ'
+  description=''
+  url='https://support.google.com/googleplay/android-developer/answer/6112435?hl=ja'
+  domain='support.google.com'
+/>
+
+登録は、上記リンクの「ステップ1」にある「デベロッパー アカウントに登録」のリンクから行うことができる。
+
+この作業自体は簡単。
+
+注意として、$25の登録料がかかること。
+
+これは一度だけ発生する初期費用のようなもの。
+
+ちなみにiPhoneアプリの場合は年間サブスクリプションで11,800円かかるらしい。
+
+<Alert type='warning' content='2021/3/5時点' />
+
+[Apple Developer Program](https://developer.apple.com/jp/programs/how-it-works/)
+
+### リリースに向けたアプリの準備
+
+![an image of design](@/images/blog/4844113936127893819-release.webp)
+
+Xamarin.Formsでの開発用には一応、このような公式ドキュメントがある。とりあえずひと通り試してみた。
+
+[リリースに向けてアプリケーションを準備する](https://docs.microsoft.com/ja-jp/xamarin/android/deploy-test/release-prep/?tabs=windows#Versioning)
+
+#### アプリケーション アイコンを指定する
+
+今回、「Prism」というMVVMでXamarin.Formsを実装するパッケージを使用したため、アイコンはデフォルトを置き換えるだけで済んだ。
+
+イチから作った場合やAndroid Studioで開発した場合には設定が必要かと思われる。
+
+#### アプリケーションのバージョン
+
+Android Manifestにバージョンを管理する項目がある。
+
+ここのバージョン番号は、Google Playのリリースノートに表示される。
+
+デフォルトでは「1.0」となっているが、とりあえず「1.0.0」と番号を区切ることにした。
+
+定義としては、大幅なリニューアルはメジャーバージョン番号、機能追加などマイナーアップデートは真ん中の番号、バグ修正などは一番右の番号をインクリメントすることとした。
+
+#### APK を圧縮する
+
+これは、非常にやっかい。
+
+Android Studioでネイティブ開発をした方は快適にリンカーや難読化を利用できるのだろうか？。
+
+わたしの環境は「Visual Studio Community 2019」。
+
+パッケージサイズを小さくできるならと何の準備もせずにリンカーを「SDKおよびユーザー アセンブリ」に設定すると、見事にリリースしたアプリは起動しなかった。
+
+このリンカーは、未使用と判断したコードを削除することで軽量化を行ってくれるツールのらしい。
+
+そのため削除対象から外す設定をしっかりしておかないと必要なコードまで削ってしまう。
+
+最初は「SDKアセンブリのみ」を選択しておくのがよいと思う。
+
+これでも、リンカーをオフにするよりパッケージサイズはかなり小さくなる。
+
+もうひとつ、Javaバイトコードレベルで最適化をしてくれる「ProGuard」の説明がある。
+
+ドキュメント通りに設定するとビルドが通らない。
+
+ProGuardは非推奨で「R8」を使えとなる。
+
+で、R8を選択してリリースビルドするとまたもやアプリは起動しない。
+
+これも、必要なライブラリや自分のコードを設定ファイルで「keep」しておく作業が必要で。
+
+とりあえずは未選択としておいた。
+
+<hr />
+<Alert type='info' content='追記：2021/03/13' />
+
+後日談として、APK圧縮にチャレンジし敗れ去る話をまとめている。
+
+<BlogCard
+  title='AndroidアプリのAPKサイズを圧縮しようと試みて敗れる話【Xamarin.Forms / Linker / R8 Shrinker】'
+  description='『Xamarin.Formsで開発したAndroidアプリのパッケージサイズを圧縮しようと「Linker」「d8/r8」コンパイラを駆使したが、敗北する』、です。現在リリースしているバージョン1.0.4の時点で、ダウンロードサイズは34MB、インストールしたアプリサイズは49.45MBと、アプリの内'
+  url='https://www.neputa-note.net/2021/03/xamarin-linker-r8/'
+  domain='www.neputa-note.net'
+/>
+
+<hr />
+
+#### アプリケーションを保護する
+
+仮にR8を使用したとしても、Xamarin.Formsの場合はコードの難読化はされない。
+
+必要があれば「Dotfuscator」なるものを使えとある。
+
+[Integrating Dotfuscator's Protection into Your Xamarin Apps in Visual Studio](https://www.preemptive.com/dotfuscator/ce/docs/help/getting_started_xamarin.html#pctoc-set-up-dotfuscator)
+
+こちらも試してみたが、ビルドが通るようにするまでにかなり苦労した。
+
+しかも、コードの難読化はなされず。
+
+Root Checkは入れておきたいと思っているため、いずれまた挑戦するとして今回は諦めることにした。
+
+AODコンパイルやLLVMコンパイラは、Visual Studioのエンタープライズエディションが必要なのでパス。
+
+#### パッケージング プロパティを設定する
+
+わたしのAndroid.csprojのリリース用PropertyGroupはこんな感じになった。
+
+```xml
+<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <DebugType>pdbonly</DebugType>
+  <Optimize>true</Optimize>
+  <OutputPath>bin\Release</OutputPath>
+  <DefineConstants>TRACE</DefineConstants>
+  <ErrorReport>prompt</ErrorReport>
+  <WarningLevel>4</WarningLevel>
+  <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
+  <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+  <AotAssemblies>false</AotAssemblies>
+  <EnableLLVM>false</EnableLLVM>
+  <BundleAssemblies>false</BundleAssemblies>
+  <AndroidDexTool>d8</AndroidDexTool>
+  <AndroidPackageFormat>aab</AndroidPackageFormat>
+  <MandroidI18n />
+  <AndroidSupportedAbis>armeabi-v7a;arm64-v8a</AndroidSupportedAbis>
+  <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+  <AndroidEnableSGenConcurrent>true</AndroidEnableSGenConcurrent>
+</PropertyGroup>
+```
+
+ターゲットアーキテクチャはインテル系。いまやモバイルではほぼないということで対象外とした。
+
+ABIごとにパッケージを分けるは、APKではなくバンドルを選択したので必要なし。
+
+Multi-Dexは64Kを超えるメソッド制限の対象となるコードがないのでチェックせず。
+
+App Bundleは、次期必須となることをGoogleがアナウンスしているためapkではなくバンドルを選択した。
+
+[Android App Bundle について](https://developer.android.com/guide/app-bundle/)
+
+### Googl Play Store API の準備
+
+とりあえず、Visual Studioで行う準備作業は完了。
+
+続いて、App CenterからGoogle Playに直接リリースする導線を貼る作業。
+
+詳しい手順はこちらのサイトを参考にした。
+
+<BlogCard
+  title='App Centerを通じてXamarin.Formsで作ったAndroidアプリをストアに公開する - shuhelohelo’s blog'
+  description='docs.microsoft.com Googleデベロッパー登録する 外部ツールからのAPIアクセスを許可する App CenterからGoogle Play Storeにアプリを公開するために,Googl Play StoreのAPIを外部ツールが利用できるようにする必要があります. まずはGoogle Play Consoleにログインします. 左側に設定という項目があるのでそれを選択します. 次にデベロッパーアカウント > APIアクセスを選択します. 新しいプロジェクトを作成ボタンを押します. 自分のGoogle Play ConsoleとリンクしたAPIプロジェクトが自動で作成され…'
+  url='https://shuhelohelo.hatenablog.com/entry/2020/07/10/122832'
+  domain='shuhelohelo.hatenablog.com'
+/>
+
+App CenterからGoogl Play StoreのAPIを通じてアプリをリリースするには「Google Cloud Platform」を使用する。
+
+そして上記ブログにある通り、初回のリリースはGoogle Play Consoleに直接アップロードしておく必要がある。
+
+Google Play Consoleでひととおりアプリの登録・公開が完了することで、App CenterからGoogle Play Consoleのアプリを検索し設定を行うことができるようになる。
+
+### Google Play Console にアプリを登録
+
+これがハイライトと言えるボリュームのある作業となった。
+
+色々と準備するものが出てくる。
+
+この作業も、先ほどと同じブログの別記事を参考にさせていただいた。
+
+<BlogCard
+  title='Google Play StoreにAndroidアプリを公開する メモ - shuhelohelo’s blog'
+  description='このへんはこちらの記事がとても参考になりました. kuneoresearch.com ｢Google PlayにAndroidアプリを公開｣を押します. ｢アプリの作成｣というダイアログが表示されるのでアプリ名などを入力していきます. アプリの説明などを入力します. アプリのスクリーンショットをアップロードする必要がありますが,画像のサイズやアスペクト比など条件があるのでちょっと手間です. 私はストア用のスクリーンショットをアップロード条件を満たすようにいい感じに調整してくれるサービスを使いました. apptoolkit.io 次にフィーチャーグラフィックという画像を作らなければならないが,こ…'
+  url='https://shuhelohelo.hatenablog.com/entry/2020/07/07/091719'
+  domain='shuhelohelo.hatenablog.com'
+/>
+
+意外と面倒だったのは、アプリのスクリーンショットや1024×500指定のフィーチャーグラフィックという宣材画像を用意すること。
+
+高度な画像レタッチアプリは持っていないため、すべてWindows純正アプリを駆使して用意した。
+
+また、埋めていかなければいけない項目は、Google Play Consoleのサイドメニューにわかりやすく表示される。がんばってオールグリーンを目指す。
+
+### Visual Studio App Center の準備
+
+App Centerはとても簡単に利用できるWebツールで。
+
+<BlogCard
+  title='Visual Studio App Centerの始め方'
+  description='Visual Studio App Centerの始め方 - Download as a PDF or view online for free'
+  url='https://www.slideshare.net/slideshow/visual-studio-app-center-98259127/98259127'
+  domain='www.slideshare.net'
+/>
+
+強いて言うなら、Environment variablesを使った部分がやや面倒だった。
+
+DBの接続キーなどシークレット情報をApp Centerのビルド時に差し込むよう設定した。
+
+これも別途記事を書こうと思うが、基本的にシークレット対象の情報は、デバッグはMobile.BuildToolsというNuGetパッケージを使用、リリースは上述したようにApp CenterのEnvironment Variablesを使った。
+
+<BlogCard
+  title='Getting Started - Mobile.BuildTools'
+  description=''
+  url='https://mobilebuildtools.com/'
+  domain='mobilebuildtools.com'
+/>
+
+Environment Variablesは、値を差し込むスクリプトを「appcenter-post-clone.sh」というファイル名でAndroidプロジェクトに用意しておく必要がある。
+
+```bash
+#!/usr/bin/env bash
+
+echo "Environment Variables data replace"
+
+##################################################
+# variables
+
+# (1) The target file
+DirName=$BUILD_REPOSITORY_LOCALPATH
+FilenameVariables="$DirName/OneThird.Core/Constants/Variables.cs"
+FilenameCosmosdb="$DirName/OneThird.Infrastructure/CosmosDb/CosmosDBConstants.cs"
+
+##################################################
+
+echo ""
+echo "######################################################################"
+echo " Variables.cs"
+echo "######################################################################"
+echo " Working directory:" $DirName
+echo "       Target file:" $FilenameVariables
+echo "######################################################################"
+
+# APP_ID_ANDROID
+echo ""
+echo "APP_ID_ANDROID - " $APP_ID_ANDROID
+sed -i -e "s/\[APP_ID_ANDROID\]/$APP_ID_ANDROID/" $FilenameVariables
+
+# TENANT_ID
+echo ""
+echo "TENANT_ID - " $TENANT_ID
+sed -i -e "s/\[TENANT_ID\]/$TENANT_ID/" $FilenameVariables
+
+# CLIENT_ID
+echo ""
+echo "CLIENT_ID - " $CLIENT_ID
+sed -i -e "s/\[CLIENT_ID\]/$CLIENT_ID/" $FilenameVariables
+
+# SIGN_IN_POLICY
+echo ""
+echo "SIGN_IN_POLICY - " $SIGN_IN_POLICY
+sed -i -e "s/\[SIGN_IN_POLICY\]/$SIGN_IN_POLICY/" $FilenameVariables
+
+# PASSWORD_RESET_POLICY
+echo ""
+echo "PASSWORD_RESET_POLICY - " $PASSWORD_RESET_POLICY
+sed -i -e "s/\[PASSWORD_RESET_POLICY\]/$PASSWORD_RESET_POLICY/" $FilenameVariables
+
+# AD_UNIT_ID_BANNER
+echo ""
+echo "AD_UNIT_ID_BANNER - " $AD_UNIT_ID_BANNER
+sed -i -e "s|\[AD_UNIT_ID_BANNER\]|$AD_UNIT_ID_BANNER|" $FilenameVariables
+
+# AD_UNIT_ID_INTERSTITIAL
+echo ""
+echo "AD_UNIT_ID_INTERSTITIAL - " $AD_UNIT_ID_INTERSTITIAL
+sed -i -e "s|\[AD_UNIT_ID_INTERSTITIAL\]|$AD_UNIT_ID_INTERSTITIAL|" $FilenameVariables
+
+# print out for reference
+echo ""
+echo "######################################################################"
+echo "show result"
+cat $FilenameVariables
+
+echo ""
+echo "######################################################################"
+echo " CosmosDBConstants.cs"
+echo "######################################################################"
+echo " Working directory:" $DirName
+echo "       Target file:" $FilenameCosmosdb
+echo "######################################################################"
+
+# COSMOSDB_ACCOUNT_URL
+echo ""
+echo "COSMOSDB_ACCOUNT_URL - " $COSMOSDB_ACCOUNT_URL
+sed -i -e "s|\[COSMOSDB_ACCOUNT_URL\]|$COSMOSDB_ACCOUNT_URL|" $FilenameCosmosdb
+
+# COSMOSDB_ACCOUNT_KEY
+echo ""
+echo "COSMOSDB_ACCOUNT_KEY - " $COSMOSDB_ACCOUNT_KEY
+sed -i -e "s|\[COSMOSDB_ACCOUNT_KEY\]|$COSMOSDB_ACCOUNT_KEY|" $FilenameCosmosdb
+
+# print out for reference
+echo ""
+echo "######################################################################"
+echo "show result"
+cat $FilenameCosmosdb
+```
+
+あとは、mainブランチを自動でビルド、リリースするように設定しておく。
+
+こうすると、Visual Studioで作業ブランチをmainブランチにマージし、リモートpushすると、自動でAzure DevOpsのリポジトリを経由してリリースまで行ってくれる。
+
+## まとめ
+
+![an image of a conclusion](@/images/blog/4844113936127893819-pexels-ann-h-1888005.webp "Photo by：<a href='https://www.pexels.com/ja-jp/@ann-h-45017?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Ann H</a> in <a href='https://www.pexels.com/ja-jp/photo/1888005/?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Pexels</a>")
+
+駆け足ではあるが、リリースにおいて行った作業全体を書き出してみ。
+
+1日当たりの作業時間が少ないのもあるが、なんだかんだ着手してからリリースまで半年以上の時間を要してしまった。
+
+かかった時間を将来にわたって回収できるよう準備をそれなりにできた気はしている。
+
+それは、ドメイン駆動設計、テスト駆動開発、Azure DevOps、App Centerといった素晴らしい手法やツールのおかげでもある。
+
+バージョン1.0.0で2月13日にリリースをし、これを書いている3月4日現在では1.0.4。都合、4回バグ修正や細かい追加などでアップデートを配布した。
+
+まだまだ改善の余地はあると思うが、それなりの準備のおかげで修正や機能追加もコーディングに集中できるような環境となっている。
+
+それにしてもリリースできたときは本当にうれしかった。
+
+またGoogle Play Consoleから「公開されました」の通知が来たとき、一人飛び上がって喜んでしまった。
+
+これからアプリ開発を行う方にとって、少しでも役立つ情報があればうれしい。
+
+次回は最終回、これまで構築した環境を利用して運用保守をどんな感じで行っているかをまとめてみたい。
+
+長文お付き合いいただき感謝。
+
+### はじめてスマホアプリを作ってみた 記事一覧
+
+1. [検討フェーズ（どんなアプリを作るか）](/2021/02/first-mobile-app-01/)
+1. [要件フェーズ（どんな要件のアプリにするか）](/2021/03/first-mobile-app-02/)
+1. [調査フェーズ（どんな技術を使うか）](/2021/03/first-mobile-app-03/)
+1. [設計フェーズ（どうやって作るか）](/2021/03/first-mobile-app-04/)
+1. [開発フェーズ（実際に作りはじめる）](/2021/03/first-mobile-app-05/)
+1. 公開フェーズ（アプリを公開する）【今回】
+1. [保守フェーズ（公開から現在まで）](/2021/03/first-mobile-app-07/)

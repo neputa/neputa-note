@@ -1,0 +1,103 @@
+---
+title: 'Azure DevOpsアドオン 1-Click Child-Links'
+description: Azure DevOps Boardsにおいて、タスクを自動生成するアドオン「1-Click Child-Links」の機能と使い方を説明する。--詳細 Azure DevOps Boardsのタスクを毎回作るのがめんどい -- 個人開発ではあるがタスク管理に「Azure DevOps Boards」を使っている。
+pubDate: '2021-02-14 22:45:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/default.webp'
+category:
+  - DEV
+tags: ['Azure', 'dev', 'devops']
+draft: false
+keywords: []
+type: blog
+---
+
+## Azure DevOps Boardsのタスクを毎回作るのがめんどい
+
+個人開発だがタスク管理に「Azure DevOps Boards」を使っている。 Taskを毎回手動で作るのはめんどいため「1-Click Child-Links」というプラグインを使用している。
+
+![blog image](@/images/blog/8371934994501811265-one-click-child-links.webp)
+
+## 「1-Click Child-Links」のインストール
+
+- 以下のリンクからプラグインのページを開きます
+  [1-Click Child-Links - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=ruifig.vsts-work-item-one-click-child-links)
+
+-「Get it free」のボタンをクリック。
+![手順１](@/images/blog/8371934994501811265-azure-boards-01.webp)
+
+- Azure DeoOpsの組織を選択し、「Install」ボタンをクリック。※権限がない場合は、Administratorへ申請する画面が開くので許可を貰ってください。
+  ![手順２](@/images/blog/8371934994501811265-azure-boards-02.webp)
+
+- 「You are all set！」が表示されたらインストール完了です。
+  ![手順３](@/images/blog/8371934994501811265-azure-boards-03.webp)
+
+## 「1-Click Child-Links」の使い方
+
+### 作成例の前提条件
+
+※「Work item process」は「Scrum」を選択している。AgileやBasicを使っている場合は固有名詞を適宜読み替えを。
+
+作成例として「Bug」と「Product Backlog Item」に、それぞれ自動で追加するTaskのセットを設定する。
+
+#### Bug
+
+- 再現・原因調査
+- \*テスト作成
+- \*実装・修正
+- \*ローカルにコミット
+- \*リモートへプッシュ
+
+#### Product Backlog Item
+
+- 技術調査
+- 設計
+- \*テスト作成
+- \*実装・修正
+- \*ローカルにコミット
+- \*リモートへプッシュ
+
+「\*」は共通、それ以外はItem固有のTask。
+
+### 実際に作ってみる
+
+Azure DeoOpsのプロジェクトページ左下の「歯車」をクリック
+![手順４](@/images/blog/8371934994501811265-azure-boards-04.webp)
+
+画面右上の「左矢印」をクリック
+![手順５](@/images/blog/8371934994501811265-azure-boards-05.webp)
+
+Boardsのエリアにある「Team configuration」をクリック
+![手順６](@/images/blog/8371934994501811265-azure-boards-06.webp)
+
+画面上の「Templates」をクリック
+![手順７](@/images/blog/8371934994501811265-azure-boards-07.webp)
+
+「Task」の「New template」をクリック
+![手順８](@/images/blog/8371934994501811265-azure-boards-08.webp)
+
+各項目を埋め保存する
+
+- Name：これはテンプレート名、ご自由に。
+- Description：重要。どのWork Itemに対して生成するかを括弧\[\]内にカンマ区切りで記載する。画像の例は、「Product Backlog Item」と「Bug」に、このテンプレートを自動追加する設定。
+- Add new field：デフォルト値をここで定義する。
+- Add a comment：テンプレートのメモ。
+
+![手順9](@/images/blog/8371934994501811265-azure-boards-09.webp)
+
+「New template」または「Create copy」で必要分をどんどん追加する
+![手順10](@/images/blog/8371934994501811265-azure-boards-10.webp)
+
+こんな感じになる。画像の赤印は共通のTemplate、黄印はBug、青印はProduct Backlog Item固有の3種を登録した。
+![手順11](@/images/blog/8371934994501811265-azure-boards-11.webp)
+
+Bugに正しく「Bug固有」と「共通」のテンプレートが追加できるか試してみる。新規作成し保存する。
+![手順12](@/images/blog/8371934994501811265-azure-boards-12.webp)
+
+保存したら、画面右上の「…」から「1-Click Child-Links」をクリックする
+![手順13](@/images/blog/8371934994501811265-azure-boards-13.webp)
+
+できた。
+![手順14](@/images/blog/8371934994501811265-azure-boards-14.webp)
+
+以上。

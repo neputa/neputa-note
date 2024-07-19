@@ -1,0 +1,174 @@
+---
+title: BlogをBloggerからAstroへ移行した
+description: 10年以上の期間お世話になったGoogle Bloggerに別れを告げ、この度AstroでBlogサイトを構築し移行した。Astroは静的サイトを手軽に開発できる軽量フレームワーク。無料のテンプレートをベースにカスタマイズを行った。それなりの作業ボリュームとなったので、詳細は別記事に分け、今回は移行作業全体をまとめる。
+pubDate: 2024-07-01T03:51:30.385Z
+modDate: 2024-07-19T04:45:00.000Z
+heroImage: ../../../../assets/images/blog/astro.webp
+category:
+  - DEV
+tags:
+  - Astro
+  - Tailwind
+  - blog
+draft: false
+keywords:
+  - Astro
+  - Blogger
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## Blog移行の経緯
+
+Googleから見捨てられ、エディターやテンプレートは古いままのGoogle Bloggerを10年以上利用してきた。先日、Webフレームワーク「Astro」でサイトを開発し、手ごたえがあった。この個人Blogも移行しようと決断した。
+
+- Bloggerとの戦いの記録
+
+<BlogCard
+  title='PageSpeed Insightsの4項目でオール100を達成・実施事項まとめ【Blogger】'
+  description='本記事の概要 PageSpeed Insightsのスコアでオール100を達成した。対象はこのBlog。Googleの提供するBloggerを使用しているため、独自の仕様にずいぶん苦しめられた。行った施策全体を概観するのが主な内容で、部分的に詳細の手順を記載した。'
+  url='https://www.neputa-note.net/2024/04/blogger-pagespeedinsights/'
+  domain='www.neputa-note.net'
+/>
+
+- Astroサイト開発デビュー
+
+<BlogCard
+  title='AstroとTailwindで静的サイトを作ってみた 【Jamstack】'
+  description='先日このBlogのアプリ開発情報をAstroとTailwindによる静的サイトへ移動した。（正しくはAstro & Tailwindで作成されたテンプレートを使用） これまでBlogのカスタマイズ目的でHTML/CSS/JavaScriptの使用機会はあったがフレームワークは今回が初。色々と気づきがあったので備忘録を残す。'
+  url='https://www.neputa-note.net/2024/05/astro-tailwind/'
+  domain='www.neputa-note.net'
+/>
+
+## 開発環境・フレームワーク
+
+### 開発環境
+
+- OS - Ubuntu22.04LTS on WSL2（Windows11）
+- Node.js - v20.14.0
+- pnpm - v9.4.0
+- VSCode - v1.90.2
+
+### フレームワーク
+
+- Astro - v4.11.0
+- tailwindcss - v3.3.5
+
+### Astroテンプレート
+
+- [blog-template](https://github.com/danielcgilibert/blog-template) - v1.1.0
+  - Demoサイト - [Home • Astro Theme OpenBlog](https://blog-template-gray.vercel.app/)
+
+#### テンプレート選びについて
+
+- 下記リンクに様々なテンプレートがあり、用途や使いたい技術で絞り込むことができる。
+
+<BlogCard
+  title='Themes | Astro'
+  description='Astro builds fast content sites, powerful web applications, dynamic server APIs, and everything in-between.'
+  url='https://astro.build/themes/'
+  domain='astro.build'
+/>
+
+- 今回は以下で条件の中から選択した。
+  - Categories - Blog
+  - Technology - MDX / Tailwind / TypeScript
+  - Pricing - Free
+
+## 移行作業―概要
+
+行った作業を大きく分けると以下の3つ。
+
+- Astro Blogサイト開発
+- BloggerのコンテンツをAstroへ移行
+- DNS等ネットワーク周りの移行
+
+次に各作業の実施事項を記す。粒度は「実施したこと」に留め、作業手順はそれぞれ別途記事を書く。予定。
+
+## 移行作業―詳細
+
+### Astro Blogサイト開発
+
+ここが最も作業ボリュームが大きい。Bloggerにあった機能を可能な範囲で盛り込んだ。
+
+先述した[テンプレート](https://github.com/danielcgilibert/blog-template)をベースに行ったカスタマイズを列挙する。
+
+<Alert type='info' content='作業手順をまとめた記事を作成次第、各項目にリンクを追記する' />
+
+- 開発・運用環境
+  - [CMSの入れ替え（Tina → Front Matter CMS）](/2024/07/headless-cms-frontmatter-vscode/)
+  - [Testフレームワーク「Jest」追加](/2024/07/jest-astro/)
+  - [textlint（JTF日本語標準スタイル）追加](/2024/07/vscode-textlint/)
+- サイト用コンポーネント
+  - [RSSに記事本文を追加](/2024/07/astro-rss/)
+- MDX用コンポーネント
+  - [コードブロックにファイル名とdiffを表示](/2024/07/astro-shiki-filename-diff/)
+  - [一致するタグ数で関連記事を表示](/2024/07/astro-related-posts/)
+  - [mobile表示用TabBar追加](/2024/07/astro-mobile-tabbar/)
+  - [BlogCardコンポーネント追加](/2024/07/astro-blogcard/)
+  - [画像にアンカーリンクに対応したキャプションを付ける](/2024/07/astro-image-caption/)
+  - [記事にYoutube、Xのポストを遅延読み込みで埋め込む](/2024/07/astro-embed-youtube/)
+  - google analyticsタグ遅延読み込み追加（[Partytown](https://partytown.builder.io/)）
+  - Adsense遅延読み込み追加
+  - パンくずリスト追加（[Astro Breadcrumbs](https://docs.astro-breadcrumbs.kasimir.dev/configuration/properties/)）
+  - 問い合わせフォーム（[Newt Form App](https://www.newt.so/form-app)/[React Hook Form](https://react-hook-form.com/)/[reCAPTCHA v3](https://developers.google.com/recaptcha/docs/v3?hl=ja)）
+
+### BloggerのコンテンツをAstroへ移行
+
+#### 記事コンテンツ変換作業
+
+- Bloggerの記事や静的ページをAstroへ移行するためmarkdownへ変換する
+- 便利なツールを提供してくれている方がいた（Node.jsが必要）
+  - [blog2md: Convert Blogger & Wordpress backup blog posts to hugo compatible markdown documents](https://github.com/palaniraja/blog2md)
+- Bloggerのバックアップxmlファイルを対象に実行する
+- 各ページのmarkdown・HTMLを生成し、使用画像をダウンロードしてくれる
+
+```bash 出力結果
+output/
+├── neputanote
+│   ├── data
+│   ├── draft-pages
+│   │   ├── html
+│   │   └── markdown
+│   ├── draft-posts
+│   │   ├── html
+│   │   └── markdown
+│   ├── images
+│   ├── pages
+│   │   ├── html
+│   │   └── markdown
+│   └── posts
+│       ├── html
+│       └── markdown
+└── neputanote-images
+```
+
+- markdwonへ変換といっても、meta情報をもとにfrontmatterを追加し本文はHTMLのまま
+- 各記事のmeta descriptionはBloggerのバックアップXMLに含まれないので空欄
+- シェルスクリプトとVSCodeの置換＆正規表現を駆使しMDX形式の記事へ移行した
+
+#### ルーティング対応
+
+- 記事のディレクトリ構成はBloggerと同じく「ドメイン/年/月/記事ファイル名」とした
+- Bloggerは .html拡張子が付いていたがこれをやめ、trailing slashを付ける
+- 記事ファイル名に使用していたドットはAstroがハイフンに置換するため\_redirectsを作成
+
+### DNS等ネットワーク周りの移行
+
+- 元々Bloggerのキャッシュサーバに使っていた[Cloudflare](https://www.cloudflare.com/)の静的サイト配信サービス[Cloudflare Pages](https://pages.cloudflare.com/)を利用した
+- Githubの指定したリポジトリをダウンロードしビルドしてくれる
+- ドメインサーバの設定はキャッシュサーバ利用時に設定済みだった
+- DNS設定のオリジンをBloggerからCloudflare Pagesに変更
+- Blogger用に最適化したPage Ruleを削除し、.htmlをスラッシュに修正するRewriteルールを追加
+
+## まとめ
+
+今回の移行作業を項目ベースで網羅的にまとめてみた。
+
+AstroではBloggerで出来なかった数多くの機能を実現できてうれしい。
+
+各作業工程の手順については自分の備忘録として個別に記事をまとめる予定。
+
+まとめたものからこのページへリンクを追加する。

@@ -1,0 +1,76 @@
+---
+title: '「Fcitx5」はfcitx-remoteのコマンド名が変わるので注意'
+description: '本記事の概要 *Fcitxのバージョンを4から5にアップデートしたところ、neovimでインサートからノーマルにモード変更する際に自動でIMEをオフ（半角英数）にする処理が動作しなくなった。 *原因と対処を備忘録として残す。'
+pubDate: '2023-03-24 13:44:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/G1eN3vi5AmPA-linux-logo.webp'
+category:
+  - DEV
+tags: ['Ubuntu', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+## 本記事の目的
+
+- Fcitxのバージョンを4から5にアップデートしたところ、neovimでインサートからノーマルにモード変更する際に自動でIMEをオフ（半角英数）にする処理が動作しなくなった。
+- 原因と対処を備忘録として残す。
+
+## 環境
+
+### OS
+
+- Ubuntu 22.04LTS
+
+### 関連パッケージ
+
+- Fcitx 5
+- neovim 0.8.3
+
+## 事象
+
+- UbuntuのOSアップグレード（20→22）に併せ、インプットメソッドアプリとして使用しているFcitxのバージョンも4→5にアップグレードした。
+- neovim（vimでも同様の事象）でインサートモードを抜ける際に、自動でIMEをオフにする処理が動作していないことに気づく。
+- 本処理はinit.vimに設定したスクリプトによる。
+
+## 原因
+
+- IMEをオフにする処理はFcitxに含まれるコマンドラインツール「fcitx-remote」を使用している。
+- Fcitx5では、このコマンド名称が変更されたため修正する必要がある。
+
+## 対処
+
+init.vimの該当箇所を以下のとおり修正した。
+
+### 修正まえ
+
+```vim init.vim
+if has('unix')
+  inoremap <silent> <Esc> <Esc>:call system('fcitx-remote -c')<CR>
+endif
+```
+
+### 修正あと
+
+```vim init.vim
+if has('unix')
+  inoremap <silent> <Esc> <Esc>:call system('fcitx5-remote -c')<CR>
+endif
+```
+
+修正はfcitx-remoteをfcitx5-remoteへと「5」を追加しただけ。
+
+if has('unix') は、個人的にinit.vimをWindows環境と併用するために記述しているのでunixのみの環境であれば不要。
+
+## まとめ
+
+fcitx-remoteが動作していないと気づき、ターミナルで直接実行すると「存在しない」と言われ、Fcitx5でコマンドツールが消えたのか？と思って調べまくったがあまり情報がなかったので備忘録として残すことにした。
+
+参考サイトにバージョン4と5に分けて説明があったおかげで理解できたのでたいへんありがたかった。
+
+色々な経緯を経てのこととは思うが、なぜコマンド名を変えた？という思いはぬぐえない。
+
+## 参考サイト
+
+- [\[サクッと解決\] Linux上のVim, NeoVimでインサートモードを抜けたら英語USに切り替える │ wonwon eater](https://wonwon-eater.com/linux-vim-neovim-ime/)

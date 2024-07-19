@@ -1,0 +1,22 @@
+---
+import Title from '../ui/Title.astro'
+import Shape from '../icons/Shape.astro'
+import PostInfo from './PostInfo.astro'
+type Props = {
+  title: string
+  pubDate?: Date
+  modDate?: Date
+}
+
+const { title, pubDate = undefined, modDate = undefined } = Astro.props
+---
+
+<div>
+  <div class='flex items-center justify-start gap-2'>
+    <div class='h-fit w-fit'><Shape /></div>
+    <Title>{title}</Title>
+  </div>
+  <div class='mt-4'>
+    {pubDate && <PostInfo pubDate={pubDate} modDate={modDate} classNames='not-prose' />}
+  </div>
+</div>

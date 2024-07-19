@@ -1,0 +1,46 @@
+---
+// pages/[year]/index.astro
+import ListPosts from '@/components/widgets/ListPosts'
+import PostCard from '@/components/widgets/PostCard'
+import TitlePage from '@/components/widgets/TitlePage'
+import BaseLayout from '@/layouts/BaseLayout'
+import { getPosts } from '@/utils'
+import GoogleAdsense from '@/components/widgets/GoogleAdsense'
+
+export async function getStaticPaths() {
+  const allPosts = await getPosts()
+  const years = [...new Set(allPosts.map((post) => post.slug.substring(0, 4)))]
+
+  return years.map((year) => ({ params: { year: year }, props: { year: year } }))
+}
+const { year } = Astro.props
+
+const allPosts = await getPosts()
+interface GroupedPosts {
+  [month: string]: typeof allPosts
+}
+const groupedPosts: GroupedPosts = allPosts
+  .filter((post) => post.slug.substring(0, 4) === year)
+  .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf())
+  .reduce((acc: GroupedPosts, post) => {
+    const month = post.slug.substring(5, 7)
+    if (!acc[month]) {
+      acc[month] = []
+    }
+    acc[month].push(post)
+    return acc
+  }, {})
+---
+
+<BaseLayout>
+  <TitlePage title=`${year}年の記事` />
+  {
+    Object.entries(groupedPosts).map(async ([month, posts]) => (
+      <>
+        <h2 class='my-2 text-4xl font-bold'>{Number(month)}月</h2>
+        <ListPosts posts={posts} />
+      </>
+    ))
+  }
+  <GoogleAdsense />
+</BaseLayout>

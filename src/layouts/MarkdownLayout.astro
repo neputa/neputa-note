@@ -1,0 +1,17 @@
+---
+import BaseLayout from '@/layouts/BaseLayout'
+import TitlePage from '@/components/widgets/TitlePage'
+
+const { frontmatter } = Astro.props
+const pubDate = new Date(frontmatter.pubDate)
+const modDate = new Date(frontmatter.modDate)
+---
+
+<BaseLayout title={frontmatter.title} description={frontmatter.description}>
+  <TitlePage title={frontmatter.title} pubDate={pubDate} modDate={modDate} />
+  <article class='prose prose-quoteless mb-12 min-w-full dark:prose-invert md:prose-lg xl:prose-xl'>
+    <div class='mx-auto md:w-11/12 lg:w-10/12'>
+      <slot />
+    </div>
+  </article>
+</BaseLayout>

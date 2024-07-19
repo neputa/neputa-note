@@ -1,0 +1,35 @@
+---
+import ListPosts from '@/components/widgets/ListPosts'
+import TitlePage from '@/components/widgets/TitlePage'
+import BaseLayout from '@/layouts/BaseLayout'
+import { getPosts } from '@/utils'
+import GoogleAdsense from '@/components/widgets/GoogleAdsense'
+
+export async function getStaticPaths() {
+  const allPosts = await getPosts()
+  return allPosts.map((post) => {
+    const year = post.slug.substring(0, 4)
+    const month = post.slug.substring(5, 7)
+    return {
+      params: { year: year, month: month },
+      props: { year: year, month: month }
+    }
+  })
+}
+const { year, month } = Astro.props
+
+const allPosts = await getPosts()
+
+const posts = allPosts
+  .filter((post) => {
+    const date = new Date(post.data.pubDate)
+    return date.getFullYear() === parseInt(year) && date.getMonth() + 1 === parseInt(month)
+  })
+  .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf())
+---
+
+<BaseLayout>
+  <TitlePage title=`${year}年${month}月の記事` />
+  <ListPosts posts={posts} />
+  <GoogleAdsense />
+</BaseLayout>

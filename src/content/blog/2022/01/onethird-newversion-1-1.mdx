@@ -1,0 +1,66 @@
+---
+title: 個人開発スマホアプリ更新「OneThird」を更新した
+description: 個人開発で細々と、日々の睡眠を記録する「OneThird」というアプリを公開している。リリースから約1年経過し、これまで5回のバージョンアップを重ね、昨日6回目のアップデート版を公開した。とくに目立った機能追加などはないが、このアプリをもっとも使用しているのが私であり、私がより使いやすくなるように更新を行っている。
+pubDate: '2022-01-16 05:23:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/1625581749397198709-en-feature.webp'
+category:
+  - DEV
+tags: ['dev', 'dotnet', 'Xamarin Forms']
+draft: false
+keywords: []
+type: blog
+---
+
+import imgGooglePlay from '@/images/blog/google-play.webp'
+import { Image } from 'astro:assets'
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 個人開発アプリ「OneThird」
+
+個人開発で細々と、日々の睡眠を記録する「OneThird」というアプリを公開している。
+
+<BlogCard
+  title='About OneThird'
+  description='「まくた工房」は、個人でWebやアプリ開発を行っています。（Makuta Kobo is a private web and application developer.）'
+  url='https://www.makuta-kobo.net/products/onethird/'
+  domain='www.makuta-kobo.net'
+/>
+
+リリースから約1年経過し、これまで5回のバージョンアップを重ね、昨日6回目のアップデート版を公開した。
+
+とくに目立った機能追加などはないが、このアプリをもっとも使用しているのが私であり、私がより使いやすくなるように更新を行っている。
+
+しかし、今回の更新はサインアップ機能を持つがゆえにプライバシーポリシーを掲げているアプリプロバイダの義務として、ユーザが自分でアカウントを削除できる機能を実装するというもの。
+
+それと同時に、ユーザには関係ないが内部的に気持ち悪い実装だった箇所のリファクタリングを行った。
+
+<BlogCard
+  title='【個人開発・モバイルアプリ】今後の作業を整理する【Xamarin・Azure】'
+  description='日々の睡眠時間を手入力で記録するモバイルアプリ（アンドロイドのみ）を公開している。今年は身内でいろいろとあり、年初にリリースして以降バージョンアップをサボっていた。やらなければと思うことが溜まっているので整理のためメモを書いておく。自作のモバイルアプリ「OneThird」の開発環境・使用サービス'
+  url='https://www.neputa-note.net/2021/12/future-plans-for-mydev/'
+  domain='www.neputa-note.net'
+/>
+
+上記の記事に詳しく書いた。今回の追加機能であるユーザ削除において、結果的にアプリから「Azure AD B2C」のユーザ情報を操作するため「Azure Functions」によるAPIをかますことにしたのは、当初の予定としては不本意。だが、「サーバレス」の意味合いや、APIをはじめて作成するなど良い機会となった。
+
+ひとつ気になるのは、利用者が少ない私のアプリだとしばらく稼働していない「Azure Functions」を最初に呼びだす際、レスポンスが遅い。結果、サインインが気になるレベルで時間がかかるようになってしまった。
+
+これは次期課題としたい。
+
+というわけで、毎日コツコツ睡眠記録をスマホで記録してみたい方はぜひ利用してみていただけるとありがたい。
+
+<Fragment>
+  <a
+    href='https://play.google.com/store/apps/details?id=com.neputafactory.onethird&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'
+    target='_blank'
+  >
+    <Image
+      src={imgGooglePlay}
+      alt={'Google Play で手に入れよう'}
+      width={200}
+      height={59}
+      format='webp'
+    />
+  </a>
+</Fragment>

@@ -1,0 +1,202 @@
+---
+title: '【Neovim・Vim】HTMLタグを追加・変換するユーザ定義コマンドを作る'
+description: 'はじめてVimのユーザ定義コマンド作成に挑戦したのでその備忘録。作成したのは以下の処理。*複数行の文字列にHTMLタグを追加 *IMGタグをWebp対応タグに変換 詳細については後述する。これらの処理を、定義したコマンドにより実行できるようにするのがゴール。'
+pubDate: '2022-02-04 13:00:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/neovim-vim-logo.webp'
+category:
+  - DEV
+tags: ['Neovim', 'Apps']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Video from '@/components/common/Video'
+import mp4AtagP from '@/videos/blog/atag-p-command-demo.mp4'
+import mp4AtagLi from '@/videos/blog/atag-li-command-demo.mp4'
+import mp4Cimg from '@/videos/blog/cimg-command-demo.mp4'
+
+## 本記事の目的
+
+はじめてVimのユーザ定義コマンド作成に挑戦したのでその備忘録。
+
+作成したのは以下の処理。
+
+- 複数行の文字列にHTMLタグを追加
+- IMGタグをWebp対応タグに変換
+
+詳細については後述する。
+
+これらの処理を、定義したコマンドにより実行できるようにするのがゴール。
+
+## 背景・経緯
+
+決して使いこなしているとは言いがたいが「Vim」を愛用している。
+
+実際に使っているのは「Neovim」であるが、Vimでも動作するので本記事では「Vim」と統一して記載する。
+
+Vimには基本のコマンドやプラグインによるコマンド以外に、「ユーザ定義コマンド」がある。
+
+[vim-jp » Hack #158: ユーザコマンドを定義する](https://vim-jp.org/vim-users-jp/2010/06/29/Hack-158.html)
+
+以前から何となく知ってはいたが、活用したことはこれまでない。
+
+このブログは「Blogger」というサービスを使用しているが、エディタが非常に使いづらい。
+
+よって、VimでHTMLを作成しBloggerに貼り付けることで公開している。
+
+vim-surroundでおおむねコト足りているが、複数行を一括あるいは大幅な変換をコマンド一発で処理できたら良いなと思いチャレンジした次第。
+
+## 環境
+
+### OS
+
+Windows 10 + Ubuntu 20.04 on WSL2
+
+### Neovim
+
+version 0.6.1
+
+## 実践
+
+### 複数行の文字列にHTMLタグを追加
+
+これは、複数行にわたり入力した文章に指定したタグを全行に付ける、というもの。
+
+私はいつも、まずはプレーンの文章を作成し、最後にHTMLタグをつけて回る。
+
+これはそのタグ付の際に大変重宝しているコマンド。
+
+#### ソース（init.vimまたはvimr）
+
+init.vimまたはvimrcに下記のスクリプトを書く。
+
+```vim
+" コマンドを定義
+command! -nargs=1 Atag call AddTag(<f-args>)
+
+" 実際に処理を行う関数
+function AddTag(name)
+  '<,'>s/\v(.+)/\="<".a:name.">".submatch(1)."<\/".a:name.">"
+endfunction
+```
+
+内容は、引数の文字列をタグ名として選択行のテキスト前後に付与して置換するコマンドを実行するというもの。
+
+#### 使用方法
+
+1.  タグをつけたい行を選択する
+2.  その状態で、コマンドウインドウを「:」で呼び出し、コマンド名「Atag」、引数に付与したいタグ名（たとえば「p」、「li」など）を入力し、Enterする
+3.  空行を除く選択行のテキストに指定したタグが付く。
+
+以下は、Pタグを付与するデモ。空行を除くすべての選択行のテキストにPタグを付与する。
+
+<Video src={mp4AtagP} caption='Atag p コマンドデモ' />
+
+こちらは引数を「li」にし、liタグを追加している。
+
+<Video src={mp4AtagLi} caption='Atag li コマンドデモ' />
+
+書いてて思ったが、liの場合はolやulを選択して囲むとかすればよいかもしれん。
+
+### IMGタグをWebp対応タグに変換
+
+Bloggerで画像を貼りつける場合、生成されるIMGタグがよろしくない。
+
+このコマンドは、この生成されたタグを下記仕様に対応したタグへと変換する。
+
+- pictureタグを追加しwebp用のリンクを差し込む
+- loading="lazy"に対応する
+- スタイルシート用のclassを持つdivを追加する
+- オリジナルサイズをもとにwidthとheight属性を計算し追加する
+
+#### ソース（init.vimまたはvimr）
+
+処理項目が多いのでちょっと長い。
+
+init.vimまたはvimrcに下記のスクリプトを書く。
+
+```vim
+" コマンドを定義
+command! Cimg call ConvertImgTag()
+
+" 実際に処理を行う関数
+function! ConvertImgTag() range
+    " 選択テキストを取得
+    let reg_save = getreg('"')
+    let regtype_save = getregtype('"')
+    let cb_save = &clipboard
+    set clipboard&
+    normal! ""gvy
+    let selection = getreg('"')
+    call setreg('"', reg_save, regtype_save)
+    let &clipboard = cb_save
+
+    " 属性値を取得
+    let alinkurl = matchstr(selection, '\vhref\="\zs\S+\ze"')
+    let srcurl = matchstr(selection, '\vsrc\="\zs\S+\ze"')
+    let owidth = str2float(matchstr(selection, '\vdata-original-width\="\zs\d+\ze"'))
+    let oheight = str2float(matchstr(selection, '\vdata-original-height\="\zs\d+\ze"'))
+
+    if owidth > oheight
+        let width = str2float(matchstr(selection, '\v[^-]width\="\zs\d+\ze"'))
+        let height = oheight * (width / owidth)
+    else
+        let height = str2float(matchstr(selection, '\v[^-]height\="\zs\d+\ze"'))
+        let width = owidth * (height / oheight)
+    endif
+
+    " new imgタグ作成
+    let newtag = [
+      \  '<div class="post-image">',
+      \  '  <figure>',
+      \  '    <a href="'.alinkurl.'" class="luminous">',
+      \  '      <picture>',
+      \  '        <source srcset="'.srcurl.'" type="image/webp" />',
+      \  '        <img alt="記事画像" height="'.float2nr(height).'" width="'.float2nr(width).'" loading="lazy" src="'.srcurl.'" />',
+      \  '      </picture>',
+      \  '    </a>',
+      \  '  </figure>',
+      \  '</div>']
+
+    " new imgタグ書き込み
+    '<,'> d
+    let linenum = line(".") - 1
+    call append(linenum, newtag)
+endfunction
+```
+
+#### 使用方法
+
+1.  変換対象のBloggerが生成したタグすべてを選択する
+2.  その状態で、コマンドウインドウを「:」で呼び出し、コマンド名「Cimg」を入力し、Enterする
+3.  先ほど記した仕様のタグに変換される
+
+<Video src={mp4Cimg} caption='Cimg コマンドデモ' />
+
+## 最後に
+
+なぜ今まで使ってこなかったのか、と激しく後悔するほど大変良いものだよVim Script。
+
+まだまだ自動化すると便利そうな作業があるのでもっと使いこなせるようになりたい。
+
+もっとこうすれば？などご意見ご感想等あれば、コメントまたは[Mastodon](https://fedibird.com/web/accounts/110804358773982782/about)などにいただけると泣くほど喜びます。
+
+初心者によるチャレンジ話だったがどなたかのお役に立てれば幸いです。
+
+よきコーディングライフを！
+
+<div class='not-prose'>
+	<div data-vc_mylinkbox_id='887651128'></div>
+</div>
+
+## 参考サイト
+
+<BlogCard
+  title='Vimscript functions cheatsheet'
+  description='The one-page guide to Vimscript functions: usage, examples, links, snippets, and more.'
+  url='https://devhints.io/vimscript-functions?utm_source=pocket_mylist'
+  domain='devhints.io'
+/>

@@ -1,0 +1,139 @@
+---
+title: '手書きのメモをチェックリスト化するアプリを作った【.NET MAUI】'
+description: 個人開発によるアプリの紹介。買い物メモやTodoリストをカメラで撮影し、簡単にチェックリストへ変換するスマホアプリ。スマホに保存した画像も対象。開発・運用のモチベーション維持のため「自分が使うモノ」をコンセプトに開発。使用シーンを考慮し、機能を最小限に、起動と操作の速度パフォーマンスを重視した。
+pubDate: '2024-06-02 17:05:00'
+modDate: '2024-06-02 17:05:00'
+heroImage: ../../../../assets/images/blog/ja-feature.webp
+category:
+  - DEV
+tags:
+  - MAUI
+  - dotnet
+  - dev
+  - Azure
+draft: false
+keywords:
+  - アプリ
+  - 個人開発
+  - MAUI
+type: blog
+---
+
+import { Image } from 'astro:assets'
+import imgGooglePlay from '@/images/blog/google-play.webp'
+import { YouTube } from 'astro-embed'
+import BlogCard from '@/components/mdx/BlogCard'
+
+## この記事の概要
+
+この春リリースした新規スマホアプリのお知らせと使用した技術の解説。
+
+## スマホアプリ「CheckListMaker」について
+
+### CheckListMakerとは？
+
+買い物メモやTodoリストなどをカメラで撮影すると簡単にチェックリストに変換するスマホアプリ。スマホに保存してある画像も対象。
+
+<YouTube id='-Sq_qwpl8Dw' />
+
+以下からインストールできる。（現在Android版のみ）
+
+<Fragment>
+  <a
+    href='https://play.google.com/store/apps/details?id=net.makutakobo.checklistmaker'
+    target='_blank'
+  >
+    <Image
+      src={imgGooglePlay}
+      alt={'Google Play で手に入れよう'}
+      width={207}
+      height={80}
+      format='webp'
+    />
+  </a>
+</Fragment>
+
+使い方の詳細はこちらのページを参照。
+
+[About CheckListMaker — MakutaKobo](https://www.makuta-kobo.net/products/checklistmaker/)
+
+過去に作成したアプリ
+
+[OneThird : シンプルな睡眠記録アプリ - Google Play のアプリ](https://play.google.com/store/apps/details?id=com.neputafactory.onethird)
+
+## 使用した技術
+
+### 開発環境
+
+- OS: Windows 11 Pro
+- IDE: Visual Studio 2022 Community
+
+### 言語・フレームワーク
+
+- 言語： C#
+- Framework: .NET MAUI 8.0
+- NuGet Packages
+  - CommunityToolkit.Maui
+  - CommunityToolkit.Mvvm
+  - Microsoft.Azure.CognitiveServices.Vision.ComputerVision
+  - Plugin.MauiMTAdmob
+
+### クラウドサービス
+
+- Azure AI Vision（OCR解析）
+
+## アプリの仕様と解説
+
+### 開発背景
+
+- 私の家では必要な食料・消耗品などを、気づいた人が小型のホワイトボードに書く
+- ホワイトボードのメモをスマホで撮影し画像のメモを確認しながら買い物をする
+- このメモは気づいた順の並びで買い物時には不便
+- 数が多い場合は買う時にチェックがしづらい
+- この一連を解決するために本アプリを作った
+
+### アプリの仕様
+
+C#使いなのでスマホアプリもC#で作る。
+
+- [.NET MAUI とは - .NET MAUI | Microsoft Learn](https://learn.microsoft.com/ja-jp/dotnet/maui/what-is-maui?view=net-maui-8.0)
+
+単体テストがしやすいようにMAUIのコードビハインドにロジックは実装しない。MVVMで開発する
+
+- [Model-View-ViewModel - .NET | Microsoft Learn](https://learn.microsoft.com/ja-jp/dotnet/architecture/maui/mvvm)
+- [MVVM Toolkit の概要 - Community Toolkits for .NET | Microsoft Learn](https://learn.microsoft.com/ja-jp/dotnet/communitytoolkit/mvvm/)
+
+MAUIのUIコントロールやヘルパーが揃った便利パッケージを使用する。
+
+- [.NET MAUI Community Toolkit のドキュメント - Community Toolkits for .NET | Microsoft Learn](https://learn.microsoft.com/ja-jp/dotnet/communitytoolkit/maui/)
+
+カメラ起動や画像選択ピッカーはMAUIのMediaPickerが便利。
+
+- [写真とビデオのメディア ピッカー - .NET MAUI | Microsoft Learn](https://learn.microsoft.com/ja-jp/dotnet/maui/platform-integration/device-media/picker?view=net-maui-8.0&tabs=android)
+
+本アプリの肝、手書きメモのOCR解析はAzure AI Visionで簡単に実装できた。
+
+- [クイックスタート: 光学式文字認識 (OCR) - Azure AI services | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/ai-services/computer-vision/quickstarts-sdk/client-library?tabs=windows%2Cvisual-studio&pivots=programming-language-csharp)
+
+上記記事にC# / Python / JavaScript / REST APIのサンプルコードもある。
+
+Free（F0）は、1か月あたり5,000件、1分あたり20件のトランザクションを無料で使用可。ただしレスポンスの悪い場合がある。
+
+Standard（S1）は、1万件まで1ドル/1,000トランザクション、以降ボリュームディスカウント。F0と比べレスポンスは格段に良し。
+
+サンプルを参照するとわかるが、解析の精度はなかなか。文字の傾き、濃淡、かすれ等も認識しテキスト化する。日本語も認識する。
+
+- [OCR - 光学式文字認識 - Azure AI services | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/ai-services/computer-vision/overview-ocr)
+  {/*  */}
+
+## まとめ
+
+今回開発したアプリの内容と使用を概説した。
+
+前回アプリ同様、開発・運用のモチベーション維持のため「日頃じぶんが使うモノ」となっている。
+
+使用シーンを考慮し、起動と操作の速度パフォーマンスを重視している。
+
+よって今後のアップデートはパフォーマンスチューニングを中心とし、サイズの大きい機能追加の予定はない。
+
+一定件数の履歴保持はそのうち追加したい。

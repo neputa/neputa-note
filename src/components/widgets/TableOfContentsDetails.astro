@@ -1,0 +1,31 @@
+---
+import TableOfContents from '../ui/TableOfContents.astro'
+
+const { headings } = Astro.props
+---
+
+<details id='details-index' class='mt-8 py-4'>
+  <summary
+    class='mb-3 flex items-center justify-between bg-slate-800/20 p-2 text-2xl font-bold dark:bg-slate-800 dark:text-white'
+  >
+    <p>目次</p>
+    <span class='text-sm'></span>
+  </summary>
+  <TableOfContents headings={headings} />
+</details>
+
+<script>
+  const indexDetails = () => {
+    const detailsElement = document.getElementById('details-index')
+    const mediaQuery = window.matchMedia('(min-width: 768px)')
+
+    // 初期チェック
+    if (mediaQuery.matches) {
+      detailsElement && detailsElement.setAttribute('open', '')
+    } else {
+      detailsElement && detailsElement.removeAttribute('open')
+    }
+  }
+  indexDetails()
+  document.addEventListener('astro:after-swap', indexDetails)
+</script>

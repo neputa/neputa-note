@@ -1,0 +1,161 @@
+---
+title: 'リダイレクトエラー Indexに登録されない【Blogger】'
+description: '本記事の概要 --今年の六月に入って以降、新規に書いたブログ記事がGoogleインデックスに登録されないトラブルが発生していた。解決方法が分かったため備忘録を兼ね一連の対応をまとめた。※他のブログサービスやホームページによるケースは未検証。'
+pubDate: '2021-09-12 20:12:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/4840445547722820023-searchconsole-blogger-logo.webp'
+category:
+  - DEV
+tags: ['blogger', 'blog']
+draft: false
+keywords: []
+type: blog
+---
+
+import Alert from '@/components/mdx/Alert'
+import BlogCard from '@/components/mdx/BlogCard'
+
+<Alert type='info' content='追記：2021/10/13' />
+
+※リダイレクト エラーについて新たに調査した結果などをまとめた記事を追加した。
+
+[「Search Console」の「リダイレクト エラー」を解決する ～その2～【Blogger】](https://www.neputa-note.net/2021/10/blogpost13)
+
+<hr />
+
+## 背景
+
+今年の六月に入って以降、新規に書いたブログ記事がGoogleインデックスに登録されないトラブルが発生していた。
+
+解決方法が分かったため備忘録を兼ね一連の対応をまとめた。
+
+※他のブログサービスやホームページによるケースは未検証。
+
+## 今回のトラブルと対処方法の概要
+
+### 利用ブログ
+
+Blogger（Google提供のブログサービス）
+
+### トラブル内容
+
+Googleインデックスに新しいブログ記事が登録されない。
+
+### トラブル原因
+
+Google Search Consoleで表示されるエラー名は「リダイレクトエラー」。
+
+### 対処方法
+
+URLから記号（ハイフン）を削除した。
+
+## 今回のトラブルと対処方法の詳細
+
+### トラブル原因
+
+Google Search Consoleで「カバレッジ」のエラーを表示してみると「リダイレクトエラー」が発生していた。
+
+![説明画像１](@/images/blog/4840445547722820023-redirect-error-01.webp)
+
+試しに、Google Search Consoleの「URL検査」で、エラーに該当する「ashitano-tarinai-futari.html」という記事を検査する。
+
+![説明画像２](@/images/blog/4840445547722820023-redirect-error-02.webp)
+
+やはり「リダイレクトエラー」とメッセージがあるが、それ以上の情報はない。
+
+![リダイレクトエラー画像](@/images/blog/4840445547722820023-redirect-error-03.webp)
+
+Search Consoleヘルプでリダイレクトエラーの詳細について確認する。
+
+> リダイレクト エラー: リダイレクト チェーンが長すぎる、リダイレクト ループが発生している、リダイレクト URL が最終的に URL の最大長を超えた、リダイレクト チェーンに不正または空の URL がある、のいずれかのタイプのリダイレクト エラーに Google が遭遇しました。Lighthouse などのウェブ デバッグツールを使用して、リダイレクトに関する詳細情報を入手してください。 <cite>-- [Search Console ヘルプ](https://support.google.com/webmasters/answer/7440203#multiple_redirects)</cite>
+
+該当URLのリダイレクトを「リダイレクトチェック」で調べてみるが、リダイレクトを必要としないページのため問題なし。
+
+[リダイレクトチェック（ohotuku.jp）](https://ohotuku.jp/redirect_checker/)
+
+この他、いくつか「リダイレクトエラー」に関するブログを読んでみたがいずれも該当せず。
+
+<BlogCard
+  title='リダイレクトエラーの原因と4つの改善方法 | 株式会社ココログラフ'
+  description='リダイレクトエラーとは、リダイレクト処理でエラーが発生している場合に表示されます。リダイレクトは、指定のWebサイトに来訪したユーザーを自動的に指定した別ページに転送する処理のことを指します。ページのURLが変更された時などに使われます。'
+  url='https://cocorograph.co/knowledge/redirection-error/'
+  domain='cocorograph.co'
+/>
+
+<BlogCard
+  title='サーチコンソールのリダイレクトエラーの原因を解説！【解決できます】 | AKINOTE'
+  description=''
+  url='https://akira-ogura.com/redirecterror/'
+  domain='akira-ogura.com'
+/>
+
+<BlogCard
+  title='リダイレクトエラーについて - Google 検索セントラル コミュニティ'
+  description=''
+  url='https://support.google.com/webmasters/thread/11529366/%E3%83%AA%E3%83%80%E3%82%A4%E3%83%AC%E3%82%AF%E3%83%88%E3%82%A8%E3%83%A9%E3%83%BC%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6?hl=ja'
+  domain='support.google.com'
+/>
+
+そこで、ふと「ブログ記事のHTMLファイル名に問題があるのではないか」と考えた。
+
+Bloggerでは「パーマリンク」という項目でURLの一部をユーザカスタムができる。私はなるべく記事のタイトルに即したものへ編集する運用をしていた。
+
+![説明画像４](@/images/blog/4840445547722820023-redirect-error-04.webp)
+
+具体的には、タイトルを英訳し、単語をハイフン区切りにする。
+
+そこでURLに含まれる記号（とりわけハイフン）について言及している記事をいくつか読んでみたが、ハイフンがいかんというようなモノは見つからなかった。
+
+<BlogCard
+  title='discovered url in search console with hyphen character'
+  description='discovered url in search console with hyphen character greenteazzz (@greenteazzz) 3 years, 3 months ago My site urls have not been recognized by google even though I’m using XML Sitemaps plug…'
+  url='https://wordpress.org/support/topic/discovered-url-in-search-console-with-hyphen-character/'
+  domain='wordpress.org'
+/>
+
+<BlogCard
+  title='Why Underscores are Not Recommended'
+  description='Google sees hyphens as word separators in URLs but does not view underscores in URLs the same.'
+  url='https://www.woorank.com/en/blog/underscores-in-urls-why-are-they-not-recommended'
+  domain='www.woorank.com'
+/>
+
+しかし、試しにURLからハイフンを削除してみたところうまく行ってしまった。
+
+結果的に、URLのHTMLファイル名に含まれるハイフンが原因となってしまった。
+
+Search ConsoleやBloggerのドキュメントにその記載は見当たらない。
+
+何より、ハイフンを含めて作成していた過去記事については問題なくインデックス登録され続けている。
+
+非常に腑に落ちないが、現時点での結果。後日わかったことがあれば追記する。
+
+<hr />
+
+<Alert type='info' content='追記：2021/10/13' />
+
+※リダイレクト エラーについて新たに調査した結果などをまとめた記事を追加した。
+
+[「Search Console」の「リダイレクト エラー」を解決する ～その2～【Blogger】](https://www.neputa-note.net/2021/10/blogpost13)
+
+<hr />
+
+### 対処方法
+
+原因に書いた通り、Bloggerのパーマリンクでハイフンを削除し、Search Consoleでインデックス登録をリクエストした。
+
+そうしたら半日かからずに問題なくインデックス登録された。
+
+![説明画像５](@/images/blog/4840445547722820023-redirect-error-05.webp)
+
+## おわりに
+
+6月に発覚してから解決まで長く時間がかかった割にはすっきりせず。
+
+要因は、ハッキリした原因が分かっていないためだ。
+
+6月ごろに仕様が変わったのか。そのようなアナウンスがあったのか？
+
+<div class='not-prose'>
+	<div data-vc_mylinkbox_id='887423655'></div>
+</div>

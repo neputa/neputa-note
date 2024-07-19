@@ -1,0 +1,45 @@
+---
+import BaseHead from '@/components/BaseHead'
+import Header from '@/components/widgets/Header'
+import Footer from '@/components/widgets/Footer'
+import ProviderTheme from '@/components/ProviderTheme'
+import ProviderAnimations from '@/components/ProviderAnimations'
+import TwSizeIndicator from '@/components/TwSizeIndicator'
+import ValueCommerce from '@/components/meta/ValueCommerce'
+import GoogleAnalytics from '@/components/meta/GoogleAnalytics'
+
+const { title, description, image, articleDate } = Astro.props
+---
+
+<html lang='ja'>
+  <head>
+    <BaseHead title={title} description={description} ogImage={image} articleDate={articleDate} />
+    <ProviderTheme />
+    <ProviderAnimations />
+    <GoogleAnalytics />
+    <ValueCommerce />
+  </head>
+
+  <body class='bg-white text-stone-950 dark:bg-[#0a0910] dark:text-white'>
+    <main
+      class='mt-4 grid gap-12 overflow-hidden px-3 antialiased sm:mx-auto sm:max-w-2xl sm:px-8 md:max-w-6xl md:overflow-visible lg:px-4'
+    >
+      <Header />
+      <slot />
+      <Footer />
+    </main>
+    <slot name='mobileFooter' />
+    <TwSizeIndicator />
+    <style>
+      body {
+        margin-left: calc(100vw - 100%); /* prevent layout shift */
+      }
+    </style>
+    <TwSizeIndicator />
+    <style>
+      body {
+        margin-left: calc(100vw - 100%); /* prevent layout shift */
+      }
+    </style>
+  </body>
+</html>

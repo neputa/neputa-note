@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /p/contact/
+Disallow: /p/privacy-policy/
+Disallow: /thanks/
+Disallow: /error/
+Disallow: /404/
+Disallow: /search/
+Disallow: /search
+Disallow: /~partytown/
+Disallow: /feeds/
+
+
+Sitemap: https://www.neputa-note.net/sitemap-index.xml

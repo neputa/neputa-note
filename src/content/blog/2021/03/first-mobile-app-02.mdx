@@ -1,0 +1,275 @@
+---
+title: 02．はじめてスマホアプリを作ってみた（要件フェーズ）
+description: 本記事概要 --スマホアプリ開発未経験者が個人で開発からリリースするまでを記録した。それなりのボリュームが見込まれるため、全7回に区切って投稿してみたい。今回は第2回目。
+pubDate: '2021-03-01 11:30:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/mobileapps-development.webp'
+category:
+  - DEV
+tags: ['dev', 'dotnet', 'Xamarin Forms']
+draft: false
+keywords: []
+type: blog
+---
+
+import { Image } from 'astro:assets'
+import imgGooglePlay from '@/images/blog/google-play.webp'
+import Alert from '@/components/mdx/Alert'
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 記事の概要
+
+こちらの一覧の2つ目、「要件フェーズ」の記事。
+
+1. [検討フェーズ（どんなアプリを作るか）](/2021/02/first-mobile-app-01/)
+1. 要件フェーズ（どんな要件のアプリにするか）【今回】
+1. [調査フェーズ（どんな技術を使うか）](/2021/03/first-mobile-app-03/)
+1. [設計フェーズ（どうやって作るか）](/2021/03/first-mobile-app-04/)
+1. [開発フェーズ（実際に作りはじめる）](/2021/03/first-mobile-app-05/)
+1. [公開フェーズ（アプリを公開する）](/2021/03/first-mobile-app-06/)
+1. [保守フェーズ（公開から現在まで）](/2021/03/first-mobile-app-07/)
+
+ダイジェストで読みたい方はこちらの記事を。
+
+<BlogCard
+  title='アラフォー初心者だけどスマホアプリを開発～リリースまでがんばってみた【Android・Xamarin.Forms】'
+  description='あらすじ この度、素人ながらスマホアプリ開発に挑戦してみた。今回の記事では概要と経緯について書き綴ってみたい。実際に行った作業の詳細は、全7回に分けた記事を別途作成'
+  url='https://www.neputa-note.net/2021/02/onethird-release/'
+  domain='www.neputa-note.net'
+/>
+
+インストールはこちらから。
+
+<Fragment>
+  <a
+    href='https://play.google.com/store/apps/details?id=com.neputafactory.onethird&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'
+    target='_blank'
+  >
+    <Image
+      src={imgGooglePlay}
+      alt={'Google Play で手に入れよう'}
+      width={200}
+      height={59}
+      format='webp'
+    />
+  </a>
+</Fragment>
+
+<Alert type='warning' content='Androidのみ iOS版は現在リリース未定' />
+
+## はじめてのスマホアプリ開発 要件フェーズ
+
+### アプリの仕様を考え始める
+
+![an image of thinking](@/images/blog/7029772542996824648-pexels-dom-j-45718.webp)
+
+[前回](/2021/02/first-mobile-app-01/)では、「どんなアプリを作るか」を決めた。
+
+今回は「どんな」をもう少し具体的にしてみたい。
+
+この時点では、技術的に可能か否かはわからないことだらけ。
+
+初心者がその辺を最初にさらおうとすると「良くない」予感がしたからだ。
+
+まずは、実現できるかどうかは後から調べるとして、箇条書きで仕様を書き出してみることにした。
+
+紙とペン、メモアプリなんでもいいと思う。
+
+私が最初にまとめたのはこんな感じ。
+
+#### 仕様一覧（最初のバージョン）
+
+1.  ページ構成
+    - TOPページ
+    - 睡眠時間エントリページ
+    - 睡眠データ一覧
+    - アプリについて
+2.  TOPページでできること
+    - 選択リスト（直近7日間 | 30日間 | 1年間）
+    - 選択リストで選択した期間の平均睡眠時間
+3.  エントリーページでできること
+    - 記録対象日を選択する
+    - 就寝・起床時間を選択する
+    - 保存または削除する
+4.  一覧ページでできること
+    - 月単位で睡眠記録の一覧を表示する
+    - 表示対象の月を選択する
+    - 編集または削除したい睡眠記録を選択する
+5.  その他
+    - 記録データはローカルDBに保存する
+    - 多言語対応、まずは日本語と英語
+
+見返してみると非常にざっくりしている。
+
+このあと作業を進めていく過程で足りないことに気づいていく。
+
+そのつど補完していくのでまずは最低限を書き、どんどん進めていく。
+
+### アプリの内容をもう一歩詰める【guiflow】
+
+ざっと書き出してみたものの、レイアウト、デザイン、ボタン等の機能などはまだイメージできていない。
+
+この箇条書きをもう一歩詰める良い方法はないかと探して見つけたのがこちら。
+
+[もう保守されない画面遷移図は嫌なので、UI Flow図を簡単にマークダウンぽく書くエディタ作った #JavaScript - Qiita](https://qiita.com/hirokidaichi/items/ff54a968bdd7bcc50d42)
+
+テキスト入力だけで、画面構成、画面遷移を表現してくれる。
+
+Windows版は、以下から「guiflow-win32.zip」をダウンロード・解凍し、フォルダ内の「guiflow.exe」を実行すれば使用でる。
+
+[Release 暫定動作確認版 · hirokidaichi/guiflow](https://github.com/hirokidaichi/guiflow/releases/tag/v_0.1.1)
+
+こちらを使ってどんな画面が必要か、画面には何があるか、ボタンを押すとどうなるかを書いていく。
+
+最初に「guiflow」に書いた内容はこんな感じ。
+
+```markdown
+[MainPage]
+
+- 平均睡眠時間
+- 直近 n 日間を選ぶセレクタ
+- 記録を見る ボタン
+- ## 記録する ボタン
+  記録を見る ボタン
+  ==> 一覧ページ
+  記録する ボタン
+  ==> 記録ページ
+
+[記録ページ]
+
+- 戻る ボタン
+- 記録対象の日付
+- 就寝時間
+- 起床時間
+- 削除 ボタン
+- キャンセル ボタン
+- ## 保存 ボタン
+  戻る ボタン
+  ==> MainPage
+  保存・削除・キャンセル ボタン
+  ==> MainPage
+
+[一覧ページ]
+
+- 戻る ボタン
+- 記録する ボタン
+- 表示対象の年月を選ぶセレクタ
+- ## 睡眠記録の一覧
+  戻る ボタン
+  ==> MainPage
+  睡眠記録の一覧
+  ==> 記録ページ
+  記録する ボタン
+  ==> 記録ページ
+```
+
+そうすると、このような遷移図が自動で出力される。
+
+![guiflow](@/images/blog/7029772542996824648-guiflow.webp)
+
+便利なアプリはたくさんある。
+
+ただし、機能が多く、私のような性格の人間だと細かいところが気になり、試行錯誤をしている段階だと作業が捗らない。
+
+「guiflow」は、テキストを記述する以外の機能がないため自分にはとても合っている。
+
+いろいろ書いている間に「戻るボタン」が必要なこと、ページやオブジェクトの名前などを考え始める。
+
+あとから思いついたことは逐次、最初の仕様一覧に追加する。
+
+こんな感じでまずは、大まかに「どんなアプリを作るか」が決まった。
+
+あとはビジュアルが決まれば「よし、こいつを作るんだ」と気持ちも上がる。
+
+次は、どんな見た目のものを作るかを考えてみた。
+
+### GUIをデザインしてみる【Adobe XD】
+
+![an image of colors](@/images/blog/7029772542996824648-pexels-kaboompics-com-5933.webp "Photo by <a href='https://www.pexels.com/ja-jp/@kaboompics?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Kaboompics.com</a> in <a href='https://www.pexels.com/ja-jp/photo/5933/?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Pexels</a>")
+
+ツールを調べてよく出てくるのは「Figma」「Adobe XD」「Sketch」など。
+
+個人的にAdobe製品を使っていた経験があったため「Adobe XD」でデザインを作ってみることにした。
+
+[Adobe XD ラーニングとサポート](https://helpx.adobe.com/jp/support/xd.html)
+
+まずは「使う色」から。
+
+「カラースキーム」で検索すると、便利なツールがいろいろ見つかる。
+
+今回使用したモノは以下。
+
+<BlogCard
+  title='Paletton - The Color Scheme Designer'
+  description=''
+  url='https://paletton.com/#uid=1000u0kllllaFw0g0qFqFg0w0aF'
+  domain='paletton.com'
+/>
+
+<BlogCard
+  title='Coolors - The super fast color palettes generator!'
+  description='Generate or browse beautiful color combinations for your designs.'
+  url='https://coolors.co/'
+  domain='coolors.co'
+/>
+
+「Paletton」は特定の色を探すため、「Colors」は、色の組み合わせを考えるのに使用した。
+
+「使う色」を考えている段階で、アプリ名を決めた。
+
+アプリ名は最初から考えようと思っていたが、なかなか思いつかなかった。
+
+カラースキームツールをあれこれいじりながら「睡眠を表す色は何だろう？」「睡眠とは1日の約三分の一の時間を占める」などを連想していった。
+
+そして、自分なりの睡眠を表す色を決め、「一生の約三分の一を過ごす時間を良いものに」とコンセプトを決め、アプリ名を「OneThird」とした。
+
+色は、ベースとなる睡眠を表す濃紺、同系で補助用に水色、強調用に黄色、文字などは白の4色。
+
+あとはフリーフォントを検索し、フォントも決めた。
+
+ちなみに使用したフォントはこちら。
+
+[和田研細丸ゴシック Wiki - 和田研細丸ゴシック - OSDN](https://ja.osdn.net/projects/jis2004/wiki/FrontPage)
+
+わたしは正しいデザインの学習などはしていないため、手順が正しいかは自信が無い。
+
+ただ機能が多いツールを使用する場合、「選択肢の多さに振り回される」ことが分かっている。
+
+そのため、方針を決めるというよりは、暴走しないように「選択肢をあらかじめ狭めておく」ことを心がけた。
+
+個人的な指針として、
+
+- 自由に思考したいときは、できるだけ機能の少ない道具を使う
+- 複雑な道具を使うときは、やることをできるだけ絞り込んでおく
+
+ようにしている。
+
+実際にAdobe XDで作ったのはこんな感じ。
+
+![an image of adobe xd](@/images/blog/7029772542996824648-adobexd.webp)
+
+これ以降、試行錯誤は「guiflow」、デザインを考える際は「Adobe XD」をたびたび開くことになる。
+
+この後、実際にコードを書くのはVisual Studioで行う。そこで画面遷移やデザインをゴチャゴチャ考えると、あらぬ不具合を生む可能性がある。
+
+うまく伝わるか分からないが、やろうとしている作業とそれに使う道具をあらかじめ紐づけておくことが、わたしの場合は重要だったりする。
+
+## まとめ
+
+![an image of a conclusion](@/images/blog/7029772542996824648-pexels-ann-h-1888005.webp "Photo by：<a href='https://www.pexels.com/ja-jp/@ann-h-45017?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Ann H</a> in <a href='https://www.pexels.com/ja-jp/photo/1888005/?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels' target='_blank'>Pexels</a>")
+
+駆け足ではあるが、「どんな要件のアプリにするか」をこんな具合に考えた、をまとめてみた。
+
+こんだ段階では実際スマホアプリを作るために必要な技術がさっぱりわかっていない。
+
+そこで設計に着手する前に「どんな技術を使うか」をいろいろと調べた。次回はその過程をまとめてみたい。
+
+## はじめてスマホアプリを作ってみた 記事一覧
+
+1. [検討フェーズ（どんなアプリを作るか）](/2021/02/first-mobile-app-01/)
+1. 要件フェーズ（どんな要件のアプリにするか）【今回】
+1. [調査フェーズ（どんな技術を使うか）](/2021/03/first-mobile-app-03/)
+1. [設計フェーズ（どうやって作るか）](/2021/03/first-mobile-app-04/)
+1. [開発フェーズ（実際に作りはじめる）](/2021/03/first-mobile-app-05/)
+1. [公開フェーズ（アプリを公開する）](/2021/03/first-mobile-app-06/)
+1. [保守フェーズ（公開から現在まで）](/2021/03/first-mobile-app-07/)

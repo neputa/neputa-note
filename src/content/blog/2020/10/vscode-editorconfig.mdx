@@ -1,0 +1,420 @@
+---
+title: 'editorconfig for VSCodeでコーディングルールを統一'
+description: 前回記事のStyleCopは、C#や.NETのコーディングスタイルを規定するため、警告を表示してくれるツールでした。今回のeditorconfigは、C#や.NETはもちろん、VSCodeのエディタ全般におけるルールを設けるほか、強力なリファクタリング支援を受けることができる機能を持っています。
+pubDate: '2020-10-15 12:00:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/default.webp'
+category:
+  - DEV
+tags: ['VSCode', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+{/* textlint-disable */}
+
+先日の以下記事の続きです。
+
+<BlogCard
+  title='VSCodeでもStyleCopを使いたい【C#】'
+  description='VisualStudioでC#を記述する際に「StyleCopAnalyzers(以降StyleCop)」というコード解析ツールを使用しています。チーム開発ではもちろん、個人開発においても整ったコーディングを支援してくれる強力なツールです。VSCodeでStyleCopを使う手順をまとめています。'
+  url='https://www.neputa-note.net/2020/10/vscode-stylecop/'
+  domain='www.neputa-note.net'
+/>
+
+主に下記環境および言語を対象とした内容です。
+
+- OS：Windows 10 Pro
+- 言語：C#
+
+## editorconfigで実現できること
+
+- StyleCopは、C#や.NETのコーディングスタイルを規定するため、警告を表示してくれる
+- editorconfigは、C#や.NETはもちろん、VSCodeのエディタ全般におけるルールを設けるほか、強力なリファクタリング支援を受けることができる
+
+### ファイル種別毎の設定
+
+.cs, .csproj, .configなど、ファイル毎にルールを分けることができます。
+
+コードの種類によってインデントの数を変えたり、PascalCaseやcamelCaseなどの名前付け規則を振り分けたりできます。
+
+### プロジェクト単位での設定など
+
+.editorconfigというファイルにルールを定義します。
+
+つまり、プロジェクト毎に.editorconfigを設置することでプロジェクト別のルールを設けることができます。
+
+設定の影響範囲については後述します。
+
+### コードの書き方も規定できる
+
+C#以外は調べていないのでわかりません。（すいません）
+
+インデントなどの他、thisの使用有無、ラムダ式にしなさいなど、その言語仕様に基づいた書き方を規定できます。
+
+### ルール通知の方法を調節できる
+
+私の場合、規定したルールはすべて警告を出すようにしていますが、あくまで提案に留めたり、あるいはデフォルトで警告となっているものを一切警告しないようにするなど、ルールの通知方法を指定できます。
+
+その他の特徴など詳細を説明します。
+
+## editorconfigを使えるようにする
+
+### 拡張機能 EditorConfig for VS Code をインストールする
+
+参考サイト：[EditorConfig for VS Code](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
+
+1. 拡張機能「EditorConfig for VS Code」を検索し、インストールします。
+   ![blog image](@/images/blog/4443975669209616602-stylecop_editorconfig.webp)
+
+1. エクスプローラーで右クリックをすると「Generate .editorconfig」が表示されるようになるので、クリックするとファイルが生成されます。
+   ![blog image](@/images/blog/4443975669209616602-stylecop_05.webp)
+
+### OmniSharpのeditorconfig の有効化
+
+C#でeditorconfigを有効化するには、さらに以下の作業が必要です。
+
+参考サイト：[Using the .editorconfig in VS2019 and VSCode](https://asp.net-hacker.rocks/2020/01/13/editorconfig.html)
+
+2. 「メニュー→ファイル→ユーザ設定→設定」または ctrl + , で設定画面を開きます。
+3. 「Enable Editor Config Support」で検索し、チェックボックスにチェックを入れます。
+   ![blog image](@/images/blog/4443975669209616602-stylecop_03.webp)
+
+4. 続いて「Enable Roslyn Analyzers」で検索し、同様にチェックボックスにチェックを入れます。
+   2[blog image](@/images/blog/4443975669209616602-stylecop_04.webp)
+
+5. VSCodeを再読み込みすると.editorconfigが使用可能になります。
+
+### editorconfigの影響範囲
+
+参考サイト：[EditorConfig Specification](https://editorconfig-specification.readthedocs.io/en/latest/#file-processing)
+
+editorconfigのファイル処理は、「.editorconfig」という名前ですべての親フォルダを検索するというものです。
+
+検索は、「root = true」を記述した .editorconfigが見つかると終了します。（あるいはファイルシステムのルートまで到達した場合）
+
+ファイルは上から下階層の順に読み取られ、最新のルールが優先されます。
+
+つまり複数の .editorconfigに同一のルールが定義されている場合、一番近いものが適用されます。
+
+この仕様により、複数プロジェクトがある場合、各プロジェクト毎にeditorconfigを設置してルールを分けることができるほか、全プロジェクトのルートとなる階層に設置して全プロジェクト共通のルールを設けることも可能です。
+
+ソースファイルを管理しているルート階層に .editorconfigを置くことで、すべてのプロジェクトの共通化を図る、といった使い方も可能です。
+
+![blog image](@/images/blog/4443975669209616602-EditorConfig_tree.webp)
+
+上位階層にある .editorconfigの影響をただ回避したいという場合、ルールを何も書かず、root=trueのみ記述した .editorconfigを配置します。
+
+私は、すべてのソースファイルを置いているフォルダのルート階層に .editorconfigを置いて主にC#のルールを記述しています。
+
+これにより、新規に作成したプロジェクトなどが、すべてこのルートの .editorconfigの影響を受けるようになります。
+
+ちょっと一時的にサンプルコードを書きたくてプロジェクトを作成した場合、上記で説明した「root = true」のみを記述した .editorconfigをプロジェクトのルートに作成します。
+
+### ルール定義の書き方
+
+#### 言語・ファイル共通
+
+ルールの影響範囲を指定するファイルの種別については、.gitignoreで使用できるものと同様のFilepath
+Globが使用できます。
+
+参考サイト：[EditorConfig Specification](https://editorconfig-specification.readthedocs.io/en/latest/#glob-expressions)
+
+以下は、[editorconfig.org](https://editorconfig.org/)にあるサンプルです。
+
+```ini
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+# Matches multiple files with brace expansion notation
+# Set default charset
+[*.{js,py}]
+charset = utf-8
+
+# 4 space indentation
+[*.py]
+indent_style = space
+indent_size = 4
+
+# Tab indentation (no size specified)
+[Makefile]
+indent_style = tab
+
+# Indentation override for all JS under lib directory
+[lib/**.js]
+indent_style = space
+indent_size = 2
+
+# Matches the exact files either package.json or .travis.yml
+[{package.json,.travis.yml}]
+indent_style = space
+indent_size = 2
+```
+
+#### C#のルール定義
+
+そしてここからが本日書きたかったC#のコーディングルール定義です。
+
+この作業に関しては以下のサイトを参考にしています。
+
+- [Microsoft Docs Code style rules](https://docs.microsoft.com/ja-jp/dotnet/fundamentals/code-analysis/style-rules/)
+- [dotnet / roslyn - github](https://github.com/dotnet/roslyn/blob/master/.editorconfig)
+
+前述した「OmniSharpのeditorconfigの有効化」により、dotnet、C#やVBに関するルールを、.editorconfigで定義できるようになります。
+
+たとえば、C#ではthisを省略できますが、以下はこのルールを定義するケースです。
+
+```editor-config
+# Avoid "this." and "Me." if not necessary
+# dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+```
+
+field, property, method, eventそれぞれにおいて、thisを不要（false）としている例です。
+
+falseの後に、warningとあります。
+
+これにより、this修飾子が記述されている箇所に警告が出るようになります。
+
+![thisをfalse-warningに指定した画像](@/images/blog/4443975669209616602-EditorConfig_this-false-warning.webp)
+
+warningの部分を、suggestionに変更すると、警告ではなく、情報として表示されるようになります。
+
+![thisをfalse-suggestionに指定した画像](@/images/blog/4443975669209616602-EditorConfig_this-false-suggestion.webp)
+
+この他、多くのルールを定義できます。
+
+[Microsoft Docs](https://docs.microsoft.com/ja-jp/dotnet/fundamentals/code-analysis/code-quality-rule-options)の「コード品質規則のルールオプション」、「コードスタイル規則のルールオプション」のページに、記述方法が掲載されています。
+
+現在のところ、これらのページにあるルールを使用していますが、他にも参考になるものがありましたら教えていただけると嬉しいです。
+
+## まとめと現在使用中の.editorconfig
+
+チームであれば、色々と話し合ってルールを設定していくのだと思いますが、私は一人で書く機会しかないので、ガッツリ警告を表示するようにしています。
+
+そして、警告が出ないようにコーディングすることで、良いコードを書く癖が身につけばと考えています。
+
+参考になるかわかりませんが、最後に、現在使用している .editorconfigを掲載しておきます。
+
+みなさま良きコーディングライフを！
+
+```ini
+# .editorconfig について詳しくは、次をご覧ください
+# https://aka.ms/editorconfigdocs
+
+###############################
+# Core EditorConfig Options #
+###############################
+root = true
+# All files
+[*]
+indent_style = space
+indent_size = 4
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = false
+
+# Code files
+[*. {(cs, csx, vb, vbx)}]
+insert_final_newline = true
+
+# XML project files
+[*. {(csproj, vbproj, vcxproj, vcxproj.filters, proj, projitems, shproj)}]
+indent_size = 2
+
+# XML config files
+[*.{(props, targets, ruleset, config, nuspec, resx, vsixmanifest, vsct)}]
+indent_size = 2
+
+# JSON files
+[*.json]
+indent_size = 2
+
+# html, css, js files
+[*.{(html, css, js)} ]
+indent_size = 2
+
+# PowerShell files
+[*.ps1]
+indent_size = 2
+
+# Shell script files
+[*.sh]
+end_of_line = lf indent_size = 2
+
+###############################
+# .NET Coding Conventions
+###############################
+[*.{(cs, vb)}]
+
+# IDE0055: Fix formatting
+dotnet_diagnostic.IDE0055.severity = warning
+
+###############################
+# StyleCop Ignore
+###############################
+# PrefixLocalCallsWithThis
+dotnet_diagnostic.SA1101.severity = none
+
+# UsingDirectivesMustBePlacedCorrectly
+dotnet_diagnostic.SA1200.severity = none
+
+# FieldNamesMustNotBeginWithUnderscore
+dotnet_diagnostic.SA1309.severity = none
+
+# PropertySummaryDocumentationMustMatchAccessors
+dotnet_diagnostic.SA1623.severity = none
+
+# DocumentationTextMustEndWithAPeriod
+dotnet_diagnostic.SA1629.severity = none
+
+# FileMustHaveHeader
+dotnet_diagnostic.SA1633.severity = none
+
+# Constructor Summary Documentation Must Begin With Standard Text
+dotnet_diagnostic.SA1642.severity = none
+
+# Organize usings
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# this. preferences
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+
+# Language keywords vs BCL types preferences
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+
+# Parentheses preferences
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
+
+# Modifier preferences
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_style_readonly_field = true:warning
+
+# Expression-level preferences
+dotnet_style_object_initializer = true:warning
+dotnet_style_collection_initializer = true:warning
+dotnet_style_explicit_tuple_names = true:warning
+dotnet_style_null_propagation = true:warning
+dotnet_style_coalesce_expression = true:warning
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
+dotnet_style_prefer_inferred_tuple_names = true:warning
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
+dotnet_style_prefer_auto_properties = true:warning
+dotnet_style_prefer_conditional_expression_over_assignment = true:warning
+dotnet_style_prefer_conditional_expression_over_return = true:warning
+
+###############################
+# Naming Conventions
+###############################
+# Style Definitions
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# Use PascalCase for constant fields
+dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols = constant_fields
+dotnet_naming_rule.constant_fields_should_be_pascal_case.style = pascal_case_style
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
+dotnet_naming_symbols.constant_fields.required_modifiers = const
+
+###############################
+# C# Coding Conventions
+###############################
+[*.cs]
+
+# var preferences
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:warning
+csharp_style_var_elsewhere = true:silent
+
+# Expression-bodied members
+csharp_style_expression_bodied_methods = true:warning
+csharp_style_expression_bodied_constructors = true:warning
+csharp_style_expression_bodied_operators = true:warning
+csharp_style_expression_bodied_properties = true:warning
+csharp_style_expression_bodied_indexers = true:warning
+csharp_style_expression_bodied_accessors = true:warning
+csharp_style_expression_bodied_lambdas = true:warning
+csharp_style_expression_bodied_local_functions = true:warning
+
+# Pattern matching preferences
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+csharp_style_prefer_switch_expression = true:warning
+
+# Null-checking preferences
+csharp_style_throw_expression = true:warning
+csharp_style_conditional_delegate_call = true:warning
+
+# Modifier preferences
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:warning
+
+# Expression-level preferences
+csharp_prefer_braces = true:warning
+csharp_style_deconstructed_variable_declaration = true:warning
+csharp_prefer_simple_default_expression = true:warning
+csharp_style_pattern_local_over_anonymous_function = true:warning
+csharp_style_inlined_variable_declaration = true:warning
+
+###############################
+# C# Formatting Rules
+###############################
+csharp_using_directive_placement = outside_namespace
+
+# New line preferences
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+# Indentation preferences
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = flush_left
+
+# Space
+preferences csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_around_binary_operators = before_and_after
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_between_method_call_name_and_opening_parenthesis = false
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+
+# Wrapping preferences
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+```
+
+<div class='not-prose'>
+  <div data-vc_mylinkbox_id='887423761'></div>
+</div>
+
+{/* textlint-enable */}

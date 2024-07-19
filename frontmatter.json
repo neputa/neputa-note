@@ -1,0 +1,142 @@
+{
+  "$schema": "https://frontmatter.codes/frontmatter.schema.json",
+  "frontMatter.framework.id": "astro",
+  "frontMatter.preview.host": "http://localhost:4321",
+  "frontMatter.website.host": "https://www.neputa-note.net",
+  "frontMatter.framework.startCommand": "pnpm dev",
+  "frontMatter.preview.pathName": "/",
+  "frontMatter.preview.trailingSlash": true,
+  "frontMatter.content.publicFolder": {
+    "path": "src/assets",
+    "relative": true
+  },
+  "frontMatter.content.pageFolders": [
+    {
+      "title": "Blog",
+      "path": "[[workspace]]/src/content/blog/**/**/*.mdx",
+      "previewPath": "/{{pathToken.4}}/{{pathToken.5}}",
+      "trailingSlash": true,
+      "contentTypes": ["blog"]
+    },
+    {
+      "title": "Page",
+      "path": "[[workspace]]/src/pages/p",
+      "trailingSlash": true,
+      "previewPath": "/p",
+      "contentTypes": ["page"]
+    }
+  ],
+  "frontMatter.taxonomy.contentTypes": [
+    {
+      "name": "page",
+      "pageBundle": false,
+      "fileType": "mdx",
+      "filePrefix": null,
+      "fields": [
+        {
+          "title": "Layout",
+          "name": "layout",
+          "type": "string"
+        },
+        {
+          "title": "Title",
+          "name": "title",
+          "type": "string",
+          "single": true
+        },
+        {
+          "title": "Description",
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "title": "Author",
+          "name": "author",
+          "type": "string"
+        },
+        {
+          "title": "Publishing date",
+          "name": "pubDate",
+          "type": "datetime",
+          "default": "{{now}}",
+          "isPublishDate": true
+        },
+        {
+          "title": "Modified date",
+          "name": "modDate",
+          "type": "datetime",
+          "default": "{{now}}"
+        },
+        {
+          "title": "Draft",
+          "name": "draft",
+          "type": "draft"
+        }
+      ]
+    },
+    {
+      "name": "blog",
+      "pageBundle": false,
+      "template": "[[workspace]]/.frontmatter/templates/template-base.mdx",
+      "fileType": "mdx",
+      "filePrefix": null,
+      "fields": [
+        {
+          "title": "Title",
+          "name": "title",
+          "type": "string",
+          "single": true
+        },
+        {
+          "title": "Description",
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "title": "Publishing date",
+          "name": "pubDate",
+          "type": "datetime",
+          "default": "{{now}}",
+          "isPublishDate": true
+        },
+        {
+          "title": "Modified date",
+          "name": "modDate",
+          "type": "datetime",
+          "default": "{{now}}",
+          "isModifiedDate": true
+        },
+        {
+          "title": "Content preview",
+          "name": "heroImage",
+          "type": "image",
+          "default": "../../../../assets/images/blog/default.webp",
+          "isPreviewImage": true
+        },
+        {
+          "title": "Category",
+          "name": "category",
+          "type": "categories",
+          "multiple": false
+        },
+        {
+          "title": "Tags",
+          "name": "tags",
+          "type": "tags"
+        },
+        {
+          "title": "Draft",
+          "name": "draft",
+          "type": "draft"
+        }
+      ]
+    }
+  ],
+  "frontMatter.content.snippets": {
+    "Youtubeタグ": {
+      "description": "",
+      "body": "<YouTube id='XXXXXXXXXXX' />",
+      "fields": []
+    }
+  }
+}

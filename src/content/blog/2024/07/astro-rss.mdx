@@ -1,0 +1,305 @@
+---
+title: Astroのrssフィードに記事の本文を追加する
+description: 「@astrojs/rss」によるrss.xmlにBlog記事の本文を追加する。MDXファイルを対象に、markdownのパース、埋め込んだcomponentタグやcode blockのサニタイズ処理を行う。一連の手順を備忘録としてまとめる。
+pubDate: 2024-07-12T14:17:35.774Z
+modDate: 2024-07-12T14:17:35.774Z
+heroImage: ../../../../assets/images/blog/astro-rss.webp
+category:
+  - DEV
+tags:
+  - Astro
+  - dev
+draft: false
+keywords:
+  - Astro
+  - RSS
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事概要
+
+- 先日のBloggerからAstroへ移行した記事の別途詳細
+
+**※参考 - Blog移行記事**
+
+<BlogCard
+  title='BlogをBloggerからAstroへ移行した'
+  description='10年以上の期間お世話になったGoogle Bloggerに別れを告げ、この度AstroでBlogサイトを構築し移行した。Astroは静的サイトを手軽に開発できる軽量フレームワーク。無料のテンプレートをベースにカスタマイズを行った。それなりの作業ボリュームとなったので、詳細は別記事に分け、今回は移行作業全体をまとめる。'
+  url='https://www.neputa-note.net/2024/07/migrated-blogger-to-astro/'
+  domain='www.neputa-note.net'
+/>
+
+### 目的
+
+- 「@astrojs/rss」で出力するrss.xmlに、Blog記事の本文を追加する
+- Blog記事の本文は、全文を出力する
+- Blog記事はMDXで記述している
+- RSSリーダーで読みやすい形式で出力するため以下を考慮する
+  - markdwon記法をパーサーでHTMLに変換する
+  - XSSなどセキュリティリスクを回避するためサニタイズ処理をする
+- 一連の実装についてまとめる
+
+## 用語説明
+
+### Astro とは？
+
+> Astroは、ブログやマーケティング、eコマースなど、コンテンツ駆動のウェブサイトを作成するためのウェブフレームワークです。Astroは、新しいフロントエンドアーキテクチャを開拓し、他のフレームワークと比較してJavaScriptのオーバーヘッドと複雑さを低減することで知られています。高速でSEOに優れたウェブサイトが必要なら、Astroが最適です。 <cite>-- [Astro公式Docs](https://docs.astro.build/ja/concepts/why-astro/) より引用</cite>
+
+- 参考記事
+  - [Webフレームワーク「Astro」とは？開発初心者からベテランまで注目する理由](https://codezine.jp/article/detail/17883)
+
+### MDXとは？
+
+> MDXでは、マークダウン・コンテンツでJSXを使用することができます。インタラクティブなチャートやアラートなどのコンポーネントをインポートして、コンテンツに埋め込むことができます。これにより、コンポーネントを使った長文のコンテンツ作成が簡単になります。 <cite>-- [What is MDX? | MDX](https://MDXjs.com/docs/what-is-MDX/)より引用</cite>
+
+### markdown-itとは？
+
+- markdown記法のテキストをHTMLに変換するパーサー
+- [markdown-it/markdown-it](https://github.com/markdown-it/markdown-it)
+
+### sanitize-htmlとは？
+
+- XSS等の攻撃対象となりうるhtmlタグや属性をエスケープや削除する
+- [sanitize-html - npm](https://www.npmjs.com/package/sanitize-html)
+
+## 作業環境
+
+- OS - Ubuntu-22.04LTS on WSL2
+- Node.js - v20.14.0
+- pnpm - v9.4.0
+- Astro - v4.11.3
+
+## 作業概要
+
+1. 公式Docsを参考にrss.xml.tsを作成する
+1. markdown-itとsanitize-htmlをインストールする
+1. MDX→HTML変換モジュールを作成する
+1. 上記モジュールをrss.xml.tsに組み込む
+
+## 作業詳細
+
+### 標準的なrss.xml.tsを作成する
+
+- [公式Doc](https://docs.astro.build/ja/guides/rss/)のサンプルに沿って、rss.xml.tsを作成する
+- 公式サンプルと異なるのは以下。
+  - サイト情報を自前のconfigより取得
+  - link生成関数
+  - header（Content-Type）を追加
+  - 加工無しの本文 post.body
+
+```typescript rss.xml.ts
+import { getRssString } from '@astrojs/rss'
+import { siteConfig } from '@/site-config'
+import { getPermalink, getPosts } from '@/utils'
+
+export const GET = async () => {
+  const posts = await getPosts()
+
+  const rss = await getRssString({
+    title: siteConfig.title,
+    description: siteConfig.description,
+    site: import.meta.env.SITE,
+
+    items: posts.map((post, index) => ({
+      link: getPermalink(post.slug, 'post'),
+      title: post.data.title,
+      description: `${post.data.description}...`,
+      pubDate: post.data.pubDate,
+      content: post.body
+    }))
+  })
+
+  return new Response(rss, {
+    headers: {
+      'Content-Type': 'application/xml'
+    }
+  })
+}
+```
+
+### markdown-itとsanitize-htmlをインストールする
+
+1. markdown-itとsanitize-htmlパッケージをプロジェクトにインストール
+
+```bash install
+$ npm install -D sanitize-html markdown-it
+```
+
+2. TypeScriptの人は@typesも
+
+```bash
+npm install -D @types/markdown-it、@types/sanitize-html
+```
+
+### MDX→HTML変換モジュールを作成する
+
+<Alert type='info' content='ここは作業ボリュームが多いため、章に分けて記述する。' />
+
+#### 要件
+
+- import文を削除する（frontmatter直後のみ）
+- componentなどMDXに埋め込んだHTMLタグはsanitizeした上でそのまま出力する
+
+#### 使用モジュール
+
+- sanitize-html
+- markdown-it
+
+#### 処理ステップ
+
+1. sanitizeOptions定義作成
+
+- imgタグとalt属性、ankerのhref属性を有効化
+- [sanitize-html - default-options](https://github.com/apostrophecms/sanitize-html?tab=readme-ov-file#default-options)
+
+2. frontmatter直下の**import文のみ**削除
+
+- コンテンツとして書かれたimport文を削除しないため
+
+3. 最初のサニタイズ処理を実行
+
+- 本文はまだMDX形式
+- ターゲットはcode blockやcomponent
+
+4. HTML特殊文字にパースされた山カッコを戻す
+
+- ターゲットは最初のサニタイズで削除されずにHTMLパースされた箇所
+- これを再度HTML化する
+
+5. textlintのignoreコメントを削除
+
+- MDX上でtextlintの処理を避けたい箇所に使用しているもの
+
+6. markdown-itでHTMLに変換
+7. 最終的なサニタイズ処理を実行
+
+#### サニタイズを2度行う理由
+
+- パース→サニタイズを通常どおり行うと、MDXに埋め込まれているHTMLタグが文字列として出力される
+- code blockに書かれたコードはサニタイズが必要
+- 以上を考慮し、実装する方法として以下の処理ステップとした
+  1. MDXのままサニタイズ
+  1. HTMLのまま出力したい箇所をリバース
+  1. markdownパース
+  1. 最終サニタイズ
+
+#### 完成したモジュール
+
+```typescript mdxUtils.ts
+import sanitizeHtml from 'sanitize-html'
+import MarkdownIt from 'markdown-it'
+const parser = new MarkdownIt({ html: true })
+
+/* Sanitize Options
+ * imgタグとalt属性、aタグのhrf属性を有効
+ */
+const sanitizeOptions = {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
+  allowedAttributes: {
+    ...sanitizeHtml.defaults.allowedAttributes,
+    img: ['alt'],
+    a: ['href']
+  }
+}
+
+/**
+ * Description:
+ * MDX本文テキストをHTMLに変換する
+ * markdownパース、htmlのsanitizeを行う
+ * @param {string} mdxContent
+ * @returns {string}
+ */
+export function mdxToHtml(mdxContent: string): string {
+  // import文を削除
+  const importRemoved = removeInitialImports(mdxContent)
+
+  // 1. componentをターゲットにsanitizeHtml
+  // 2. 残ったHTMLパース済みのタグをreplaceで戻す
+  // 3. textlintのignore文をreplaceで削除
+  const initialSanitizedHtml = sanitizeHtml(importRemoved.toString(), sanitizeOptions)
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replaceAll('{/* textlint-disable */}', '')
+
+  // HTMLへ変換
+  const htmlContent = parser.render(initialSanitizedHtml)
+
+  // 最終的なsanitize処理
+  return sanitizeHtml(htmlContent, sanitizeOptions)
+}
+
+/**
+ * Description MDX本文テキストの最初（frontmatter直後）のimport文を削除する
+ * @param {string} content - MDX本文テキスト
+ * @returns {string}
+ */
+export function removeInitialImports(content: string): string {
+  const lines = content.split('\n')
+
+  // 2行目がimport文でない場合、処理を行わない
+  if (!lines[1].trim().startsWith('import')) {
+    console.log('No imports to remove.')
+    return content
+  }
+
+  let i = 1
+  while (i < lines.length) {
+    const line = lines[i].trim()
+
+    // import文ではない行が現れたらbreak
+    if (line.startsWith('import')) {
+      lines.splice(i, 1)
+    } else {
+      break
+    }
+  }
+
+  // 改行文字で再結合
+  const modifiedContent = lines.join('\n')
+
+  return modifiedContent
+}
+```
+
+### 上記モジュールをrss.xml.tsに組み込む
+
+- mdxUtils.tsのモジュールをimportする
+  - tsconfigでpathsを定義しているので適宜修正を
+- contentにmdxToHtml関数で処理した値を設定
+
+```typescript rss.xml.ts
+import { getRssString } from '@astrojs/rss'
+import { siteConfig } from '@/site-config'
+import { getPermalink, getPosts } from '@/utils'// [!code --]
+import { getPermalink, getPosts, mdxToHtml } from '@/utils'// [!code ++]
+
+export const GET = async () => {
+  const posts = await getPosts()
+
+  const rss = await getRssString({
+    title: siteConfig.title,
+    description: siteConfig.description,
+    site: import.meta.env.SITE,
+
+    items: posts.map((post, index) => ({
+      link: getPermalink(post.slug, 'post'),
+      title: post.data.title,
+      description: `${post.data.description}...`,
+      pubDate: post.data.pubDate,
+      content: post.body// [!code --]
+      content: mdxToHtml(post.body)// [!code ++]
+    }))
+  })
+
+  return new Response(rss, {
+    headers: {
+      'Content-Type': 'application/xml'
+    }
+  })
+}
+```
+
+以上

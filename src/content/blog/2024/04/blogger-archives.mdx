@@ -1,0 +1,108 @@
+---
+title: Bloggerの投稿記事のアーカイブ一覧ページを作成する
+description: 記事概要 これまで、すべての投稿を一覧表示するページを都度feedを数回取得するJavaScriptで行っていた。表示速度が遅いうえ、記事増加に合わせてfeedを呼びだすスクリプトを追加する必要がありメンテもめんどい。スマートな方法がないかと思っていたところ、とても美しい仕事をされている記事を発見。
+pubDate: '2024-04-05 23:35:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/default.webp'
+category:
+  - DEV
+tags: ['blogger', 'blog']
+draft: false
+keywords: []
+type: blog
+---
+
+## 記事概要
+
+これまで、すべての投稿を一覧表示するページを都度feedを数回取得するJavaScriptで行っていた。
+
+表示速度が遅いうえ、記事増加に合わせてfeedを呼びだすスクリプトを追加する必要がありメンテもめんどい。
+
+スマートな方法がないかと思っていたところ、とても美しい仕事をされている記事を発見。
+
+[Bloggerのサイトマップ（投稿一覧）を自動作成する | バグ取りの日々](https://www.bugbugnow.net/2018/07/blogger.html)
+
+本ブログでも行ってみた。
+
+取り急ぎ作業メモを公開し、後日適宜スクショを追加する。（未定）
+
+## 作業概要
+
+1.  Googleスプレッドシート、Bloggerの静的準備を作成しておく
+2.  Google Cloud APIでクライアントID、クライアントシークレット、リダイレクトURI、スコープを準備
+3.  ブラウザで認証を行いcodeを取得
+4.  以上設定値を使用しPostmanリフレッシュトークンを取得
+5.  以上取得した値を使用しGoogle Apps Script（GAS）を実行
+6.  GASのスクリプトをトリガーで定期実行
+
+## 作業詳細 ### Blogger APIの使用準備
+
+1.  Google Cloudにプロジェクトを作成
+2.  APIとサービス &gt; ライブラリからBlogger APIを追加（有効にする）
+3.  OAuth同意画面を以下のとおり作成（後でトークンを取得するために使用）
+    - ユーザーの種類は外部（組織アカウント以外は外部一択）
+    - 必須項目（アプリ名、ユーザーサポートメール、デベロッパーの連絡先情報）に任意の値を設定（自分しか使わないのでとくに気にせず）
+    - 非機密のスコープにBlogger APIの2種（無印とreadonly）を追加
+    - 以上を除いて空白でよし
+4.  認証情報に以下を追加
+    - 認証情報を作成 &gt; APIキー
+      - API Keyは後に使用
+      - セキュリティを考慮し、APIの制限でBlogger APIを選択
+    - 認証情報を作成 &gt; OAuthクライアントID
+      - 名前は任意の値
+      - リダイレクトURIも任意（https://www.google.co.jp/など）
+      - 生成されたクライアントIDとクライアント シークレットを後に使用（ダウンロードアイコンで再表示可）
+
+### OAuth同意画面でcodeを取得
+
+1.  前作業で取得したクライアントID、リダイレクトURI、スコープを使用して、同意画面でBloggerのアカウントで認証を行う
+    - URLはこんな感じ
+      - `httpsp://accounts.google.com/o/oauth2/auth?response_type=code&client_id=[クライアントID]&redirect_uri=[リダイレクトURI]&scope=[スコープ1]%20[スコープ2]&access_type=offline&approval_prompt=force`
+    - スコープの値（URL）はここで確認
+      - Google APIのOAuth 2.0スコープ<br /> `https://developers.google.com/identity/protocols/oauth2/scopes?hl=ja`
+    - readonlyは別になくてもよい。
+2.  認証後のリダイレクト先が表示されたら、URLのcodeパラメータの値をキープ
+
+### Postmanでリフレッシュトークンを取得
+
+1.  新規タブで以下のとおり設定
+    - URL : POST `https://www.googleapis.com/oauth2/v4/token`
+    - Headers
+      - Content-Type : application/x-www-form-urlencoded
+    - Body
+      - code : OAuth同意画面で取得した値
+      - client_id : Google Cloud APIで取得した値
+      - client_secret : Google Cloud APIで取得した値
+      - redirect_uri : Google Cloud APIで設定した値
+      - grant_type : authorization_code
+      - access_type : offline
+2.  Sendして帰ってきたjsonのrefresh_tokenの値をキープ
+
+### Googleスプレッドシートの準備
+
+1.  任意の名前のシートを作成し、URLからシートIDを取得
+2.  シートを2つ用意し、名前をそれぞれposts、pagesにしておく
+
+### Blogger静的ページの準備
+
+1.  新規ページを作成し、編集状態の末尾のセクションにあるページIDを取得
+
+### Google Apps Scriptの準備
+
+1.  以下3つのgsファイルをGASに保存
+    - sitemap.gs（メインメソッドはここのsitemap()）
+    - posts.gs
+    - pages.gs
+2.  各ファイルのソースはそれぞれ以下を参照
+    - sitemap.gs → [Bloggerのサイトマップ（投稿一覧）を自動作成する](https://www.bugbugnow.net/2018/07/blogger.html)
+    - posts.gs → [Bloggerの投稿一覧をGASで自動記入する](https://www.bugbugnow.net/2018/02/googleappsscriptgas.html)
+    - pages.gs → [Bloggerのページ一覧をGASで自動記入する](https://www.bugbugnow.net/2018/06/bloggergas.html)
+3.  各ファイルの最初にある変数にこれまで取得した値を設定
+4.  本家のURLを自分のブログのものに変更
+5.  sitemap.gsのラベル数を設定する変数objが未定義エラーとなるので適宜処理を追加
+6.  sitemapメソッドをトリガー登録
+
+## 参考サイト
+
+- [Bloggerのサイトマップ（投稿一覧）を自動作成する | バグ取りの日々](https://www.bugbugnow.net/2018/07/blogger.html)
+- [Google APIを使用するためにGoogle OAuth認証をしようよ | ひま缶](https://himakan.net/websites/how_to_google_oauth)

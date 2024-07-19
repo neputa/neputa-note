@@ -1,0 +1,177 @@
+---
+title: Ubuntu22.04にnode.jsとnpmの最新バージョンをインストール
+description: 記事概要 Ubuntu22.04LTS on WSL2の環境に、Node.js、npmをインストールする。UbuntuリポジトリのNode.jsはバージョンが古い。latestバージョンをインストールする手順をまとめる。最後に、個人的な当初のNode.jsインストールの目的、PurgeCSS導入手順を備忘録として残す。
+pubDate: 2024-04-06 22:30:00
+modDate: 2024-07-11T08:11:56.955Z
+heroImage: ../../../../assets/images/blog/ubuntu-nodejs.webp
+category:
+  - DEV
+tags:
+  - Ubuntu
+  - Node.js
+draft: false
+keywords:
+  - node.js
+  - ubuntu
+  - npm
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 記事概要
+
+- Ubuntu22.04LTS on WSL2の環境に、Node.js、npmをインストールする
+- UbuntuリポジトリのNode.jsはバージョンが古いため、latestバージョンをインストールする手順をまとめる
+- 最後に、個人的な当初のNode.jsインストールの目的、PurgeCSS導入手順を備忘録として残す
+
+## 作業環境
+
+- OS - Ubuntu 22.04LTS on WSL2
+- Node.js - v20.12.1
+- npm - v10.5.0
+
+## Node.js npm インストール作業詳細
+
+### 参考サイト
+
+- 主に以下ドキュメントに従って作業を行う。
+  - [WSL 2 上で Node.jis を設定する | Microsoft Learn](https://learn.microsoft.com/ja-jp/windows/dev-environment/javascript/nodejs-on-wsl)
+  - [nvm-sh/nvm: Node Version Manager - POSIX-compliant bash script to manage multiple active node.js versions](https://github.com/nvm-sh/nvm)
+
+### 事前作業
+
+- 現時点（2024/04/06）における[最新のnode.jsバージョン](https://nodejs.org/en)は「v20.12.1」
+- 一方Ubuntuのリポジトリは
+
+```bash ubuntu-repository
+$ sudo apt show nodejs
+Package: nodejs
+Version: 12.22.9~dfsg-1ubuntu3.4
+Priority: extra
+Section: universe/web
+Origin: Ubuntu
+```
+
+古すぎる。
+
+- このことはMicrosoftのドキュメントにも記載されていた。
+
+> バージョン マネージャーをインストールする前に、ご利用のオペレーティング システムから Node.js または npm の既存のインストールを削除することをお勧めします。インストールの種類が異なると、奇妙で混乱を招く競合が発生する可能性があるためです。 たとえば、Ubuntu の apt-get コマンドを使用してインストールできる Node のバージョンは、現在期限切れになっています。 以前のインストールの削除に関するヘルプについては、[ubuntu から nodejs を削除する方法](https://askubuntu.com/questions/786015/how-to-remove-nodejs-from-ubuntu-16-04)に関するページを参照してください。 <cite class='text-sm text-right block mt-2'>-- [WSL 2 上で Node.jis を設定する | Microsoft Learn](https://learn.microsoft.com/ja-jp/windows/dev-environment/javascript/nodejs-on-wsl)</cite>
+
+- すでにubuntuのリポジトリでnode.jsのインストールを試みていたりした場合は削除しておく
+
+```bash bash
+$ sudo apt purge nodejs
+$ sudo apt autoremove
+```
+
+### nvmをインストール
+
+- 以下コマンドでnvmをダウンロード＆インストールする
+
+```bash
+$ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+```
+
+- wsl2を再起動
+  - Windows Terminalであれば新しいタブを開き、既存を閉じる
+- 次のコマンドを実行し「npm」が返ってくることを確認する
+  - ない場合はインストールできていないのでログを確認
+
+```bash bash
+$ command -v nvm
+nvm
+```
+
+### node.jsをインストール
+
+- LTS（Long Term Support）の最新バージョンを以下コマンドでインストール
+
+```bash
+$ nvm install --lts
+Installing latest LTS version.
+Downloading and installing node v20.12.1...
+Downloading https://nodejs.org/dist/v20.12.1/node-v20.12.1-linux-x64.tar.xz...
+################################################################################################ 100.0%
+Computing checksum with sha256sum
+Checksums matched!
+Now using node v20.12.1 (npm v10.5.0)
+Creating default alias: default -> lts/* (-> v20.12.1)
+```
+
+- インストールされたnode.jsのバージョンを確認
+
+```bash
+$ nvm ls
+      -> v20.12.1
+      system
+      default -> lts/* (-> v20.12.1)
+```
+
+同時にインストールされたnpmのバージョンを確認
+
+```bash
+$ npm -v
+10.5.0
+```
+
+本記事の主目的は以上。
+
+以降は個人的な追加作業の備忘録を記す。
+
+### 追加作業-1: sudo権限でも利用できるようシンボリックリンクを貼る
+
+- 以下記事を参考に作業を行う
+
+<BlogCard
+  title='【Linux】シンボリックリンクの作成,確認,変更,削除について解説｜YesNoCode'
+  description='Linuxのシンボリックリンクの使い方がわからない・・・。そんな方向けに本記事ではシンボリックリンクの作成から確認・変更・削除方法まで簡潔に解説しております。'
+  url='https://engineer-life.dev/linux-symblic-link/'
+  domain='engineer-life.dev'
+/>
+
+node、npm、n、それぞれのパスを確認する。
+
+```bash
+$ which node
+/home/username/.nvm/versions/node/v21.7.2/bin/node
+$ which npm
+/home/username/.nvm/versions/node/v21.7.2/bin/npm
+$ which n
+/home/username/.nvm/versions/node/v21.7.2/bin/n
+```
+
+それぞれのパスにシンボリックリンクを貼る。（失敗した場合の変更、削除は先ほどのサイトで確認）
+
+```bash
+$ sudo ln -s /home/username/.nvm/versions/node/v21.7.2/bin/node /usr/bin/node
+$ sudo ln -s /home/username/.nvm/versions/node/v21.7.2/bin/npm /usr/bin/npm
+$ sudo ln -s /home/username/.nvm/versions/node/v21.7.2/bin/n /usr/bin/n
+```
+
+### 追加作業-2: PurgeCSSをインストール
+
+以下コマンドでnode.jsとnpmのアップデートを行う。
+
+```bash
+$ sudo npm install -g n
+
+added 1 package in 1s
+$ sudo n stable
+    copying : node/20.12.1
+    installed : v20.12.1 (with npm 10.5.0)
+```
+
+PurgeCSSのインストール
+
+```bash
+$ npm install -g purgecss
+```
+
+## 参考サイト
+
+- [WSL 2 上で Node.jis を設定する | Microsoft Learn](https://learn.microsoft.com/ja-jp/windows/dev-environment/javascript/nodejs-on-wsl)
+- [nvm-sh/nvm: Node Version Manager](https://github.com/nvm-sh/nvm)
+- [【Linux】シンボリックリンクの作成,確認,変更,削除について解説｜YesNoCode](https://engineer-life.dev/linux-symblic-link/)
+- [Getting Started | PurgeCSS](https://purgecss.com/getting-started.html)

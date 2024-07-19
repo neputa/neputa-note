@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1000"
+   height="500"
+   viewBox="0 0 264.58333 132.29167"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   sodipodi:docname="vscode-frontmatter-colors.svg"
+   inkscape:export-filename="vscode-frontmatter-colors.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#eeeeee"
+     borderopacity="0"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="true"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="px"
+     showborder="false"
+     borderlayer="false"
+     showguides="true"
+     inkscape:zoom="0.90583333"
+     inkscape:cx="456.48574"
+     inkscape:cy="231.27875"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <linearGradient
+       id="linearGradient23">
+      <stop
+         style="stop-color:#0066b8;stop-opacity:1;"
+         offset="0.09612403"
+         id="stop22" />
+      <stop
+         style="stop-color:#077ead;stop-opacity:0.04453441;"
+         offset="1"
+         id="stop23" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3">
+      <stop
+         style="stop-color:#119ba2;stop-opacity:1;"
+         offset="0.18449612"
+         id="stop19" />
+      <stop
+         style="stop-color:#077ead;stop-opacity:0.03643725;"
+         offset="1"
+         id="stop20" />
+    </linearGradient>
+  </defs>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Layer 2"
+     sodipodi:insensitive="true">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-linecap:round;stroke-linejoin:round"
+       id="rect1"
+       width="264.58334"
+       height="132.29167"
+       x="0"
+       y="0" />
+  </g>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#0066b8;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.497321;stroke-linecap:round;stroke-linejoin:round"
+       id="rect3-6"
+       width="264.54877"
+       height="66.145836"
+       x="3.0513589e-05"
+       y="66.145836" />
+    <rect
+       style="fill:#119ba2;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.497321;stroke-linecap:round;stroke-linejoin:round"
+       id="rect3-2-9"
+       width="264.54877"
+       height="66.145836"
+       x="-264.54877"
+       y="-66.145836"
+       transform="scale(-1)" />
+    <text
+       xml:space="preserve"
+       style="font-weight:bold;font-size:22.5778px;line-height:1.8;font-family:'M PLUS 1p';-inkscape-font-specification:'M PLUS 1p Bold';text-align:center;text-decoration-color:#000000;letter-spacing:0px;word-spacing:0px;text-anchor:middle;white-space:pre;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.264583;stroke-linecap:round;stroke-linejoin:round"
+       x="131.93573"
+       y="41.200928"
+       id="text29"><tspan
+         sodipodi:role="line"
+         id="tspan29"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:25.4px;font-family:Sans;-inkscape-font-specification:'Sans, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="131.93573"
+         y="41.200928">Front Matter CMS</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-weight:bold;font-size:22.5778px;line-height:1.8;font-family:'M PLUS 1p';-inkscape-font-specification:'M PLUS 1p Bold';text-align:center;text-decoration-color:#000000;letter-spacing:0px;word-spacing:0px;text-anchor:middle;white-space:pre;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.264583;stroke-linecap:round;stroke-linejoin:round"
+       x="131.39812"
+       y="108.15955"
+       id="text29-1"><tspan
+         sodipodi:role="line"
+         id="tspan29-7"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:25.4px;font-family:Sans;-inkscape-font-specification:'Sans, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="131.39812"
+         y="108.15955">Visual Studio Code</tspan></text>
+    <path
+       id="text29-1-6"
+       style="font-weight:bold;font-size:38.93px;line-height:1.8;font-family:Sans;-inkscape-font-specification:'Sans, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;white-space:pre;fill:#0066b8;fill-opacity:1;stroke-width:0.40552;stroke-linecap:round;stroke-linejoin:round"
+       d="m 128.98283,51.858336 c -1.60911,0 -3.02386,0.259697 -4.24367,0.778763 -1.2198,0.519067 -2.18022,1.258714 -2.88096,2.218987 -0.67479,0.960272 -1.01182,2.102528 -1.01182,3.426147 0,1.115992 0.19464,2.16707 0.58394,3.153296 0.41525,0.986226 1.12877,2.062912 2.14095,3.23081 -0.79637,0.456936 -1.50706,0.950322 -2.13268,1.479497 h 10.32443 l -0.5612,-0.545187 c 1.58315,-0.908365 2.90673,-1.972247 3.97081,-3.192053 1.06409,-1.219805 1.59577,-2.725225 1.59577,-4.516003 0,-1.271712 -0.33704,-2.361719 -1.01182,-3.270085 -0.67479,-0.908366 -1.59628,-1.59628 -2.76418,-2.06344 -1.16789,-0.467159 -2.50428,-0.700732 -4.00957,-0.700732 z m -0.0393,4.477246 c 0.59692,0 1.15525,0.168519 1.67431,0.505912 0.51907,0.337393 0.77825,0.895717 0.77825,1.674316 0,0.7786 -0.29811,1.465998 -0.89504,2.062924 -0.57097,0.596926 -1.40179,1.194179 -2.49183,1.791105 -0.54502,-0.62288 -0.98604,-1.232937 -1.32344,-1.829863 -0.31144,-0.596926 -0.46715,-1.219787 -0.46715,-1.868619 0,-0.908366 0.2853,-1.518423 0.85628,-1.829863 0.59692,-0.337393 1.21978,-0.505912 1.86862,-0.505912 z m 10.00507,8.797912 c -0.0888,0.337376 -0.188,0.674966 -0.29197,1.012342 h 6.02857 c 0.10771,-0.342346 0.20885,-0.6808 0.29766,-1.012342 z" />
+    <path
+       id="text29-1-6-5"
+       style="font-weight:bold;font-size:38.93px;line-height:1.8;font-family:Sans;-inkscape-font-specification:'Sans, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;white-space:pre;fill:#119ba2;fill-opacity:1;stroke-width:0.40552;stroke-linecap:round;stroke-linejoin:round"
+       d="m 121.43859,66.145836 c -0.61809,0.522799 -1.15313,1.080491 -1.60456,1.673799 -0.90836,1.167899 -1.3627,2.738373 -1.3627,4.710824 0,2.361751 0.88256,4.269263 2.64738,5.722648 1.79078,1.453385 4.26942,2.180229 7.43572,2.180229 1.60911,0 3.0884,-0.220769 4.43797,-0.661975 1.37553,-0.46716 2.63406,-1.090021 3.776,-1.86862 l 2.18023,2.140955 h 7.16339 l -5.72317,-5.566586 c 1.1679,-1.453385 2.12832,-3.011054 2.88096,-4.672066 0.58096,-1.282107 1.05095,-2.500806 1.41542,-3.659208 h -6.02857 c -0.19996,0.64885 -0.42497,1.297801 -0.6811,1.946651 -0.3893,0.960272 -0.84364,1.881243 -1.3627,2.763656 l -4.84984,-4.710307 z m 5.51956,1.985408 6.30659,6.267835 c -0.59693,0.363346 -1.25872,0.648652 -1.98541,0.856278 -0.72669,0.207627 -1.50527,0.311609 -2.33577,0.311609 -1.24576,0 -2.28352,-0.31143 -3.11403,-0.93431 -0.8305,-0.648832 -1.24591,-1.531391 -1.24591,-2.647383 0,-0.804553 0.20744,-1.505272 0.6227,-2.102198 0.4412,-0.622879 1.02513,-1.206811 1.75183,-1.751831 z" />
+  </g>
+  <inkscape:templateinfo>
+    <inkscape:name>default</inkscape:name>
+    <inkscape:date>2024-04-11</inkscape:date>
+  </inkscape:templateinfo>
+</svg>

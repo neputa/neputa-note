@@ -1,0 +1,203 @@
+---
+title: 入力モードのデフォルトを「ひらがな」にする【Ubuntu】
+description: 中古ノートPCにUbuntu 20.04LTSをインストールした後の作業をまとめた。Ubuntu 20.04LTSの日本語Remix版には日本語IMEとして「mozc」がプリインストールされていた。しかし、いざ日本語を入力しようとmozcをオンにすると、mozcの入力モードは「直接入力」がデフォルトで割り当てられている
+pubDate: '2021-10-05 07:00:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/3558960842902131456-ubuntu-logo.webp'
+category:
+  - DEV
+tags: ['Ubuntu', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 本記事の背景
+
+中古ノートPCにUbuntu 20.04LTS（日本語Remix版）をインストールした後の作業をまとめた。
+
+<BlogCard
+  title='「Ubuntu 20.04LTS」を中古ノートPC（Dell Latitude 3380）にインストールする'
+  description='この記事の概要 中古のモバイルノートPCを入手し「Linux OS」の「Ubuntu」をインストールした経緯及び手順をまとめたもの。インストール対象機種 DELL LATITUDE 3380 2015年モデル (中古 25,000円) インストールするOS  Ubuntu 20.04.1 LTS（日'
+  url='https://www.neputa-note.net/2021/10/blogpost01/'
+  domain='www.neputa-note.net'
+/>
+
+Ubuntuをインストールした後に行ったことをまとめようと考えていた。最初に手を付けたIMEまわりの作業量が想定以上に多かったため、別記事にするとした。
+
+IME関連で行った主な作業は下記の2つ。
+
+1.  mozcのデフォルト入力モードを「直接入力」から「ひらがな」に変更する（今回記事）
+2.  入力切り替えのショートカットキーを割り当てる（次回記事）
+
+Ubuntu 20.04LTSの日本語Remix版には日本語IMEとして「mozc」がプリインストールされていた。
+
+しかし、いざ日本語を入力しようとmozcをオンにすると、mozcの入力モードは「直接入力」がデフォルトで割り当てられている。このためUbuntuにログインするたび、マウスで「直接入力」から「ひらがな」に切り替える手間が発生する。
+
+これを解消するために必要な手順を調べたので備忘録としてまとめる。
+
+## 今回作業の目的
+
+- Ubuntuにログインしmozcをオンにしたとき、入力モードがデフォルトで「ひらがな」を選択した状態にする。
+- 再ログインした後もこの状態が維持されていることを確認する。
+- 次の作業で「入力切り替えのショートカットキー割り当て」を行うとき、「fcitx」の機能を使いたい。よって今回作業は「fcitx-mozc」で行う。
+
+## システムおよびデバイス環境
+
+### OS
+
+Ubuntu 20.04LTS（日本語Remix版）
+
+### IME
+
+fcitx-mozc
+
+### エディタ（ソースファイル修正用）
+
+vi
+
+## 作業概要
+
+- 今回の問題である「入力モード」のデフォルト値は、ソースレベルで修正が必要である。
+- よってmozcのソースファイルを入手し、修正、ビルド、インストールを行う。
+- いくつか見かけた記事の「apt build-dep」をそのまま実施すると「パッケージが見つからない」エラーが発生する。
+- これの対処として、最初にaptのsources.listファイルを修正する。（root権限）
+
+## 作業詳細
+
+### apt sources.list ファイルの修正
+
+ターミナルを起動し、root権限にスイッチする
+
+```bash
+$ sudo su -
+```
+
+aptディレクトリに移動
+
+```bash
+$ cd /etc/apt
+```
+
+sources.listファイルのバックアップ
+
+```bash
+$ cp -p sources.list sources.list.$(/bin/date +"%Y%m%d")
+```
+
+sources.listファイル内のdeb-srcのコメントアウトを解除
+
+```bash
+$ sed -i -e "s/# deb-src/deb-src/" sources.list
+```
+
+root権限から通常ユーザに戻る
+
+```bash
+$ exit
+```
+
+### 必要パッケージのインストール
+
+build-essential devscriptsをインストール
+
+```bash
+$ sudo apt update
+$ sudo apt upgrade -y
+$ sudo apt install build-essential devscripts -y
+```
+
+fcitx-mozをビルドする時に依存するパッケージをインストール
+
+```bash
+$ sudo apt build-dep fcitx-mozc -y
+```
+
+### fcitx-mozのソース修正
+
+fcitx-mozcのソースをダウンロード
+
+```bash
+$ sudo apt source fcitx-mozc
+```
+
+viでソースファイルを開く
+
+```bash
+$ vi $(find ./ -type f -name property_handler.cc)
+```
+
+83行目のfalseをtrueに修正する
+
+```vim
+const bool kActivatedOnLaunch = false;
+```
+
+これを
+
+```vim
+const bool kActivatedOnLaunch = true;
+```
+
+にする。
+
+保存してソースファイルを閉じる（viのコマンド）
+
+```vim
+:wq
+```
+
+### fcitxのビルド～インストール
+
+修正したfcitx-mozcをビルドする
+
+```bash
+$ cd mozc*/
+$ dpkg-buildpackage -us -uc -b
+```
+
+fcitx-mozcをインストールする
+
+```bash
+$ sudo dpkg -i ../mozc*.deb ../ibus-mozc*.deb
+```
+
+再ログインする
+
+### IMシステムを「ibus」から「fcitx」に変更
+
+Ubuntuにログインし、画面左のDockから、またはコマンド「gnome-control-center」で設定アプリを起動する。
+
+左側の「地域と言語」を選択し、「インストールされている言語の管理」をクリックする
+
+![設定スクリーンショット01](@/images/blog/2451751403680150271-ibus-fcitx_switch-01.webp)
+
+言語サポートウインドウが立ち上がるので、「キーボード入力に使うIMシステム」を「ibus」から「fcitx」に変更し閉じる。
+
+![設定スクリーンショット02](@/images/blog/2451751403680150271-ibus-fcitx_switch-02.webp)
+
+再ログインし、mozcに入力を切り替えて日本語が入力できることを確認する。
+
+## 終わりに
+
+どうにか解決できたが、日本語Remixに「mozc」を含めて配布する以上、普及の影響など考慮するとぜひ対処していただきたい問題だと思う。
+
+次回は入力切り替えのショートカットキーを設定する作業についてまとめる。
+
+<BlogCard
+  title='Mozcの日本語入力切り換えショートカットキーを設定する（トグル無）【Ubuntu・US配列・Fcitx】'
+  description='Ubuntu OSにおけるUS配列キーボードの日本語入力切り替えショートカットキーをカスタマイズする 方法をまとめています。切り替えはトグル式ではなく、IMEのオン・オフそれぞれにショートカットキーを割り当てる方法で行います。'
+  url='https://www.neputa-note.net/2021/10/blogpost06/'
+  domain='www.neputa-note.net'
+/>
+
+<div class='not-prose'>
+  <div data-vc_mylinkbox_id='887409868'></div>
+</div>
+
+## 参考サイト
+
+- [#KuTooから#MuTooへ：Ubuntuのmozcで日本語入力切り替え時のデフォルトをHiraganaにする | Walk On](https://dakensuk.com/2019/12/25/mozc.html)
+- [mozcのデフォルトをひらがな入力モードにする - dakusui's blog](https://dakusui.hatenablog.com/entry/2017/09/24/160400)

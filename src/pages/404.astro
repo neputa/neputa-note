@@ -1,0 +1,23 @@
+---
+import BaseLayout from '@/layouts/BaseLayout'
+import { getPermalink } from '@/utils'
+
+const title = `Error 404`
+---
+
+<BaseLayout title={title}>
+  <section class='flex h-full items-center p-16'>
+    <div class='container mx-auto my-8 flex flex-col items-center justify-center px-5'>
+      <div class='max-w-md text-center'>
+        <h2 class='mb-8 text-9xl font-bold'>
+          <span class='sr-only'>Error</span>
+          <span class='text-primary-700'>404</span>
+        </h2>
+        <p class='mb-8 text-3xl font-semibold md:text-2xl'>
+          申し訳ありませんが、このページは見つかりませんでした。
+        </p>
+        <a rel='noopener noreferrer' href={getPermalink('/')} class='btn ml-4'>HOMEに戻る</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

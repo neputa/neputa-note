@@ -1,0 +1,37 @@
+---
+import { getImage } from 'astro:assets'
+import { getPermalink } from '@/utils'
+
+const { title, pubDate, modDate, tags, slug, heroImage, description } = Astro.props
+console.log(slug)
+
+var imageURL = ''
+if (heroImage) {
+  const optimizedImage = await getImage({ src: heroImage })
+  imageURL = `https://www.neputa-note.net${optimizedImage.src}`
+}
+let schema = JSON.stringify({
+  '@context': 'https://schema.org/',
+  '@type': 'BlogPosting',
+  headline: title,
+  author: {
+    '@type': 'Person',
+    name: 'neputa'
+  },
+  datePublished: pubDate.toISOString().substring(0, 10),
+  dateCreated: pubDate.toISOString().substring(0, 10),
+  dateModified: modDate.toISOString().substring(0, 10),
+  description: description,
+  url: `https://www.neputa-note.net${getPermalink(slug)}`,
+  'inLanguage ': 'ja-JP',
+  image: imageURL,
+  keywords: tags
+})
+---
+
+{
+  (
+    // eslint-disable-next-line astro/no-set-html-directive
+    <script is:inline type='application/ld+json' set:html={JSON.stringify(schema)} />
+  )
+}

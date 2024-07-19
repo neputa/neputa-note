@@ -1,0 +1,196 @@
+---
+title: Astro 一致するタグ数で関連記事を表示する
+description: AstroのBlog記事に関連する記事の一覧を表示できるようにする。関連度合いを一致するタグの数で決定する。
+pubDate: 2024-07-15T03:00:00.000Z
+modDate: 2024-07-15T03:00:00.000Z
+heroImage: ../../../../assets/images/blog/astro.webp
+category:
+  - DEV
+tags:
+  - Astro
+  - dev
+draft: false
+keywords:
+  - astro
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事概要
+
+- 先日のBloggerからAstroへ移行した記事の別途詳細
+
+**※参考 - Blog移行記事**
+
+<BlogCard
+  title='BlogをBloggerからAstroへ移行した'
+  description='10年以上の期間お世話になったGoogle Bloggerに別れを告げ、この度AstroでBlogサイトを構築し移行した。Astroは静的サイトを手軽に開発できる軽量フレームワーク。無料のテンプレートをベースにカスタマイズを行った。それなりの作業ボリュームとなったので、詳細は別記事に分け、今回は移行作業全体をまとめる。'
+  url='https://www.neputa-note.net/2024/07/migrated-blogger-to-astro/'
+  domain='www.neputa-note.net'
+/>
+
+### 目的
+
+- AstroのBlogサイトに関連記事を表示できるようにする
+- 関連度合いを一致するタグの数で決定する
+- 一連の実装手順についてまとめる
+
+## 用語説明
+
+### Astro とは？
+
+> Astroは、ブログやマーケティング、eコマースなど、コンテンツ駆動のウェブサイトを作成するためのウェブフレームワークです。Astroは、新しいフロントエンドアーキテクチャを開拓し、他のフレームワークと比較してJavaScriptのオーバーヘッドと複雑さを低減することで知られています。高速でSEOに優れたウェブサイトが必要なら、Astroが最適です。 <cite>-- [Astro公式Docs](https://docs.astro.build/ja/concepts/why-astro/) より引用をDeepLで翻訳</cite>
+
+- 参考記事
+  - [Webフレームワーク「Astro」とは？開発初心者からベテランまで注目する理由](https://codezine.jp/article/detail/17883)
+
+## 作業環境
+
+- OS - Ubuntu-22.04LTS on WSL2
+- Node.js - v20.14.0
+- pnpm - v9.4.0
+- Astro - v4.11.3
+
+## 作業概要
+
+- 関連記事を表示するcomponentを作成
+- [...slug].astroにcomponentを追加
+
+## 作業詳細
+
+### 関連記事を表示するcomponentを作成
+
+- 関連記事をリスト化しレンダリングするcomponentを作成する
+- まずコードブロックで一致タグ数でスコアリングし、記事リスト（relatedPosts）を作成する
+
+```astro ListRelatedPosts.astro
+---
+import type { CollectionEntry } from 'astro:content'
+import { getPosts } from '@/utils'
+
+const posts = await getPosts()
+
+type Props = {
+  slug: string
+  tags: string[]
+  maxPosts: number
+}
+
+const { slug, tags, maxPosts } = Astro.props
+
+const relatedPosts = posts
+  .filter(
+    (post: CollectionEntry<'blog'>) =>
+      post.slug != slug && post.data.tags?.filter((tag: any) => tags.includes(tag)).length > 0
+  )
+  .map((post: CollectionEntry<'blog'>) => ({
+    ...post,
+    sameTagCount: post.data.tags.filter((tag: any) => tags.includes(tag)).length
+  }))
+  .sort((a, b) => {
+    if (a.sameTagCount > b.sameTagCount) return -1
+    if (b.sameTagCount > a.sameTagCount) return 1
+
+    if (a.data.pubDate > b.data.pubDate) return -1
+    if (a.data.pubDate < b.data.pubDate) return 1
+
+    return 0
+  })
+  .slice(0, maxPosts)
+---
+```
+
+- 処理内容は次のとおり
+
+1. propsで関連元となる記事のslug、tagsおよび表示する記事数maxPostsを受ける
+1. 全記事を対象にfilterで同じ記事を除き、いずれかのタグが一致する記事を抽出
+1. 一致タグの多い順→投稿日の新しい順でソートする
+
+- 次にレンダリングを実装する
+
+```astro ListRelatedPosts.astro
+---
+/*--- 省略 ---*/
+---
+
+<section>
+  {
+    relatedPosts.length > 0 ? (
+      relatedPosts.map((post) => {
+        return (
+          <div>
+            <div>
+              <Image
+                src={post.data.heroImage}
+                width={200}
+                height={200}
+                alt={`img of ${post.data.title}`}
+              />
+            </div>
+            <header>
+              <a href={post.slug}>{post.data.title}</a>
+            </header>
+          </div>
+        )
+      })
+    ) : (
+      <span>この記事の関連記事はありません</span>
+    )
+  }
+</section>
+```
+
+### [...slug].astroにcomponentを追加
+
+- コードブロックでListRelatedPostsをimportする
+- レイアウトにcomponentを追加する
+
+```astro [...slug].astro
+---
+import { type CollectionEntry } from 'astro:content'
+import BlogPost from '@/layouts/BlogPost'
+import ListRelatedPosts from '@/components/widgets/ListRelatedPosts'
+import { getPosts } from '@/utils'
+import { disqusConfig } from '@/data/disqus.config'
+
+const posts = await getPosts()
+
+export async function getStaticPaths() {
+  const posts = await getPosts()
+
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: post
+  }))
+}
+
+type Props = CollectionEntry<'blog'>
+
+const post = Astro.props
+const { slug } = post
+const tags = post.data.tags
+const MAX_POSTS = 6
+const { Content } = await post.render()
+---
+
+<BlogPost>
+  <div>
+    <!-- post -->
+    <article>
+      <Content />
+
+      <!-- related posts -->
+      <h2>関連記事</h2>
+      <ListRelatedPosts slug={slug} tags={tags} maxPosts={MAX_POSTS} />
+    </article>
+  </div>
+</BlogPost>
+```
+
+以上
+
+## 参考記事
+
+- [Creating a "Similar Posts" Component in Astro.js | www.joshfinnie.com](https://www.joshfinnie.com/blog/creating-a-similar-posts-component-in-astrojs/)

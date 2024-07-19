@@ -1,0 +1,118 @@
+---
+title: FirefoxにFacebook Containerをインストールする
+description: Firefoxユーザ、火狐原理主義者です。Facebookは2016年の選挙後、より良いものにするために約束をしました。さて、私たちは選挙から一週間、そして彼らはその約束を破っています。Facebookさん、これはしくじるにはあまりに重要過ぎることですよ。そして、Mozillaはブラウザ上でFacebookを隔離する
+pubDate: 2020-10-26 17:30:00
+modDate: 2024-05-01 00:00:00
+heroImage: '@/images/blog/6495417464945076657-nata-figueiredo-AVtPJFo_uZk-unsplash.webp'
+category:
+  - DIARY
+tags:
+  - 日記
+draft: false
+keywords: []
+type: blog
+---
+
+import { Tweet } from 'astro-embed'
+import BlogCard from '@/components/mdx/BlogCard'
+
+Firefoxユーザ、火狐原理主義者です。
+
+## 行動するMozilla Firefox
+
+先日のFirefoxによるツイートです。
+
+<Tweet id='https://twitter.com/firefox/status/1319806150615838724' />
+
+> Facebookは2016年の選挙後、より良いものにするために約束をしました。<br />
+> さて、私たちは選挙から一週間、そして彼らはその約束を破っています。Facebookさん、これはしくじるにはあまりに重要過ぎることですよ。 <cite>--適当翻訳</cite>
+
+そして、Mozillaはブラウザ上でFacebookを隔離するアドオンのインストールを呼びかける。
+
+## Facebook Containerとは
+
+### Firefox Multi Account Containers
+
+Firefoxには、Google Chromeのマルチアカウントのような機能を、「Multi-Account Containers」という機能で実現しています。
+
+タブ毎にCookieやブラウザストレージを別に保持できるようにする仕組みですね。
+
+<BlogCard
+  title='Multi-Account Containers | Firefox ヘルプ'
+  description='Firefox Multi-Account Containers を使用すると、オンライン生活の一部を、プライバシーが保護されたタブに色分けしておくことができます。Cookie はコンテナーごとに分けられているため、複数の ID やアカウントを持つウェブサイトを同時に使用することができます。また、Mozilla VPN の統合 により、追加のプライバシー保護機能が利用できます。'
+  url='https://support.mozilla.org/ja/kb/containers'
+  domain='support.mozilla.org'
+/>
+
+で、Facebook Containerとは何か。
+
+これは、Mozillaが提供するFirefoxのアドオンです。
+
+Facebook関連のサイト（Facebook、Instagram、Messenger）を開くとき、このアドオンがFacebook関連専用コンテナタブを自動で開くようにしてくれます。
+
+![Facebook Containerのイメージ](@/images/blog/6495417464945076657-facebook_container.webp 'Facebook Container')
+
+わかりづらくて申し訳ないですが、上記画像でFacebook、Instagram、Messengerの3つのタブに白い線が入っているのが別コンテナであることを表しています。
+
+アドオンのインストールは、下記サイトから行います。
+
+<BlogCard
+  title='Facebook Container – 🦊 Firefox (ja) 向け拡張機能を入手'
+  description='Firefox 向け Facebook Container をダウンロード。Prevent Facebook from tracking you around the web. The Facebook Container extension for Firefox helps you take control and isolate your web activity from Facebook.'
+  url='https://addons.mozilla.org/ja/firefox/addon/facebook-container/?src=external-www.mozilla.org-facebookcontainer&utm_source=www.mozilla.org-facebookcontainer&utm_medium=referral'
+  domain='addons.mozilla.org'
+/>
+
+追加後はとくに設定などは必要ありません。
+
+Facebook関連のサイトを開くと、自動的に別コンテナで開いてくれます。
+
+### Facebook・Instagram・Messengerを隔離するメリット
+
+TwitterやGoogleで調べものをしていたら、その後、FacebookやInstagramに広告として出てくるようになった、なんて体験はないですか？
+
+ユーザの行動を勝手に収集するようなサービスはたくさんありますが、Facebook社が提供するサービスもその一種です。
+
+なので、彼らのサービスを使用する際、ブラウザ上で隔離することで、これらの追跡を食い止めることができます。
+
+しかも彼らはユーザデータ漏洩に関する盛大なやらかしを2016年アメリカ大統領選挙でやったわけです。
+
+そして改善を行うと言っていた彼らがいまなお問題を抱えたままでいることをMozillaは指摘しているのですね。
+
+個人的にはオンライン上での行動は盗まれるものだと思っているので、ストレスがない程度の予防と、事が起きたときの対処をある程度用意しておこうぐらいに考えています。
+
+このアドオンは「インストールするだけ」なので、「ストレスがない程度の予防」になるのではないでしょうか。
+
+## 2016年の問題とは
+
+Facebookがガンガン収集していたユーザ情報数千万人分を、ドナルド・トランプが2016年の選挙時に雇った英国の選挙コンサルティング企業「ケンブリッジ・アナリティカ」が不正利用していたという事件がありました。
+
+<BlogCard
+  title='時価総額4兆円が飛んだ、フェイスブック「選挙スキャンダル」 | Forbes JAPAN 公式サイト（フォーブス ジャパン）'
+  description='2016年の米大統領選挙で、トランプ陣営が雇った調査企業「ケンブリッジ・アナリティカ」が、5000万名のフェイスブックユーザーの個人情報を不正収集していたとの報道が流れた。この報せを受け、3月19日午後1時（米東部標準時）時点で、フェイスブ...'
+  url='https://forbesjapan.com/articles/detail/20245'
+  domain='forbesjapan.com'
+/>
+
+この事件は、Netflixのドキュメンタリー作品にもなっています。
+
+米国大統領選挙のほかBrexitなどにも影響を与えてきた事実を元幹部が告発する内容のドキュメンタリーで、かなり生々しいです。
+
+<BlogCard
+  title='グレート・ハック: SNS史上最悪のスキャンダル - Netflix'
+  description='2016年の米国大統領選挙をきっかけに明らかになったSNSの闇。その象徴ともいうべきデータ会社ケンブリッジ・アナリティカと一連の事件に関与した人々を追う。'
+  url='https://www.netflix.com/title/80117542'
+  domain='www.netflix.com'
+/>
+
+Facebookが悪意をもって何かしたという話しではないですが、悪用されると大変になる情報資産を用いてビジネスをしている以上、それを保護する責任はあると思います。
+
+ですが、Facebookに限らず、サービス提供側が本気で取り組むこともないでしょうし、やったとしても悪用する側とのいたちごっこは繰り返されるでしょう。
+
+自分の身は自分で守るしかないのかもしれませんね。
+
+Firefoxを提要するMozillaは、問題も多少ありますが、インターネットの世界において今や希少となってしまった良心の1つだと思っています。
+
+<hr />
+
+_Top photo by [Natã Figueiredo](https://unsplash.com/@nataconect?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) of [Unsplash](https://unsplash.com/s/photos/firefox?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)_

@@ -1,0 +1,25 @@
+<mxfile host="65bd71144e">
+    <diagram id="fuJIliA1r3XLPDLQWIwD" name="ページ1">
+        <mxGraphModel dx="854" dy="779" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="ページレイアウト Layout.astro" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=5;fontSize=14;fontStyle=1;fillColor=#000033;fontColor=#FFFFFF;strokeColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="80" width="560" height="610" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="ヘッダ Header.astro" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=5;fontSize=14;fontStyle=1;fillColor=#0050ef;fontColor=#FFFFFF;strokeColor=#001DBC;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="120" width="520" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="フッタ Footer.astro" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=5;fontSize=14;fontStyle=1;fillColor=#0050ef;fontColor=#FFFFFF;strokeColor=#001DBC;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="585" width="520" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="見出し Hero.astro" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=5;fontSize=14;fontStyle=1;fillColor=#0050ef;fontColor=#FFFFFF;strokeColor=#001DBC;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="200" width="520" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="フォーム ContactForm.tsx" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=5;fontSize=14;fontStyle=1;fillColor=#a20025;fontColor=#FFFFFF;strokeColor=#6F0000;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="260" width="520" height="300" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,73 @@
+<mxfile host="65bd71144e" pages="4">
+    <diagram id="nZ8VQuLJQj1fC0DwiBK-" name="colos">
+        <mxGraphModel dx="412" dy="779" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="690" pageHeight="980" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="Secondary&lt;br&gt;#BCABAE" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#BCABAE;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="400" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Bloack&lt;br&gt;#181818" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#181818;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="160" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="Tertiary&lt;br&gt;#393C3C" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#393C3C;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="480" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="Primary&lt;br&gt;#D05954" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#D05954;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="320" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="White&lt;br&gt;#F4F4F4" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#F4F4F4;fontColor=#1A1A1A;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="240" width="80" height="80" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="qTTrnhbTdnTxMqkNK_bI" name="logo">
+        <mxGraphModel dx="1109" dy="779" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="y8EwBdms2MEn9OW9ZcL6-1" value="" style="whiteSpace=wrap;html=1;aspect=fixed;fontColor=#393c3c;fillColor=#393c3c;fontSize=60;fontFamily=Myrica M;fontStyle=1;strokeColor=none;strokeWidth=0;" parent="1" vertex="1">
+                    <mxGeometry width="511" height="511" as="geometry"/>
+                </mxCell>
+                <mxCell id="y8EwBdms2MEn9OW9ZcL6-2" value="&lt;p style=&quot;line-height: 100%; font-size: 81px;&quot;&gt;&lt;u style=&quot;font-size: 81px;&quot;&gt;neputa note&lt;/u&gt;&lt;/p&gt;" style="text;strokeColor=none;fillColor=none;fontSize=81;fontStyle=0;verticalAlign=middle;align=center;labelBackgroundColor=none;strokeWidth=2;fontColor=#f4f4f4;fontFamily=Myrica M;labelBorderColor=none;spacing=0;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="2" y="226" width="508" height="74" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="bSTitQ5QHuyXJm45_BN2" name="open-graph">
+        <mxGraphModel dx="1109" dy="779" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="LqHSH69m6oc-1T1CcmQg-1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#393c3c;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry width="1200" height="600" as="geometry"/>
+                </mxCell>
+                <mxCell id="OD8FQaAgqh0KTz8XN8Zv-2" value="&lt;p style=&quot;line-height: 100%; font-size: 120px;&quot;&gt;&lt;u style=&quot;font-size: 120px;&quot;&gt;neputa note&lt;/u&gt;&lt;/p&gt;" style="text;strokeColor=none;fillColor=none;fontSize=120;fontStyle=0;verticalAlign=middle;align=center;labelBackgroundColor=none;strokeWidth=2;fontColor=#f4f4f4;fontFamily=Myrica M;labelBorderColor=none;spacing=0;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="250" width="1180" height="74" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="nnJpvXFicY4iBu08bDUA" name="icon">
+        <mxGraphModel dx="151" dy="112" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="700" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="0sQZlIQgijTOSkFy5HN_-1" value="" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#BCABAE;strokeColor=none;container=0;" vertex="1" parent="1">
+                    <mxGeometry x="110" y="100" width="20" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="0sQZlIQgijTOSkFy5HN_-3" value="" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#393C3C;strokeColor=none;container=0;" vertex="1" parent="1">
+                    <mxGeometry x="110" y="120" width="20" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="0sQZlIQgijTOSkFy5HN_-4" value="" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#D05954;strokeColor=none;container=0;" vertex="1" parent="1">
+                    <mxGeometry x="130" y="100" width="20" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="2PsoGzePvUFk9oYENC5d-1" value="" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#F4F4F4;fontColor=#1A1A1A;strokeColor=none;container=0;" vertex="1" parent="1">
+                    <mxGeometry x="130" y="120" width="20" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

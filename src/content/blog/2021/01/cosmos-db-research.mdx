@@ -1,0 +1,232 @@
+---
+title: 'Azure Cosmos DB を使ってみる 【初心者の備忘録】'
+description: '10年以上システム開発のブランクがあります。 ただいま趣味でスマホアプリを開発中です。 アプリの詳細はリリースできたらあらためて書きたいと思います。今回は、そのアプリでデータの永続化先として「Microsoft Azure Cosmos DB」を使うことにしたので、色々調べたりしたことの備忘録です。'
+pubDate: '2021-01-17 10:00:00'
+modDate: '2024-05-01 00:00:00'
+heroImage: '@/images/blog/cosmosdb.webp'
+category:
+  - DEV
+tags: ['Azure', 'cosmosdb', 'dev']
+draft: false
+keywords: []
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+
+## 概要
+
+10年以上システム開発のブランクがあります。 ただいま趣味でスマホアプリを開発中です。 アプリの詳細はリリースできたらあらためて書きたいと思います。
+
+今回は、そのアプリでデータの永続化先として「Microsoft Azure Cosmos DB」を使うことにしたので、色々調べたりしたことの備忘録です。
+
+### Microsoft Azureとは
+
+公式サイト：[Azure とは—Microsoft Cloud Services | Microsoft Azure](https://azure.microsoft.com/ja-jp/resources/cloud-computing-dictionary/what-is-azure/)
+
+### Cosmos DBとは
+
+公式サイト：[統合 AI データベース - Azure Cosmos DB | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/cosmos-db/introduction)
+
+### この度もっともお世話になった記事
+
+Azure Cosmos DB入門
+
+<BlogCard
+  title='Azure Cosmos DB入門（目次） - ryuichi111stdの技術日記'
+  description='「Azure Cosmos DB入門」目次 DocumentDB が Azure Cosmos DB としてリニューアルされたので、改めてこのサービスの全体像を整理したコンテンツ（ブログ）を「Cosmos DB入門」として書こうと思います。 目次は以下の通り。順次コンテンツを追加していく予定です。 ※ 2017/07/09に(1)～(8)のコンテンツが揃いました。今後もCosmos DBのトピックをブログに継続してエントリーしていきます。 Azure CosmosDB入門（1） 1 Cosmos DBとは 1.1 特徴 1.1.1 グローバル分散可能 1.1.2 柔軟なスケーリングが可能 1.…'
+  url='https://ryuichi111std.hatenablog.com/entry/2017/05/21/012928'
+  domain='ryuichi111std.hatenablog.com'
+/>
+
+## 経緯
+
+ガッチガチの業務システムしか経験がなくリレーショナルDBしか知らなかったわたくしです。
+
+「コンシューマ向けスマホアプリだとDBは何がいいのだ？」から始まり、「NoSQL」とは？？、「なんかいっぱいある！？」を経て、「.NET開発経験者（10年以上のブランクあるけど）にやさしそう」ということで「Cosmos DB」をいっちょ使ってみようとなった次第です。
+
+わたしにとって「やさしそう」といのはあくまで他のサービスと比較して、ドキュメントのサンプルがC#だったりするぐらいの話しです。
+
+Azure？、NoSQL？、DocumentDB？、Partition？、RU？、と登っていく階段は非常に多くあります。
+
+とりあえず、公式のドキュメントを読み込み、上記リンク先の「ryuichi111stdの技術日記」さんのAzure Cosmos DB入門を読破することでようやくCosmos DBの入口に立てた気がします。
+
+Azure上にCosmos DBの内容や実際に構築する手順は上記に貼った、公式、Azure Cosmos DB入門に詳しくあるのでそちらをご参照ください。
+
+この記事では、上記リンク先に載っていなかった個人的に調べたことなどをまとめます。
+
+## 本編
+
+### Azure Cosmos DB の料金
+
+使ってみたいと思ったものの、いったいどのぐらいの費用がかかるのか気になるわけです。
+
+Cosmos DBは主に下記の項目に対して課金されます。（2020年1月17日時点）
+
+- データストレージ -（1GBあたり ¥31.640/月）
+- 予約済みの要求ユニット数（RU）-（100RU/秒あたり ¥735.84/月）
+- 追加リージョン -（上記項目x追加リージョン数が課金され、RUについては係数がかかる場合有り）
+
+これらは下記サイトで「リージョン：東日本」、「通貨：日本円」、「単位：月」を選択した際のものとなります。
+
+[価格 - Azure Cosmos DB | Microsoft Azure](https://azure.microsoft.com/ja-jp/pricing/details/cosmos-db/autoscale-provisioned/)
+
+データストレージはわかります。
+
+で、RUとは何か。
+
+#### RUについて
+
+> 要求ユニット (RU) とは、Azure Cosmos DB におけるスループットの単位です。 1 RU のスループットは、1 KB のドキュメントを取得するスループットに相当します。 <cite>-- [よく寄せられる質問 - Azure Cosmos DB | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/cosmos-db/faq#how-does-azure-cosmos-db-offer-predictable-performance)</cite>
+
+とあります。
+
+そして、RUは「予約済み」の分が課金対象となります。
+
+つまり、使った分だけ課金系とは異なり、1秒間で処理できる計算量をあらかじめ登録し、実際にその計算量を使うかどうかにかかわらず課金とのこと。
+
+RUについては、公式だけではいまいち理解しきれなかったので、
+
+[Azure Cosmos DB入門（2） - ryuichi111stdの技術日記](https://ryuichi111std.hatenablog.com/entry/2017/05/22/014401)
+
+の解説がとても助かりました。
+
+#### リージョンについて
+
+Cosmos DBは、Azureが世界30か所以上に展開する各地域の拠点にレプリケーションが可能であり、これを使用した場合に追加拠点分が、課金に掛かるとのこと。
+
+日本国内のリージョンを選択し国内向けにサービスする分には必要ないかな。
+
+ただ海外ユーザを視野に入れた場合、バックエンドで各リージョンに同期してくれたり、ユーザが近いリージョンを利用することでネットワークの遅延を回避できたりなど素晴らしいサービスが用意されているのは心強い。
+
+[Azure Cosmos DB でデータをグローバルに分散させる | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/cosmos-db/distribute-data-globally)
+
+#### Azure Cosmos DB Free レベル
+
+ざっと料金体系を記してみましたが、実際にわたしが必要とするストレージやRU予約枠はどのぐらいなのかが見通せていないのが現状です。
+
+そんなわたしのような小規模運用者やテスト利用をしたい方向けに「Freeレベル」という枠が設けられています。
+
+[Azure Cosmos DB free tier is now available | Azure updates | Microsoft Azure](https://azure.microsoft.com/ja-jp/updates/azure-cosmos-db-free-tier-is-now-available/)
+
+新規にAzure Cosmos DBのリソースを作成する画面に、「Freeレベル割引の適用」という項目があるので、これを「適用」にすることで、「毎月400 RU/秒のプロビジョニングスループットと5 GBのストレージ」を無料で使用できます。
+
+ちなみに、FreeレベルのCosmosDBアカウントは、1 Azureサブスクリプションに1つまでしか作成できません。
+
+Freeレベルを選択すれば無料！というわけではなく、いくつか設定で注意が必要です。
+
+下記サイトに注意点がわかりやすく説明されています。
+
+[Azure Cosmos DB の無償枠 (Free Tier) の注意点 #nosql - Qiita](https://qiita.com/ymasaoka/items/ffc3a44eef75bda5a502)
+
+また、Azureアカウントをこれから作成する方には、無料サービスが付いているので参考までリンクを貼っておきます。
+
+[Azure の無料アカウントを今すぐ作成する | Microsoft Azure](https://azure.microsoft.com/ja-jp/free/)
+
+#### Azure Cosmos DB サーバーレス（プレビュー）
+
+料金の話ばっかり長くなっていますが、大切なことなのでもう少し。
+
+わたしのような最弱小規模デベロッパーにとってはありがたい課金モデルがプレビューで公開されています。
+
+[サーバーレス (従量課金ベース) アカウントの種類 - Azure Cosmos DB | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/cosmos-db/serverless)
+
+上記で説明した、RUという処理能力を予約する課金モデルではなく、制限がかかるが使った分だけの従量課金となります。
+
+現時点ではまだプレビューとのことで一般提供時、どのような条件になるかわかりませんが、わたしはおそらくこちらで十分な予測をしています。
+
+今後、あたらしい情報があれば追記します。
+
+### エミュレータのこと
+
+お金の話ばっかりですみません、と言いつつ節約に関連しての話しとなります。
+
+課金体系は理解できつつも、これからいざ実装に向けてテスト使用をするにあたり、マイナスからスタートのわたしは余裕でFreeレベル突破してしまわないか不安になります。
+
+でもだいじょうぶ。エミュレータがあるもの。
+
+[Emulator \(Docker/ローカル\) - Azure Cosmos DB | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/cosmos-db/emulator?tabs=cli%2Cssl-netstd21)
+
+これは本当に助かりました。
+
+実際にDocumentDBとはどんなものかを探りながら、いくら叩いても無料ですし。
+
+### SDK Version.3について
+
+C#とVisualStudio大好きマンなので、Xamarin Formsです。
+
+Azure Cosmos DB入門ではCosmos DBのSDKはVersion2で説明が載っていますが、現時点ではVersion3がリリースされています。
+
+最初、Ver.2で開発し、途中でこちらの記事を発見しVer.3に書き換えたのですが、クラス名などは異なるものの、CRUDを行う部分についてはそれほど違いはありませんでした。
+
+[Azure Cosmos DB .NET SDK v3 GA 記念チートシート - しばやん雑記](https://blog.shibayan.jp/entry/20190713/1562955405)
+
+### Singleton推奨
+
+公式にパフォーマンスに関するTipsが掲載されています。 ClientインスタンスはSingletonでの実装が推奨されています。
+
+> アプリケーションの有効期間中はシングルトンAzure Cosmos DBクライアントを使用する<br />
+> 各CosmosClientインスタンスはスレッドセーフであり、直接モードで動作しているときには効率的な接続管理とアドレスのキャッシュが実行されます。<br />
+> 効率的な接続管理と SDK クライアントのパフォーマンス向上を実現するために、アプリケーションの有効期間中は、AppDomainごとに単一のインスタンスを使用することをお勧めします。 <cite>[.NET SDK v3 用の Azure Cosmos DB のパフォーマンスに関するヒント | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/cosmos-db/nosql/performance-tips-dotnet-sdk-v3?tabs=trace-net-core)</cite>
+
+またこんな記事も。
+
+[Cosmos DB を利用する上で最初にはまった部分のメモ - しばやん雑記](https://blog.shibayan.jp/entry/20171011/1507653736)
+
+### 時間はUniversalTime推奨
+
+> Cosmos DB の DateTime 文字列に推奨される形式は、ISO 8601 UTC 標準に準拠した yyyy-MM-ddTHH:mm:ss.fffffffZ です <cite>[日付の操作 - Azure Cosmos DB for NoSQL | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/cosmos-db/nosql/query/working-with-dates#storing-datetimes)</cite>
+
+とのことです。
+
+C#であれば、書き込み時にToUniversalTime() 、読み込んだらToLocalTime() をする必要があります。
+
+### SQLでいろいろできる
+
+現在開発中のアプリでは、ある日付項目の年と月をDistinctして取得したい箇所があります。
+
+その項目の全レコードを取得してから加工するのと、どちらが課金・パフォーマンス的に良いのかまだわかっていないのですが、こんなSQLを書いて取得することもできたよという例です。
+
+```csharp
+var utcOffset = TimeZoneInfo.Local.BaseUtcOffset.TotalHours;
+
+// クエリを作成
+var sb = new StringBuilder();
+sb.Append(@"SELECT DISTINCT");
+sb.Append(@" DateTimePart(""yyyy"", DateTimeAdd(""hour"", @utcOffset, c.TargetDate)) AS Year");
+sb.Append(@",DateTimePart(""mm"", DateTimeAdd(""hour"", @utcOffset, c.TargetDate)) AS Month");
+sb.Append(@" FROM c");
+
+var query = new QueryDefinition(sb.ToString())
+  .WithParameter("@utcOffset", utcOffset);
+
+  var queryRequestOptions =
+  new QueryRequestOptions
+{
+  PartitionKey = new PartitionKey(userId.Value.ToString()),
+};
+
+var iterator = container
+.GetItemQueryIterator<yearmonthdatamodel>(
+    query,
+    requestOptions: queryRequestOptions);</yearmonthdatamodel>
+```
+
+ポイントは、TargetDateというカラムの年と月を取得する箇所です。
+
+まずDateTimeAdd関数でhourを\@utcOffsetでローカルタイムにし、DateTimePart関数でYYYY（年）およびmm（月）を取得しています。
+
+Distinctは普通に使えます。
+
+```sql
+DateTimePart(""yyyy"", DateTimeAdd(""hour"", @utcOffset, c.TargetDate)) AS Year
+DateTimePart(""mm"", DateTimeAdd(""hour"", @utcOffset, c.TargetDate)) AS Month
+```
+
+## 最後に
+
+参考になる方がいるかわかりませんが、個人的に調べて回ったことをざっとまとめてみました。 まだ色々と勉強している段階なのでわかったことがあれば追記します。
+
+間違っている点や、情報などありましたらコメントまたはmastodon（[\@neputa\@fedibird.com](https://fedibird.com/web/accounts/110804358773982782/about)）で教えていただければありがたいです。
+
+長文失礼しました。

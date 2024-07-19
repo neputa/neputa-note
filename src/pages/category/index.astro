@@ -1,0 +1,30 @@
+---
+import TitlePage from '@/components/widgets/TitlePage'
+import BaseLayout from '@/layouts/BaseLayout'
+import { getCategories } from '@/utils'
+import GoogleAdsense from '@/components/widgets/GoogleAdsense'
+
+const categories = getCategories()
+---
+
+<BaseLayout>
+  <TitlePage title='カテゴリ一覧' />
+  <div class='prose'>
+    {
+      categories &&
+        categories.map((category) => (
+          <ul>
+            <li>
+              <a
+                href={`/category/${category.toLowerCase()}/1/`}
+                class='text-xl text-black dark:text-white md:text-2xl'
+              >
+                {category}
+              </a>
+            </li>
+          </ul>
+        ))
+    }
+  </div>
+  <GoogleAdsense />
+</BaseLayout>
