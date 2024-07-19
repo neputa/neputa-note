@@ -1,0 +1,149 @@
+---
+title: Astro Googleアナリティクス（GA4）のJavaScriptを遅延読み込みする
+description: Astroで構築したWebサイトにGoogleアナリティクスのJavaScriptを遅延読み込みする実装を行う。partytownというパッケージを使用する。
+pubDate: 2024-07-20T03:00:00.000Z
+modDate: 2024-07-20T03:00:00.000Z
+heroImage: ../../../../assets/images/blog/astro.webp
+category:
+  - DEV
+tags:
+  - dev
+  - Astro
+draft: false
+keywords:
+  - astro
+  - 遅延読み込み
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事概要
+
+- 先日のBloggerからAstroへ移行した記事の別途詳細
+
+**※参考 - Blog移行記事**
+
+<BlogCard
+  title='BlogをBloggerからAstroへ移行した'
+  description='10年以上の期間お世話になったGoogle Bloggerに別れを告げ、この度AstroでBlogサイトを構築し移行した。Astroは静的サイトを手軽に開発できる軽量フレームワーク。無料のテンプレートをベースにカスタマイズを行った。それなりの作業ボリュームとなったので、詳細は別記事に分け、今回は移行作業全体をまとめる。'
+  url='https://www.neputa-note.net/2024/07/migrated-blogger-to-astro/'
+  domain='www.neputa-note.net'
+/>
+
+### 目的
+
+- Astroで構築したWebサイトにGoogleアナリティクスの設定を行う
+- Partytownというパッケージを使用し、JavaScriptを遅延読み込みできるようにする
+  - [Welcome To Partytown](https://partytown.builder.io/)
+
+## 用語説明
+
+### Astro とは？
+
+> Astroは、ブログやマーケティング、eコマースなど、コンテンツ駆動のウェブサイトを作成するためのウェブフレームワークです。Astroは、新しいフロントエンドアーキテクチャを開拓し、他のフレームワークと比較してJavaScriptのオーバーヘッドと複雑さを低減することで知られています。高速でSEOに優れたウェブサイトが必要なら、Astroが最適です。 <cite>-- [Astro公式Docs](https://docs.astro.build/ja/concepts/why-astro/) より引用をDeepLで翻訳</cite>
+
+- 参考記事
+  - [Webフレームワーク「Astro」とは？開発初心者からベテランまで注目する理由](https://codezine.jp/article/detail/17883)
+
+### Partytown とは？
+
+> Partytown は、リソースを大量に消費するスクリプトをメインスレッドからウェブワーカーに移行するための遅延ロードライブラリです。メインスレッドをあなたのコードに捧げ、サードパーティのスクリプトをウェブワーカーにオフロードすることで、サイトの高速化を支援することを目的としています。 <cite>-- [Partytown](https://partytown.builder.io/)より引用 をDeepLで翻訳</cite>
+
+## 作業環境
+
+- OS - Ubuntu-22.04LTS on WSL2
+- Node.js - v20.14.0
+- pnpm - v9.4.0
+- Astro - v4.11.3
+
+## 作業詳細
+
+- Partytownのパッケージをインストールする
+
+```bash install-partytown
+$ pnpm add -D @astrojs/partytown
+```
+
+- astro.config.mjsにpartytownをimportし設定を追加する
+
+{/* prettier-ignore */}
+```mjs astro.config.mjs
+import { defineConfig } from 'astro/config'
+import partytown from '@astrojs/partytown'// [!code ++]
+
+export default defineConfig({
+  integrations: [
+    partytown({// [!code ++]
+      config: {// [!code ++]
+        forward: ['dataLayer.push']// [!code ++]
+      }// [!code ++]
+    })// [!code ++]
+  ]
+})
+```
+
+- Googleアナリティクス用のcomponentを作成する
+- typeをtext/partytownとするのがポイント
+- ViewTransitionsを使用している場合、is:inline と data-astro-rerunを追加する
+  - ページ遷移した際にJavaScriptを実行させるため
+
+```astro GoogleAnalytics.astro
+---
+const gaId: string = 'G-XXXXXXXXXX'
+---
+
+<>
+  <script
+    is:inline
+    data-astro-rerun
+    type='text/partytown'
+    src=`https://www.googletagmanager.com/gtag/js?id=${gaId}`></script>
+  <script is:inline data-astro-rerun type='text/partytown' define:vars={{ gaId }}>
+    window.dataLayer = window.dataLayer || []
+    function gtag() {
+      dataLayer.push(arguments)
+    }
+    gtag('js', new Date())
+    gtag('config', gaId)
+    console.log(gaId)
+  </script>
+</>
+```
+
+- Layoutのheadタグにcomponentを追加する
+
+```astro BaseLayout.astro
+---
+import GoogleAnalytics from '@/components/meta/GoogleAnalytics' // [!code ++]
+---
+
+<html lang='ja'>
+  <head>
+    <!-- 省略-->
+    <GoogleAnalytics />// [!code ++]
+  </head>
+
+  <!-- 省略-->
+</html>
+```
+
+- デバッグしブラウザのデベロッパーツールで確認する
+- コンソールにpartytownのworkerが起動し、初期化成功のログが流れればOK
+
+![デベロッパーツールのコンソール](@/images/blog/astro-partytown.webp 'デベロッパーツールのコンソール')
+
+## 補足
+
+- Partytownはサードパーティのスクリプトを遅延読み込みしてくれるパッケージだが、動作するものとしないものがある
+- Googleアナリティクスは今回の実装で問題なく動作することを確認した
+- 未検証だが、Googleタグマネージャーの実装例は多く見つかる
+- Google Adsenseを検証したが私の実力では動作させることはできなかった。
+- よってAdsenseの遅延読み込みは自力で実装しており詳細は次回記事にまとめる
+
+以上
+
+## 参考サイト
+
+- [Add google analytics to Astro with Partytown](https://www.kevinzunigacuellar.com/blog/google-analytics-in-astro/)
