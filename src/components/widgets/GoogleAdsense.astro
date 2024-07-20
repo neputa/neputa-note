@@ -17,7 +17,7 @@ const adsBannerId = import.meta.env.VITE_ADS_BANNER_ID ?? process.env.VITE_ADS_B
     </div>
   )
 }
-<script is:inline data-astro-rerun>
+<script is:inline data-astro-rerun define:vars={{ adsClientId }}>
   function init() {
     const adElement = document.querySelector('.ads-container')
     const observer = new IntersectionObserver(function (entries) {
@@ -25,7 +25,8 @@ const adsBannerId = import.meta.env.VITE_ADS_BANNER_ID ?? process.env.VITE_ADS_B
         let ad = document.createElement('script')
         ad.type = 'text/javascript'
         ad.async = true
-        ad.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsClientId}`
+        ad.src =
+          'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + adsClientId
         ad.crossorigin = 'anonymous'
         document.head.appendChild(ad)
         observer.disconnect()
