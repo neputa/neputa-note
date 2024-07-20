@@ -1,40 +1,52 @@
 ---
 const isProd = import.meta.env.PROD
-const isDev = import.meta.env.DEV
 const adsClientId = import.meta.env.VITE_ADS_CLIENT_ID ?? process.env.VITE_ADS_CLIENT_ID
 const adsBannerId = import.meta.env.VITE_ADS_BANNER_ID ?? process.env.VITE_ADS_BANNER_ID
 ---
 
+<div class='ads-container mt-16 min-w-fit'>
+  <p class='mb-6 border-t border-t-gray-300 pt-6 text-lg font-bold dark:text-white'>広告</p>
+  <div>
+    <ins class="adsbygoogle" style="display:block" data-ad-client={adsClientId} data-ad-slot={adsBannerId} data-ad-format="auto" data-full-width-responsive="true" />
+
 {
-  // prettier-ignore
-  isProd && (
-    <div class='ads-container mt-16 min-w-fit'>
-      <p class='mb-6 border-t border-t-gray-300 pt-6 text-lg font-bold dark:text-white'>広告</p>
-      <div>
-        <ins class="adsbygoogle" style="display:block" data-ad-client={adsClientId} data-ad-slot={adsBannerId} data-ad-format="auto" data-full-width-responsive="true" />
-        <script is:inline data-astro-rerun>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-      </div>
-    </div>
+  isProd ? (
+    <script is:inline data-astro-rerun>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  ) : (
+    <script is:inline data-astro-rerun>
+      window.adsbygoogle = window.adsbygoogle || [];
+      const adBreak = adConfig = function(o) {
+        adsbygoogle.push(o);
+      }
+    </script>
   )
 }
-<script is:inline data-astro-rerun define:vars={{ adsClientId }}>
+  </div>
+</div>
+
+<script is:inline data-astro-rerun define:vars={{ adsClientId, isProd }}>
   function init() {
-    const adElement = document.querySelector('.ads-container')
+    const adElement = document.querySelector('.ads-container');
     const observer = new IntersectionObserver(function (entries) {
       if (entries[0].isIntersecting) {
-        let ad = document.createElement('script')
-        ad.type = 'text/javascript'
-        ad.async = true
+        let ad = document.createElement('script');
+        ad.type = 'text/javascript';
+        ad.async = true;
         ad.src =
-          'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + adsClientId
-        ad.crossorigin = 'anonymous'
-        document.head.appendChild(ad)
-        observer.disconnect()
+          'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + adsClientId;
+        ad.crossOrigin = 'anonymous';
+        if (!isProd) {
+          ad.dataset.adbreakTest='on';
+        }
+        document.head.appendChild(ad);
+        observer.disconnect();
       }
     })
     if (adElement) {
-      observer.observe(adElement)
+      observer.observe(adElement);
     }
   }
-  init()
+  init();
 </script>
