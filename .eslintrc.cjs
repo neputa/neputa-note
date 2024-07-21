@@ -25,7 +25,12 @@ module.exports = {
     },
     {
       files: ['*.mdx'],
-      extends: 'plugin:mdx/recommended'
+      extends: 'plugin:mdx/recommended',
+      parser: 'eslint-mdx',
+      settings: {
+        'mdx/code-blocks': false,
+        'mdx/language-mapper': {}
+      }
     },
     {
       files: ['**/*.md'],
