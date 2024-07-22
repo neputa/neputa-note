@@ -8,12 +8,18 @@ import TwSizeIndicator from '@/components/TwSizeIndicator'
 import ValueCommerce from '@/components/meta/ValueCommerce'
 import GoogleAnalytics from '@/components/meta/GoogleAnalytics'
 
-const { title, description, image, articleDate } = Astro.props
+const { title, description, image, articleDate, modifiedDate } = Astro.props
 ---
 
 <html lang='ja'>
   <head>
-    <BaseHead title={title} description={description} ogImage={image} articleDate={articleDate} />
+    <BaseHead
+      title={title}
+      description={description}
+      ogImage={image}
+      articleDate={articleDate}
+      modifiedDate={modifiedDate}
+    />
     <ProviderTheme />
     <ProviderAnimations />
     <GoogleAnalytics />
