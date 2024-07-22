@@ -1,15 +1,15 @@
 ---
 title: 【Astro】Contact FormにValidationとreCAPTCHA v3を追加する
 description: Astroで構築したWebサイトに、Validation（入力チェック）とreCAPTCHA v3を設置したContact Formを実装する。Validationは「React Hook Form」というパッケージを使用する。また、reCAPTCHAのサーバサイドでの検証をNewtのForm Appで行う。
-pubDate: 2024-07-21T23:08:35.017Z
-modDate: 2024-07-21T23:08:35.018Z
+pubDate: 2024-07-22T22:03:13.342Z
+modDate: 2024-07-22T22:03:13.342Z
 heroImage: ../../../../assets/images/blog/astro-contact-form.webp
 category:
   - DEV
 tags:
   - Astro
   - dev
-draft: true
+draft: false
 keywords:
   - astro
   - contact form
@@ -61,6 +61,13 @@ import Alert from '@/components/mdx/Alert'
 
 - 2021年創業のスタートアップ企業
 - ヘッドレスCMS、フォーム構築サービスを提供している
+- 無料のEntryプランのスペックは以下のとおり
+  - フォーム作成数：無制限
+  - 月間メッセージ数：30
+  - 自動返信メール
+  - CSVダウンロード
+  - スパム対策
+- [Form App料金プラン | ヘッドレスCMS「Newt」](https://www.newt.so/plan/form-app)
 
 <BlogCard
   title='コンテンツ管理の新しいスタンダード | ヘッドレスCMS「Newt」'
@@ -83,7 +90,7 @@ import Alert from '@/components/mdx/Alert'
 1. NewtにForm Appを追加
 1. react、react-hook-formをインストール
 1. Reactコンポーネント（Contact Form）の実装
-1. レイアウトにコンポーネントを追加
+1. Contactページを作成
 
 ## 作業詳細
 
@@ -368,7 +375,39 @@ export default function ContactForm(props: FormProps) {
 
 ```
 
-### レイアウトにコンポーネントを追加
+### Contactページを作成
 
 - siteKeyはreCAPTCHA作成後に表示された**サイトキー**を使用
 - formUrlはNewtのForm App作成後に表示された**エンドポイント**を使用
+
+```astro contact.astro
+---
+import BaseLayout from '@/layouts/BaseLayout'
+import ContactForm from 'src/components/ui/ContactForm'
+
+const title = 'お問い合わせ'
+const description = 'このブログに関する問い合わせフォームのページです。'
+
+const siteKey: string = import.meta.env.VITE_NEWT_KEY
+const id: string = import.meta.env.VITE_NEWT_ID
+const formUrl = `https://neputa-note.form.newt.so/v1/${id}`
+---
+
+<BaseLayout title={title} description={description}>
+  <div class='mx-auto w-full max-w-3xl'>
+    <div
+      class='mx-auto flex flex-col rounded-lg border border-gray-200 bg-gray-100 p-4 shadow backdrop-blur dark:border-gray-700 dark:bg-slate-900 sm:p-6 lg:p-8'
+    >
+      <ContactForm siteKey={siteKey} formUrl={formUrl} client:load />
+    </div>
+  </div>
+</BaseLayout>
+
+<script is:inline src=`https://www.google.com/recaptcha/api.js?render=${siteKey}&hl=ja`></script>
+```
+
+以上で実装は完了。
+
+## 参考サイト
+
+- [NewtとAstroを利用して、問い合わせフォームを作成する](https://www.newt.so/docs/tutorials/contact-form-in-astro)
