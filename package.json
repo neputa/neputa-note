@@ -70,7 +70,7 @@
     "@tailwindcss/typography": "0.5.13",
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.12",
-    "@typescript-eslint/parser": "^7.16.0",
+    "@typescript-eslint/parser": "^7.17.0",
     "astro-breadcrumbs": "github:neputa/astro-breadcrumbs-fork",
     "autoprefixer": "^10.4.19",
     "clsx": "2.1.1",
