@@ -20,6 +20,7 @@ type: page
 - 個人ブログ。
 - 内容は読書・映像作品の感想、趣味のプログラミング、そのほか日記など。
 - プラットフォームはAstro + Cloudflare（[BloggerからAstroに移行](/2024/07/migrated-blogger-to-astro/)）
+  - ソースコードはGithubで公開 [neputa/neputa-note: Blog site developed by astro](https://github.com/neputa/neputa-note)
 
 ### 読書について
 

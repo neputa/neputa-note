@@ -1,0 +1,103 @@
+---
+title: 【Astro】Contact FormにValidationとreCAPTCHA v3を追加する
+description: Astroで構築したWebサイトに、Validation（入力チェック）とreCAPTCHA v3を設置したContact Formを実装する。Validationは「React Hook Form」というパッケージを使用する。また、reCAPTCHAのサーバサイドでの検証をNewtのForm Appで行う。
+pubDate: 2024-07-21T23:08:35.017Z
+modDate: 2024-07-21T23:08:35.018Z
+heroImage: ../../../../assets/images/blog/astro-contact-form.webp
+category:
+  - DEV
+tags:
+  - Astro
+  - dev
+draft: true
+keywords:
+  - astro
+  - contact form
+  - reCAPTCHA
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事概要
+
+- 先日のBloggerからAstroへ移行した記事の別途詳細
+
+**※参考 - Blog移行記事**
+
+<BlogCard
+  title='BlogをBloggerからAstroへ移行した'
+  description='10年以上の期間お世話になったGoogle Bloggerに別れを告げ、この度AstroでBlogサイトを構築し移行した。Astroは静的サイトを手軽に開発できる軽量フレームワーク。無料のテンプレートをベースにカスタマイズを行った。それなりの作業ボリュームとなったので、詳細は別記事に分け、今回は移行作業全体をまとめる。'
+  url='https://www.neputa-note.net/2024/07/migrated-blogger-to-astro/'
+  domain='www.neputa-note.net'
+/>
+
+### 目的
+
+- Astroで構築したWebサイトにContact Formを設置する
+- React用のパッケージ「React Hook Form」でValidationを行う
+- reCAPTCHA v3を導入しスパム対策を行う
+- reCAPTCHAのサーバサイド検証をNewtのForm Appというサービスで行う
+
+## 用語説明
+
+### Astro とは？
+
+> astroは、ブログやマーケティング、eコマースなど、コンテンツ駆動のウェブサイトを作成するためのウェブフレームワークです。astroは、新しいフロントエンドアーキテクチャを開拓し、他のフレームワークと比較してjavascriptのオーバーヘッドと複雑さを低減することで知られています。高速でseoに優れたウェブサイトが必要なら、astroが最適です。 <cite>-- [astro公式docs](https://docs.astro.build/ja/concepts/why-astro/) より引用を[DeepL](https://www.deepl.com/ja/translator)で翻訳</cite>
+
+### reCAPTCHA とは？
+
+> reCAPTCHA は、スパムや不正行為からサイトを保護する無料のサービスです。高度なリスク分析手法を使用して、人間と bot を区別します。
+<cite>-- [reCAPTCHA  |  Google for Developers](https://developers.google.com/recaptcha?hl=ja)より引用</cite>
+
+### React Hook Form とは？
+
+- React用のValidation機能を提供するプラグイン
+
+> パフォーマンス、柔軟性、拡張性に優れたフォームと、使いやすいバリデーション。
+
+<cite>
+  -- [React Hook Form](https://react-hook-form.com/)より引用
+  を[DeepL](https://www.deepl.com/ja/translator)で翻訳
+</cite>
+
+### Newtとは？
+
+- 2021年創業のスタートアップ企業
+- ヘッドレスCMS、フォーム構築サービスを提供している
+
+<BlogCard
+  title='コンテンツ管理の新しいスタンダード | ヘッドレスCMS「Newt」'
+  description='Newtは、APIベースでコンテンツ管理を行うことができるヘッドレスCMSです。最新のウェブ環境に対応したCMSでコンテンツとチームのパフォーマンスを最大化します。'
+  url='https://www.newt.so/'
+  domain='www.newt.so'
+/>
+
+## 作業環境
+
+- OS - Ubuntu-22.04LTS on WSL2
+- Node.js - v20.14.0
+- pnpm - v9.4.0
+- Astro - v4.11.3
+- TailwindCSS - v3.4.4
+
+## 作業手順
+
+1. reCAPTCHA v3を登録
+1. NewtにForm Appを追加
+1. react、react-hook-formをインストール
+1. Reactコンポーネント（Contact Form）の実装
+1. レイアウトにコンポーネントを追加
+
+## 作業詳細
+
+### reCAPTCHA v3を登録
+
+### NewtにForm Appを追加
+
+### react、react-hook-formをインストール
+
+### Reactコンポーネント（Contact Form）の実装
+
+### レイアウトにコンポーネントを追加
