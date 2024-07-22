@@ -96,7 +96,7 @@
     "slugify": "^1.6.6",
     "tailwind-merge": "^2.4.0",
     "tailwindcss": "3.4.6",
-    "ts-jest": "^29.2.2",
+    "ts-jest": "^29.2.3",
     "typescript": "^5.5.3",
     "typescript-eslint": "^7.16.0"
   },
