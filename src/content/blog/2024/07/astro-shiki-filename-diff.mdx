@@ -96,7 +96,7 @@ import Alert from '@/components/mdx/Alert'
 ```astro CodeBlock.astro
 ---
 import { Code } from 'astro:components'
-import { type BuiltinLanguage, type SpecialLanguage } from 'shikiji'
+import { type BuiltinLanguage, type SpecialLanguage } from 'shiki'
 interface Props {
   lang?: string
   title?: string
@@ -157,7 +157,7 @@ $ pnpm add -D @shikijs/transformers
 ```jsx CodeBlock.astro
 ---
 import { Code } from 'astro:components'
-import { type BuiltinLanguage, type SpecialLanguage } from 'shikiji'
+import { type BuiltinLanguage, type SpecialLanguage } from 'shiki'
 import { transformerNotationDiff } from '@shikijs/transformers' // [!code ++]
 interface Props {
   lang?: string
@@ -235,7 +235,7 @@ const { lang, title, code } = Astro.props
 ```astro CodeBlock.astro
 ---
 import { Code } from 'astro:components'
-import { type BuiltinLanguage, type SpecialLanguage } from 'shikiji'
+import { type BuiltinLanguage, type SpecialLanguage } from 'shiki'
 import CopyIcon from '../icons/CopyIcon.astro'
 import CheckIcon from '../icons/CheckIcon.astro'
 import {
