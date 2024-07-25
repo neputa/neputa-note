@@ -6,7 +6,7 @@ import Table from '@/components/mdx/Table'
 import ListRelatedPosts from '@/components/widgets/ListRelatedPosts'
 import Share from '@/components/ui/Share'
 import TableOfContentsDetails from '@/components/widgets/TableOfContentsDetails'
-import { getPosts } from '@/utils'
+import { getPermalink, getPosts } from '@/utils'
 import SButton from '@/components/mdx/SButton'
 import Disqus from '@/components/widgets/Disqus'
 import { disqusConfig } from '@/data/disqus.config'
@@ -14,20 +14,27 @@ import BlogImage from '@/components/mdx/BlogImage'
 import Tag from '@/components/ui/Tag'
 import GoogleAdsense from '@/components/widgets/GoogleAdsense'
 import ToTopIcon from '@/components/icons/ToTopIcon'
+import Pagination from '@/components/widgets/Pagination'
+import ArrowLeft from '@/components/icons/ArrowLeft'
+import ArrowRight from '@/components/icons/ArrowRight'
 
 const posts = await getPosts()
+
 export async function getStaticPaths() {
   const posts = await getPosts()
+  const postsLength = posts.length
 
-  return posts.map((post) => ({
+  return posts.map((post, i) => ({
     params: { slug: post.slug },
-    props: post
+    props: {
+      post,
+      prevPost: i + 1 === postsLength ? undefined : posts[i + 1],
+      nextPost: i === 0 ? undefined : posts[i - 1]
+    }
   }))
 }
 
-type Props = CollectionEntry<'blog'>
-
-const post = Astro.props
+const { post, prevPost, nextPost } = Astro.props
 const { slug } = post
 const tags = post.data.tags
 const MAX_POSTS = 6
@@ -80,6 +87,45 @@ const disqusEnabled = disqusConfig.enabled
         </h2>
         <ListRelatedPosts slug={slug} tags={tags} maxPosts={MAX_POSTS} />
         <GoogleAdsense />
+        <div
+          class='gird-rows-2 mt-16 grid w-full justify-between gap-4 border-t border-t-gray-300 pt-6 text-black dark:text-white md:grid-cols-2 md:gap-2'
+        >
+          <!-- Next Button -->
+          {
+            nextPost ? (
+              <a
+                href={getPermalink(nextPost.slug, 'post')}
+                class='mx-auto flex w-full gap-1 rounded-lg border border-gray-300 p-4 hover:bg-gray-100 hover:text-gray-700  dark:border-gray-700 dark:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white'
+              >
+                <sapn class='w-6'>
+                  <ArrowLeft />
+                </sapn>
+                <span class='line-clamp-1 overflow-hidden text-sm'>{nextPost.data.title}</span>
+              </a>
+            ) : (
+              <span />
+            )
+          }
+
+          <!-- Previous Button -->
+          {
+            prevPost ? (
+              <a
+                href={getPermalink(prevPost.slug, 'post')}
+                class='flex w-full gap-1 rounded-lg border border-gray-300 p-4 hover:bg-gray-100  hover:text-gray-700 dark:border-gray-700 dark:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white'
+              >
+                <>
+                  <span class='line-clamp-1 overflow-hidden text-sm'>{prevPost.data.title}</span>
+                  <sapn class='w-6'>
+                    <ArrowRight />
+                  </sapn>
+                </>
+              </a>
+            ) : (
+              <span />
+            )
+          }
+        </div>
       </footer>
     </article>
   </div>
