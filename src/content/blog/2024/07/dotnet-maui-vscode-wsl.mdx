@@ -1,0 +1,321 @@
+---
+title: VSCode on Ubuntu & .NET MAUIでAdnroidアプリ開発環境を構築する
+description: Ubuntu on WSL2でリモート実行しているVSCodeに、.NET MAUIアプリの開発環境を構築する。テンプレートからプロジェクトを新規作成し、Android emulatorでAndroidアプリをデバッグできるようにする。一連の設定手順をまとめる。
+pubDate: 2024-07-28T04:17:43.192Z
+modDate: 2024-07-28T04:17:43.192Z
+heroImage: ../../../../assets/images/blog/maui-vscode.webp
+category:
+  - DEV
+tags:
+  - MAUI
+  - VSCode
+  - Ubuntu
+draft: false
+keywords:
+  - MAUI
+  - VSCode
+type: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## この記事のゴール
+
+- Ubuntu on WSL2でリモート実行しているVSCodeに、.NET MAUIアプリ開発環境を構築する
+- 構築する項目は以下のとおり
+  - .NET MAUIテンプレートからプロジェクトを新規作成する
+  - Android emulatorを起動する
+  - Androidアプリをデバッグする
+
+## 環境
+
+- OS - Ubuntu22.04LTS on WSL2 (Windows 11 Pro)
+- VSCode - v1.91.1
+- .NET - v8.0.303
+- Android - API Level 34
+
+## 前提
+
+WSL2およびVSCodeのリモート開発環境が構築済みであること。
+
+## 作業一覧
+
+1. .NET 8.0 インストール
+1. Microsoft OpenJDK 17 インストール
+1. Android command line tools インストール
+1. Android SDK インストール
+1. Android Emulatorインストール・設定
+1. .NET MAUI 拡張機能インストール
+1. .NET MAUIプロジェクト作成
+1. デバッグ実行する
+
+## 作業詳細
+
+### .NET 8.0 インストール
+
+- 参考サイト
+
+  - [パッケージ マネージャーを使用せずに Linux に .NET をインストールする - .NET | Microsoft Learn](https://learn.microsoft.com/ja-jp/dotnet/core/install/linux-scripted-manual#scripted-install)
+
+1. インストールスクリプトをダウンロード
+
+```bash wget-dotnet-install
+$ wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+```
+
+2. 実行権限を付与
+
+```bash grant-dotnet-install
+$ chmod +x ./dotnet-install.sh
+```
+
+3. 最新の長期サポート（LTS）SDKをインストール
+
+<Alert type='info' content='本記事の作成時点： .NET 8.0         ' />
+
+```bash instal-dotnet-sdk
+$ ./dotnet-install.sh --version latest
+```
+
+4. bash設定ファイル（.profile | .bash_profile | .bashrc etc）に次を追加し、PATHを通す
+
+```text .bash_profile
+export DOTNET_ROOT=$HOME/.dotnet
+export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
+```
+
+5. source ~/.bash_profile を実行、またはターミナルを再起動して設定を読みこむ
+
+### Microsoft OpenJDK 17 インストール
+
+- 参考サイト
+  - [OpenJDK の Microsoft Build をインストールする | Microsoft Learn](https://learn.microsoft.com/ja-jp/java/openjdk/install#install-on-ubuntu)
+
+<Alert
+  type='warning'
+  content='現時点でOpenJDK 21が公開されているが17をインストールすること（21はサポート外'
+/>
+
+1. リポジトリにパッケージを追加する
+
+<Alert type='warning' content='18.04/20.04/22.04以外はdebではなくtar.gzを使用する' />
+
+```bash add-package
+$ ubuntu_release=`lsb_release -rs`
+$ wget https://packages.microsoft.com/config/ubuntu/${ubuntu_release}/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+$ sudo dpkg -i packages-microsoft-prod.deb
+```
+
+2. OpenJDK 17をインストール
+
+```bash install-openjdk
+$ sudo apt-get install -y apt-transport-https
+$ sudo apt-get update
+$ sudo apt-get install -y msopenjdk-21
+```
+
+### Android command line tools インストール
+
+- ~/Android にSDKおよび必要なツールをインストールしていく
+
+1. 必要なパッケージを事前インストール
+
+```bash install-packages
+sudo apt update
+sudo apt install -y unzip
+```
+
+2. Android command-line toolsをダウンロード・インストール
+
+```bash command-line-tools
+$ mkdir ~/Android
+$ cd ~/Android
+$ wget https://dl.google.com/android/repository/commandlinetools-linux-8092744_latest.zip -O commandlinetools.zip
+$ unzip commandlinetools.zip
+$ rm -f commandlinetools.zip
+```
+
+3. bash設定ファイルにパスを追加
+
+```text .bash_profile
+export ANDROID_HOME=$HOME/Android
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/bin
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+```
+
+4. source ~/.bash_profile を実行、またはターミナルを再起動して設定を読みこむ
+
+5. android command line toolsを最新版に更新する
+
+<Alert
+  type='info'
+  content='なぜか最新がインストールされなかったため、バージョン指定で再インストールする'
+/>
+
+```bash install-cmdline-tools
+$ sdkmanager "cmdline-tools;11.0"
+```
+
+### Android SDK インストール
+
+1. Android SDK API Level 34 インストール
+
+```bash install-adnroid-sdk
+$ cd ~/Android
+$ sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "emulator" "system-images;android-34;google_apis;x86_64"
+
+License android-sdk-license:
+---------------------------------------
+Terms and Conditions
+
+This is the Android Software Development Kit License Agreement
+
+...省略
+
+---------------------------------------
+Accept? (y/N): y
+[=======================================] 100%
+```
+
+### Android Emulatorインストール・設定
+
+1. 必要パッケージを事前インストール
+
+```bash install-emulator
+$ sudo apt install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager libncurses5 libstdc++6 libpulse0 libgl1-mesa-glx libgl1-mesa-dri libxkbfile1 libqt5widgets5 libqt5gui5 libqt5core5a libqt5dbus5 libxkbcommon-x11-0
+```
+
+2. kvmにカレントユーザを追加
+
+```bash add-user
+$ getent group kvm
+kvm:x:109:username
+$ sudo gpasswd -a $USER kvm
+$ newgrp kvm
+$ ls -la /dev/kvm
+crw-rw---- 1 root kvm 10, 232  7月 27 07:27 /dev/kvm
+```
+
+3. bash設定ファイルにemulatorのPATHを追加
+
+```text .bash_profile
+export ANDROID_EMULATOR_HOME=$HOME/Android/emulator
+export PATH=$PATH:$ANDROID_EMULATOR_HOME
+```
+
+4. source ~/.bash_profile を実行、またはターミナルを再起動して設定を読みこむ
+
+5. 'myEmulator'という名前でemulator 作成
+
+```bash create-emulator
+avdmanager create avd -n myEmulator -k "system-images;android-34;google_apis;x86_64"
+```
+
+6. emulator 実行
+
+```bash start-emulator
+emulator -avd myEmulator -netdelay none -netspeed full
+```
+
+7. Emulatorが起動すればOK
+
+![Android Emulator](@/images/blog/android-emulator.webp)
+
+<Alert type='warning' content='Ubuntuネイティブ環境ではないせいか右のツールバーは操作不可' />
+
+### VSCode .NET MAUI 拡張機能インストール
+
+- 参考記事
+  - [.NET MAUI | Microsoft Learn](https://learn.microsoft.com/ja-jp/dotnet/maui/get-started/installation?view=net-maui-8.0&tabs=visual-studio-code)
+
+1. VSCodeを起動
+
+2. 拡張機能タブで ".NET MAUI" を検索、または "[.NET MAUI - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-maui)" から拡張機能をインストール
+
+3. settings.json に次を追加
+
+<Alert
+  type='info'
+  content='USERNAMEを自分の環境に修正する。別途javaSDKをインスト―ルした場合はそのPATHを入力する。'
+/>
+
+```json settings.json
+{
+  "maui.configuration.androidSdkPreferredPath": "/home/USERNAME/Android",
+  "maui.configuration.javaSdkPreferredPath": "/usr/bin/java"
+}
+```
+
+4. workload インストール
+
+```bash install-workload
+$ dotnet workload install maui-android
+```
+
+### .NET MAUIプロジェクト作成
+
+### デバッグ実行する
+
+1. コマンドパレット（Ctrl+Shift+P）を開き ".NET New Project" を入力し実行
+
+2. 表示されたパッケージから、".NET MAUI アプリ" を選択
+
+3. プロジェクトを作成するディレクトリを選択
+
+4. プロジェクト名を入力（今回はMauiAppSample）
+
+5. "プロジェクトを作成します" を選択
+
+6. restore実行後に今回準備していないiOSについてエラーが出る
+
+```log vscode-output
+  Determining projects to restore...
+/home/USERNAME/.dotnet/sdk/8.0.303/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.ImportWorkloads.targets(38,5): error NETSDK1178: The project depends on the following workload packs that do not exist in any of the workloads available in this installation: Microsoft.ios.Sdk.net8 [/home/USERNAME/repos/MauiAppSample/MauiAppSample/MauiAppSample.csproj::TargetFramework=net8.0-ios]
+/home/USERNAME/.dotnet/sdk/8.0.303/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.ImportWorkloads.targets(38,5): error NETSDK1178: You may need to build the project on another operating system or architecture, or update the .NET SDK. [/home/USERNAME/repos/MauiAppSample/MauiAppSample/MauiAppSample.csproj::TargetFramework=net8.0-ios]
+```
+
+7. プロジェクトファイル（MauiAppSample.csproj）を開き、Android以外を削除する
+
+```xml MauiAppSample.csproj
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>// [!code --]
+		<TargetFrameworks>net8.0-android;</TargetFrameworks>// [!code ++]
+
+
+    <!-- 省略 -->
+
+  </PropertyGroup>
+</Project>
+```
+
+8. コマンドパレットから ".NET MAUI: Android デバイスの選択"を入力・選択
+
+9. 先ほど作成したEmulator（myEmulator）を選択
+
+10. （起動していない場合）Android Emulatorを起動
+
+```bash start-emulator
+emulator -avd myEmulator -netdelay none -netspeed full
+```
+
+11. F5 でデバッグ実行
+
+![Android Emulator デバッグ実行](@/images/blog/android-emulator-debug.webp 'アプリをデバッグ実行')
+
+## まとめ
+
+本記事の目的は無事に達成できた。また、Linux環境のVSCodeで .NET MAUIアプリの開発（Androidのみだけど）は可能っぽいことも分かった。
+
+個人的にメインPCをWindowsからUbuntuへ移行することを考えており、今回はそれを見据えての検証だった。
+
+Emulatorは強引にWSLで動かしたが、Ubuntuネイティブではより快適に動作するのかもしれない。
+
+しかし想定以上の作業量、エラー対処が発生した。
+
+結果として、Visual Studio Communityがいかに楽かを痛感した。
+
+Windowsを使い続けるか、モバイルアプリ開発をAndroid Studioに移行するか、VSCode + .NET MAUIがこなれてくるのを待つか、迷うところ。
+
+とりあえずおつかれさまでした。

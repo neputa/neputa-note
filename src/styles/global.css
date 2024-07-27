@@ -82,8 +82,10 @@
   }
 
   .prose ol li,
-  .prose ol li li {
-    @apply leading-5;
+  .prose ol li li,
+  .prose ul li,
+  .prose ul li li {
+    @apply leading-6;
   }
 }
 .glass {
