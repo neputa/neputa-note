@@ -11,6 +11,6 @@ export {
 } from './post'
 export { remarkReadingTime } from './readTime'
 export { getBlogContentFullPath, getFileUpdatedAt } from './fileHelper'
-export { getPermalink } from './permalinks'
+export { getPermalink, htmlEscape } from './permalinks'
 export { datesAreOnSameDay } from './datesAreOnSameDay'
 export { mdxToHtml } from './mdxUtils'

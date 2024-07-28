@@ -9,7 +9,7 @@ const message = siteConfig.shareMessage
 const URL = Astro.url.href
 const blogTitle = siteConfig.title
 const { title, heading = 'Share' } = Astro.props
-const shareText = title + ' - ' + blogTitle
+const shareText = encodeURIComponent(title + ' - ' + blogTitle)
 ---
 
 <div class='flex flex-col gap-2'>
