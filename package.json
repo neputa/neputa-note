@@ -51,7 +51,7 @@
     "eslint-mdx": "^3.1.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-hook-form": "^7.52.1",
+    "react-hook-form": "^7.52.2",
     "rehype-external-links": "^3.0.0",
     "sanitize-html": "^2.13.0",
     "unist-util-visit": "^5.0.0",
