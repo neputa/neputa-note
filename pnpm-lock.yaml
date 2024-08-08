@@ -51,8 +51,8 @@ importers:
         specifier: 1.0.2
         version: 1.0.2(typescript@5.5.4)
       astro-font:
-        specifier: ^0.0.81
-        version: 0.0.81
+        specifier: ^0.1.81
+        version: 0.1.81
       eslint-mdx:
         specifier: ^3.1.5
         version: 3.1.5(eslint@8.57.0)
@@ -1456,8 +1456,8 @@ packages:
     resolution: {integrity: sha512-8hJaCuqxObShWl2wEsnASqh/DbQ2O+S66m0Q3ctJlzBPEQ4pfGwwama3FCjZO3GDLQsjvn1T0v93Vxyu/+5fGw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  astro-font@0.0.81:
-    resolution: {integrity: sha512-VmK4kqzNpOAt2LASVbw2cbbe9sD6K30E7jOjqzHxHieHMTWInkdOljtzHmNGvKr3P0MeF4Wy+Z7j6CdETFecDA==}
+  astro-font@0.1.81:
+    resolution: {integrity: sha512-rbrv/+ZSYdgyjBlhkAqfCjMxqqo6iEwnSo/rAdDt/POILsF0ChxMFhefIIzKEukrRGtVjEj1lrLRYk+AdV9scQ==}
 
   astro@4.12.2:
     resolution: {integrity: sha512-l6OmqlL+FiuSi9x6F+EGZitteOznq1JffOil7st7cdqeMCTEIym4oagI1a6zp6QekliKWEEZWdplGhgh1k1f7Q==}
@@ -6015,7 +6015,7 @@ snapshots:
       - supports-color
       - typescript
 
-  astro-font@0.0.81: {}
+  astro-font@0.1.81: {}
 
   astro@4.12.2(@types/node@20.14.12)(lightningcss@1.25.1)(terser@5.31.1)(typescript@5.5.4):
     dependencies:
