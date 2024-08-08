@@ -234,6 +234,5 @@
     "Лагерь",
     "המוסד",
     "מוסד"
-  ],
-  "jest.jestCommandLine": "pnpm jest"
+  ]
 }

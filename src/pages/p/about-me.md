@@ -29,8 +29,8 @@ type: page
 - 国内外ミステリ作品多め。2023年から倫理・哲学関連を読みはじめた。
 - 大まかに文芸作品は紙の本、漫画・専門書は電子書籍を使用。
 - 電子書籍サービスは「honto」を利用。
-  - [電子書籍を「Amazon Kindle」から「honto」に乗り換えてみた](https://www.neputa-note.net/2017/07/amazon-kindle-hont.html)
-  - [ハイブリッド型総合書店「honto」のススメ](https://www.neputa-note.net/2022/01/i-recommend-honto.html)
+  - [電子書籍を「Amazon Kindle」から「honto」に乗り換えてみた](/2017/07/amazon-kindle-honto/)
+  - [ハイブリッド型総合書店「honto」のススメ](/2022/01/i-recommend-honto/)
 
 #### 好きな作家
 
@@ -46,7 +46,7 @@ type: page
 ### 趣味について
 
 - 趣味でモバイルアプリなどを作成。
-  - [アラフォー初心者だけどスマホアプリを開発～リリースまでがんばってみた](https://www.neputa-note.net/2021/02/onethird-release.html)
+  - [アラフォー初心者だけどスマホアプリを開発～リリースまでがんばってみた](/2021/02/onethird-release/)
 - こちらのサイトで成果物を紹介。
   - [まくた工房](https://www.makuta-kobo.net/)
 - .NETやAzureなどMicrosoftの技術が主スキル。最近はAstro楽しい。
