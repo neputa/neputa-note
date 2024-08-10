@@ -119,7 +119,7 @@ importers:
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
       astro-breadcrumbs:
         specifier: github:neputa/astro-breadcrumbs-fork
-        version: https://codeload.github.com/neputa/astro-breadcrumbs-fork/tar.gz/ea7d17d7d101a5668cc4dc1c005034d85456a008(astro@4.13.3(@types/node@22.2.0)(lightningcss@1.25.1)(terser@5.31.3)(typescript@5.5.4))
+        version: https://codeload.github.com/neputa/astro-breadcrumbs-fork/tar.gz/ea7d17d7d101a5668cc4dc1c005034d85456a008(astro@4.12.2(@types/node@20.14.12)(lightningcss@1.25.1)(terser@5.31.3)(typescript@5.5.4))
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.41)
