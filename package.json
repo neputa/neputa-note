@@ -71,7 +71,7 @@
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.12",
     "@typescript-eslint/parser": "^7.18.0",
-    "astro-breadcrumbs": "github:neputa/astro-breadcrumbs-fork",
+    "astro-breadcrumbs": "git+https://github.com/neputa/astro-breadcrumbs-fork.git",
     "autoprefixer": "^10.4.20",
     "clsx": "2.1.1",
     "eslint": "^8.57.0",
