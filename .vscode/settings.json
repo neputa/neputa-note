@@ -172,6 +172,7 @@
     "Polska",
     "Ponta",
     "popularposts",
+    "postbuild",
     "prevari",
     "purgecss",
     "Qiita",
@@ -233,6 +234,5 @@
     "Лагерь",
     "המוסד",
     "מוסד"
-  ],
-  "jest.jestCommandLine": "pnpm jest"
+  ]
 }
