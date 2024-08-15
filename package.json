@@ -67,7 +67,7 @@
     "@pagefind/default-ui": "^1.1.0",
     "@playform/compress": "^0.1.1",
     "@shikijs/transformers": "^1.13.0",
-    "@tailwindcss/typography": "0.5.13",
+    "@tailwindcss/typography": "0.5.14",
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.12",
     "@typescript-eslint/parser": "^8.1.0",
