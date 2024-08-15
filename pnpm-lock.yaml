@@ -115,10 +115,11 @@ importers:
         specifier: ^29.5.12
         version: 29.5.12
       '@typescript-eslint/parser':
-        specifier: ^7.18.0
-        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
+        specifier: ^8.1.0
+        version: 8.1.0(eslint@8.57.0)(typescript@5.5.4)
       astro-breadcrumbs:
         specifier: git+https://github.com/neputa/astro-breadcrumbs-fork.git
+        version: git+https://git@github.com:neputa/astro-breadcrumbs-fork.git#ea7d17d7d101a5668cc4dc1c005034d85456a008(astro@4.13.3(@types/node@22.2.0)(lightningcss@1.25.1)(terser@5.31.3)(typescript@5.5.4))
         version: git+https://git@github.com:neputa/astro-breadcrumbs-fork.git#ea7d17d7d101a5668cc4dc1c005034d85456a008(astro@4.13.3(@types/node@22.2.0)(lightningcss@1.25.1)(terser@5.31.3)(typescript@5.5.4))
       autoprefixer:
         specifier: ^10.4.20
@@ -1224,16 +1225,18 @@ packages:
       typescript:
         optional: true
 
-  '@typescript-eslint/parser@7.18.0':
-    resolution: {integrity: sha512-4Z+L8I2OqhZV8qA132M4wNL30ypZGYOQVBfMgxDH/K5UX0PNqTu1c6za9ST5r9+tavvHiTWmBnKzpCJ/GlVFtg==}
-    engines: {node: ^18.18.0 || >=20.0.0}
+  '@typescript-eslint/parser@8.0.1':
+    resolution: {integrity: sha512-5IgYJ9EO/12pOUwiBKFkpU7rS3IU21mtXzB81TNwq2xEybcmAZrE9qwDtsb5uQd9aVO9o0fdabFyAmKveXyujg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
-      eslint: ^8.56.0
+      eslint: ^8.57.0 || ^9.0.0
       typescript: '*'
     peerDependenciesMeta:
       typescript:
         optional: true
 
+  '@typescript-eslint/parser@8.1.0':
+    resolution: {integrity: sha512-U7iTAtGgJk6DPX9wIWPPOlt1gO57097G06gIcl0N0EEnNw8RGD62c+2/DiP/zL7KrkqnnqF7gtFGR7YgzPllTA==}
   '@typescript-eslint/parser@8.1.0':
     resolution: {integrity: sha512-U7iTAtGgJk6DPX9wIWPPOlt1gO57097G06gIcl0N0EEnNw8RGD62c+2/DiP/zL7KrkqnnqF7gtFGR7YgzPllTA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -1424,6 +1427,8 @@ packages:
     peerDependencies:
       astro: ^2.0.0 || ^3.0.0-beta || ^4.0.0-beta
 
+  astro-breadcrumbs@git+https://git@github.com:neputa/astro-breadcrumbs-fork.git#ea7d17d7d101a5668cc4dc1c005034d85456a008:
+    resolution: {commit: ea7d17d7d101a5668cc4dc1c005034d85456a008, repo: git@github.com:neputa/astro-breadcrumbs-fork.git, type: git}
   astro-breadcrumbs@git+https://git@github.com:neputa/astro-breadcrumbs-fork.git#ea7d17d7d101a5668cc4dc1c005034d85456a008:
     resolution: {commit: ea7d17d7d101a5668cc4dc1c005034d85456a008, repo: git@github.com:neputa/astro-breadcrumbs-fork.git, type: git}
     version: 2.3.1
@@ -5728,12 +5733,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4)':
+  '@typescript-eslint/parser@8.0.1(eslint@8.57.0)(typescript@5.5.4)':
     dependencies:
-      '@typescript-eslint/scope-manager': 7.18.0
-      '@typescript-eslint/types': 7.18.0
-      '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.5.4)
-      '@typescript-eslint/visitor-keys': 7.18.0
+      '@typescript-eslint/scope-manager': 8.0.1
+      '@typescript-eslint/types': 8.0.1
+      '@typescript-eslint/typescript-estree': 8.0.1(typescript@5.5.4)
+      '@typescript-eslint/visitor-keys': 8.0.1
       debug: 4.3.6
       eslint: 8.57.0
     optionalDependencies:
@@ -5742,7 +5747,12 @@ snapshots:
       - supports-color
 
   '@typescript-eslint/parser@8.1.0(eslint@8.57.0)(typescript@5.5.4)':
+  '@typescript-eslint/parser@8.1.0(eslint@8.57.0)(typescript@5.5.4)':
     dependencies:
+      '@typescript-eslint/scope-manager': 8.1.0
+      '@typescript-eslint/types': 8.1.0
+      '@typescript-eslint/typescript-estree': 8.1.0(typescript@5.5.4)
+      '@typescript-eslint/visitor-keys': 8.1.0
       '@typescript-eslint/scope-manager': 8.1.0
       '@typescript-eslint/types': 8.1.0
       '@typescript-eslint/typescript-estree': 8.1.0(typescript@5.5.4)
@@ -5963,6 +5973,7 @@ snapshots:
       acorn: 8.12.1
       astro: 4.13.3(@types/node@22.2.0)(lightningcss@1.25.1)(terser@5.31.3)(typescript@5.5.4)
 
+  astro-breadcrumbs@git+https://git@github.com:neputa/astro-breadcrumbs-fork.git#ea7d17d7d101a5668cc4dc1c005034d85456a008(astro@4.13.3(@types/node@22.2.0)(lightningcss@1.25.1)(terser@5.31.3)(typescript@5.5.4)):
   astro-breadcrumbs@git+https://git@github.com:neputa/astro-breadcrumbs-fork.git#ea7d17d7d101a5668cc4dc1c005034d85456a008(astro@4.13.3(@types/node@22.2.0)(lightningcss@1.25.1)(terser@5.31.3)(typescript@5.5.4)):
     dependencies:
       astro: 4.13.3(@types/node@22.2.0)(lightningcss@1.25.1)(terser@5.31.3)(typescript@5.5.4)
