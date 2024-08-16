@@ -2,7 +2,7 @@
 title: Astroにパンくずリスト（breadcrumb list）を追加する
 description: Astroで構築したWebサイトにパンくずリストを追加する。プラグインを追加すれば簡単に実装できる。しかしURLに日本語が含まれる場合（タグやカテゴリ）、URLエンコードされた表記となってしまう。プラグインのリポジトリをForkし、デコードした値を表示できるようにする
 pubDate: 2024-07-21T15:54:36.166Z
-modDate: 2024-07-21T15:54:36.166Z
+modDate: 2024-08-16T04:46:02.519Z
 heroImage: ../../../../assets/images/blog/astro-breadcrumb-list.webp
 category:
   - DEV
@@ -36,8 +36,8 @@ import Alert from '@/components/mdx/Alert'
 
 - Astroで構築したWebサイトにパンくずリストを追加する
 - astro-breadcrumbsというパッケージを使用して実装する
-- URLに日本語が含まれる場合、URLエンコードした値がパンくずリストに表示される
-- パッケージをForkし、この問題に対処する例についてもまとめる
+- ~~URLに日本語が含まれる場合、URLエンコードした値がパンくずリストに表示される~~
+- ~~パッケージをForkし、この問題に対処する例についてもまとめる~~
 
 ## 用語説明
 
@@ -145,6 +145,11 @@ import { Breadcrumbs } from 'astro-breadcrumbs'
   - [CSS Styles | Astro Breadcrumbs](https://docs.astro-breadcrumbs.kasimir.dev/styling/css-api/)
 
 ### URLエンコード対策
+
+<Alert
+  type='info'
+  content='2024/08/16 astro-breadcrumbsの開発者からversion 3.0.1でこの問題は解決したと連絡がありました。よって以降の作業はForkしたパッケージの使用例として参照してください。'
+/>
 
 - astro-breadcrumbsは、URLパスの値をパンくずリストに表示している
 - URLに日本語が含まれる場合、そのパスはURLエンコードした値で表示される
