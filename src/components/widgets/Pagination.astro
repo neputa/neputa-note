@@ -6,7 +6,7 @@ import ArrowRight from '../icons/ArrowRight.astro'
 const { page } = Astro.props
 ---
 
-<div class='flex justify-around gap-5 md:justify-end md:gap-1'>
+<div class='flex justify-around gap-5 md:justify-between md:gap-1'>
   <!-- Previous Button -->
   {
     page.start > 0 && (
@@ -15,6 +15,7 @@ const { page } = Astro.props
         class='flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-8 text-base font-medium text-black hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:bg-transparent dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white md:px-4'
       >
         <ArrowLeft />
+        <span class='ml-1 text-sm'>新しい記事</span>
       </a>
     )
   }
@@ -27,6 +28,7 @@ const { page } = Astro.props
         href={getPermalink(page.url.next)}
         class='ml-3 flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-8 text-base font-medium text-black hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:bg-transparent dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white md:px-4'
       >
+        <span class='mr-1 text-sm'>古い記事</span>
         <ArrowRight />
       </a>
     )
