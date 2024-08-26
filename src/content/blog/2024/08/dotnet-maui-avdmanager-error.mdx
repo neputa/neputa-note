@@ -1,0 +1,64 @@
+---
+title: Android Emulator作成エラー対応メモ【.NET MAUI】
+description: .NET MAUIで作成したAndroidアプリをデバッグしようとエミュレータを新規作成しようとしたところ、エラーが発生した。原因はエミュレータ作成パス。環境変数を追加することで解決できたのでメモを残す。
+pubDate: 2024-08-26T03:18:27.795Z
+modDate: 2024-08-26T03:18:27.796Z
+heroImage: ../../../../assets/images/blog/dotnet-maui-logo.webp
+category:
+  - DEV
+tags:
+  - dev
+  - MAUI
+draft: false
+keywords: null
+fmContentType: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事の概要
+
+- Visual Studio 2022にバンドルされているAndroid デバイスマネージャーで、新規にエミュレータを作成したところエラーが発生した
+- 環境変数を追加することで対処できたのでメモを残す
+
+## 作業環境
+
+- Windows 11 Pro 23H2
+- Visual Studio Community 2022 Version 17.11.1
+
+## 作業詳細
+
+### 発生した事象
+
+- Visual Studio 2022のAndroid デバイスマネージャーで新規作成を行ったところ、以下エラーが発生した
+- デバイスマネージャーのログは、C:\Users\ユーザ名\AppData\Local\Xamarin\Logs\バージョン 配下にある
+
+```log devicemanager.log
+[24-08-26 00:24:34.46] [AvdManager.CreateAvd] Exception: System.IO.DirectoryNotFoundException: パス '<USER_HOME>\.android\avd\pixel_5_-_api_34.avd\config.ini' の一部が見つかりませんでした。
+   場所 System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   場所 System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+```
+
+- 「\<USER_HOME\>\.android\avd\」を確認したところ、何もない
+- 色々調べたところ、なぜか「\<USER_HOME\>\.config\.android\avd\」にconfig.iniが作成されていた
+
+### 原因について
+
+- Android SDKのAvdManagerが、「\<USER_HOME\>\.config\」フォルダ以下にファイルを作成し、後の処理でUSER_HOME直下に存在しないとエラーとなっている
+- AvdManagerは「ANDROID_AVD_HOME」という環境変数を参照する
+- 環境変数を確認したところ、ANDROID_AVD_HOMEは未設定であった
+- 私が誤って環境変数を削除したのか、Visual Studioのアップデート等で何かしら変更が行われたのか特定には至らず
+
+### 対処内容
+
+- Windowsのシステム環境変数に以下を追加した
+  - 変数名 - ANDROID_AVD_HOME
+  - 変数値 - C:\Users\ユーザ名\.android\avd
+
+以上
+
+## 参考サイト
+
+- [環境変数  |  Android Studio  |  Android Developers](https://developer.android.com/tools/variables?hl=ja)
+- [Android | AVDの保存場所を設定する](https://www.javadrive.jp/android/emulator/index2.html)
