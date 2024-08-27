@@ -1,15 +1,16 @@
 ---
-title: VSCode on Ubuntu & .NET MAUIでAdnroidアプリ開発環境を構築する
+title: VSCode & .NET MAUIでAdnroidアプリ開発環境を構築する【Ubuntu on WSL】
 description: Ubuntu on WSL2でリモート実行しているVSCodeに、.NET MAUIアプリの開発環境を構築する。テンプレートからプロジェクトを新規作成し、Android emulatorでAndroidアプリをデバッグできるようにする。一連の設定手順をまとめる。
 pubDate: 2024-07-28T04:17:43.192Z
-modDate: 2024-07-28T04:17:43.192Z
+modDate: 2024-08-27T05:23:41.422Z
 heroImage: ../../../../assets/images/blog/maui-vscode.webp
 category:
   - DEV
 tags:
   - MAUI
-  - VSCode
   - Ubuntu
+  - VSCode
+  - dev
 draft: false
 keywords:
   - MAUI
@@ -27,6 +28,15 @@ import Alert from '@/components/mdx/Alert'
   - .NET MAUIテンプレートからプロジェクトを新規作成する
   - Android emulatorを起動する
   - Androidアプリをデバッグする
+
+<Alert type='info' content='Windowsでの環境構築は下の記事を参照' />
+
+<BlogCard
+  title='VSCode & .NET MAUIでAdnroidアプリ開発環境を構築する【Windows】'
+  description='VSCode（Windows）に、.NET MAUIアプリの開発環境を構築する。テンプレートからプロジェクトを新規作成し、Android emulatorでAndroidアプリをデバッグできるようにする。一連の設定手順をまとめる。'
+  url='/2024/08/dotnet-maui-vscode-windows/'
+  domain='localhost:4321'
+/>
 
 ## 環境
 
@@ -55,7 +65,6 @@ WSL2およびVSCodeのリモート開発環境が構築済みであること。
 ### .NET 8.0 インストール
 
 - 参考サイト
-
   - [パッケージ マネージャーを使用せずに Linux に .NET をインストールする - .NET | Microsoft Learn](https://learn.microsoft.com/ja-jp/dotnet/core/install/linux-scripted-manual#scripted-install)
 
 1. インストールスクリプトをダウンロード
