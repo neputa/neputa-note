@@ -13,7 +13,7 @@
   "frontMatter.content.pageFolders": [
     {
       "title": "Blog",
-      "path": "[[workspace]]/src/content/blog/**/**/*.mdx",
+      "path": "[[workspace]]/src/content/blog/**/**/",
       "previewPath": "/{{pathToken.4}}/{{pathToken.5}}",
       "trailingSlash": true,
       "contentTypes": ["blog"]
