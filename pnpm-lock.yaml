@@ -118,8 +118,8 @@ importers:
         specifier: ^8.5.0
         version: 8.5.0(eslint@8.57.0)(typescript@5.6.2)
       astro-breadcrumbs:
-        specifier: ^3.0.1
-        version: 3.0.1(astro@4.15.4(@types/node@22.5.4)(lightningcss@1.25.1)(rollup@4.21.2)(terser@5.31.3)(typescript@5.6.2))
+        specifier: ^3.2.0
+        version: 3.2.0(astro@4.15.4(@types/node@22.5.4)(lightningcss@1.25.1)(rollup@4.21.2)(terser@5.31.3)(typescript@5.6.2))
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.45)
@@ -1552,8 +1552,8 @@ packages:
     peerDependencies:
       astro: ^2.0.0 || ^3.0.0-beta || ^4.0.0-beta
 
-  astro-breadcrumbs@3.0.1:
-    resolution: {integrity: sha512-WoraP7NJM8LF8MXiq/neqsMkn1fF6YO+P4ugn/pSrZuXxHaH2naUdlbGb1+x4Z27wRDVn4Q/DXFy+cXNfLqvVQ==}
+  astro-breadcrumbs@3.2.0:
+    resolution: {integrity: sha512-TrXitr0GQjJsW/MAlvRPSWOjilpj7lY4Px1QEfDHPT0nGoBk+mNBiJARx0h8GvpuK7h0hAG6dYa+fFpoW5bbcw==}
     peerDependencies:
       astro: ^2.0.0-beta.0 || ^3.0.0 || ^4.0.0
 
@@ -6204,7 +6204,7 @@ snapshots:
       acorn: 8.12.1
       astro: 4.15.4(@types/node@22.5.4)(lightningcss@1.25.1)(rollup@4.21.2)(terser@5.31.3)(typescript@5.6.2)
 
-  astro-breadcrumbs@3.0.1(astro@4.15.4(@types/node@22.5.4)(lightningcss@1.25.1)(rollup@4.21.2)(terser@5.31.3)(typescript@5.6.2)):
+  astro-breadcrumbs@3.2.0(astro@4.15.4(@types/node@22.5.4)(lightningcss@1.25.1)(rollup@4.21.2)(terser@5.31.3)(typescript@5.6.2)):
     dependencies:
       astro: 4.15.4(@types/node@22.5.4)(lightningcss@1.25.1)(rollup@4.21.2)(terser@5.31.3)(typescript@5.6.2)
 
