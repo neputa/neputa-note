@@ -1,0 +1,190 @@
+---
+title: tmux インストール・初期設定 備忘録【Ubuntu24.04LTS / WSL2】
+description: ''
+pubDate: 2024-11-19T07:28:51.687Z
+modDate: 2024-11-19T07:28:51.688Z
+heroImage: ../../../../assets/images/blog/ubuntu-tmux-logo.webp
+category:
+  - DEV
+tags:
+  - Ubuntu
+draft: false
+keywords: null
+fmContentType: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事概要
+
+WSL2上のUbuntuにtmuxをインストールし、初期設定を行うまでの手順をまとめる。
+
+今回tmuxをインストールした目的が「SSH接続先とテキストをコピペしたい」だった。
+
+よって、これを実現するconfig作成をゴールとする
+
+## 環境
+
+- ホストOS
+  - Windows 11 Pro 23H2
+- サブOS（WSL2）
+  - Ubuntu 24.04LTS
+- tmux
+  - v3.4
+
+## tmux導入作業
+
+### tmuxインストール
+
+```shell
+sudo apt install tmux
+```
+
+### 設定ファイル作成（tmux.config）
+
+- ~/.config にtmuxディレクトリを作成し、その中に設定ファイル置く
+- .config以下に設定ファイルを置く場合は、隠しファイルにしないこと（ファイル名先頭のドット不要）
+
+> Starting with tmux version 3.1, \~/.config/tmux/tmux.conf works as an alternative to \~/.tmux.conf. Notice that it cannot be a hidden file in that directory.
+>
+> tmuxバージョン3.1から、\~/.config/tmux/tmux.confが\~/.tmux.confの代わりとして機能します。 そのディレクトリの隠しファイルにはできないことに注意してください。 <cite>-- [StackExchange](https://unix.stackexchange.com/questions/644819/is-it-possible-to-move-tmux-conf-to-config-folder)より引用を[DeepL翻訳](https://www.deepl.com/ja/translator)で翻訳</cite>
+
+まずはディレクトリを用意し、configファイルを作成する。
+
+```shell 設定ファイル作成
+mkdir ~/.config/tmux
+touch ~/.config/tmux/tmux.config
+```
+
+tmux.configの内容は以下のとおり。
+
+```vim tmux.config
+#-----------------------------------#
+# 基本設定
+#-----------------------------------#
+
+# change prefix key bind
+set -g prefix C-g
+unbind C-b
+
+# copymode to vi mode
+set-window-option -g mode-keys vi
+
+# prefix r で設定ファイルのリロード
+bind r source-file ~/.config/tmux/tmux.conf \; display "Reloaded!"
+
+# 256色表示
+set-option -g default-terminal screen-256color
+set -g terminal-overrides 'xterm:colors=256'
+
+
+#-----------------------------------#
+# プラグイン
+#-----------------------------------#
+
+# tmux package manager
+set -g @plugin 'tmux-plugins/tpm'
+
+# 基本的なオプションを設定してくれる
+set -g @plugin 'tmux-plugins/tmux-sensible'
+
+# コピペ with クリップボード
+set -g @plugin 'tmux-plugins/tmux-yank'
+
+# 正規表現で検索
+set -g @plugin 'tmux-plugins/tmux-copycat'
+
+# vim風キーバインドによるペイン操作
+set -g @plugin 'tmux-plugins/tmux-pain-control'
+
+# 環境保存・復元
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+
+# Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+#-----この行はプラグインの最後に記述 -----#
+run -b '~/.config/tmux/plugins/tpm/tpm'
+```
+
+### tpm（Tmux Plugin Manager）の追加
+
+githubからtpmをクローンし、tmuxディレクトリに配置する
+
+```shell tpmインストール
+mkdir ~/.config/tmux/plugins
+git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
+```
+
+- 先ほど示したtmux.configの後段がプラグイン関連の設定
+- configに設定した prefix + r で環境をリロードする
+
+設定は以上。
+適当にペインを分割したウインドウはこんな感じ。
+
+![tmuxのセッションを展開したスクリーンショット](@/images/blog/tmux-result.webp)
+
+### コマンド
+
+#### セッション関連
+
+- tmux source-file ~/.config/tmux/.tmux.config
+  - 設定ファイルのリロード
+- tmux
+  - 新しいセッションを作成・開始
+- tmux ls
+  - セッションの一覧を表示
+- tmux a -t セッション番号
+  - セッションを指定しアタッチ
+- prefix + d
+  - セッションをデタッチ
+- tmux kill-server
+  - セッションをすべて終了
+
+#### ウインドウ関連
+
+- prefix + %
+  - ウインドウを左右に分割
+    {/* textlint-disable */}
+- prefix + "
+  - ウインドウを上下に分割
+    {/* textlint-enable */}
+- prefix + o
+  - 次のペインに移動
+- prefix + c
+  - ウインドウを新規作成
+- prefix + w
+  - セッションおよびウインドウの一覧を表示
+
+#### ペインレイアウト
+
+- prefix + ctrl + 矢印
+  - カレントペインで広げたい方向にprefixのあとcontrolを押したまま矢印
+
+### SSH接続先ペインとのコピー&ペースト
+
+{/* textlint-disable */}
+
+- SSH接続先のテキストをローカルに持ってくる
+  - prefix + [
+  - 上記コマンドの後、コピーしたい箇所の開始地点でspace、終了地点でEnter
+- SSH接続先でローカルでコピーしたテキストをペーストする
+  - prefix + ]
+
+{/* textlint-enable */}
+
+### ペイン内検索
+
+- prefix + /
+  - 正規表現を含む検索文字列を入力しEnter
+  - n または N で検索結果を前後に移動できる
+  - y でハイライト箇所をコピー可
+
+### その他
+
+- prefix + t - 時計表示
+
+## 参考サイト
+
+- [【tmux】プラグインを使ってみる](https://amateur-engineer-blog.com/tmux-plugin-manager)
+- [tmuxにプラグイン(TPM)のインストールと設定 #Ubuntu - Qiita](https://qiita.com/askbox-net/items/9686b89a9928e66b16b0)
+  - [tmuxメモ : Tmux copycatとTmux Yankで検索、コピペを便利にする - もた日記](https://wonderwall.hatenablog.com/entry/2016/06/29/230105)
