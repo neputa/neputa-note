@@ -1,0 +1,649 @@
+---
+title: ASP.NET Core Web & nginxをConoHa VPS & Docker composeで公開する
+description: ASP.NET Core WebアプリをConoHa VPSで公開する手順をまとめた。Webサーバはnginxを使用し、Docker Composeで実行。OS（Debian）の初期設定からLet's EncryptによるHTTPS化までを記す。
+pubDate: 2024-11-26T06:23:46.386Z
+modDate: 2024-11-26T06:23:46.386Z
+heroImage: ../../../../assets/images/blog/conoha-dotnet-logo.webp
+category:
+  - DEV
+tags:
+  - dev
+  - dotnet
+  - docker
+draft: false
+keywords: null
+fmContentType: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事概要
+
+- ASP.NET Core Web APIアプリケーション（以降、Webアプリ）を、ConoHa VPS（以降、conoha）で公開する一連の作業をまとめた
+- システム構成は以下のとおり
+  - ConoHa VPS
+    - Debian
+      - Let's Encrypt（SSL/TLS証明書）
+      - UFW（Uncomplicated Firewall）
+      - Docker Compose
+        - ASP.NET Core Web API
+        - nginx
+
+## 経緯
+
+個人で開発・公開しているスマホアプリのバックエンドにASP.NET Core Web APIを配置している。
+
+<BlogCard
+  title='About OneThird'
+  description='「まくた工房」は、個人でWebやアプリ開発を行っています。（Makuta Kobo is a private web and application developer.）'
+  url='https://www.makuta-kobo.net/products/onethird/'
+  domain='www.makuta-kobo.net'
+/>
+
+- サーバ周りの作業コスト低減のため、Azure App Serviceで公開している
+- ケチって無料プランのためサービスの立ち上がりが遅い
+- Basicプランに格上げすると[$54.75/月](https://azure.microsoft.com/ja-jp/pricing/details/app-service/windows/)（1ドル150円だと8,213円）が発生する
+- 弱所個人サービスには死活問題
+- そこで、サーバ管理の手間と引き換えに、格安の国産VPSサービスに乗り換えることにした。
+
+## 環境
+
+### 本番環境
+
+- クラウドサーバ
+  - ConoHa VPS
+    - Debian 12.05
+    - 512MB 1Core 30GB-SSD 12か月プラン（321円/月）
+- SSH
+  - OpenSSH_9.2p1 Debian-2+deb12u3, OpenSSL 3.0.15
+- Docker
+  - v27.3.1, build ce12230
+- Docker Compose
+  - v2.29.7
+- UFW
+  - v0.36.2
+- .NET
+  - 8.0-latest
+- nginx
+  - latest
+
+### 開発環境
+
+- メインOS
+  - Windows 11 Pro 23H2
+- サブOS（on WSL2）
+  - Ubuntu 24.04.1 LTS
+- IDE
+  - Visual Studio Community 2022（x64）v17.11.6
+- SSH
+  - OpenSSH_9.6p1 Ubuntu-3ubuntu13.5, OpenSSL 3.0.13
+
+## VPSとは？
+
+> VPSは、物理的には一台のサーバーを複数の利用者で共同利用する点は変わりません。しかし、「利用者があたかも一台の専用サーバーを占有しているかのように仮想的に操作できる」点が違います。このため「バーチャルでプライベートなサーバー」＝VPSと呼ばれるわけです。<cite>-- [第1回：VPSってなに？　おいしいの？｜ConoHa VPSサポート](https://support.conoha.jp/v/study-01/)より引用</cite>
+
+## ConoHa VPSとは？
+
+> ConoHa VPSは初期費用無料、利用料金はサーバー費用のみ。料金タイプはご利用期間に合わせて2種類ご用意しています。さらに、転送量に対する課金は一切ありません。用途に合わせて、はじめたいときに最小限のコストではじめられるVPSです。<cite>-- [特長｜VPSならConoHa](https://www.conoha.jp/vps/features/)より引用</cite>
+
+## 前提
+
+- 以下サービスのアカウントを作成済み
+  - [ConoHa](https://www.conoha.jp/)
+  - [Docker Hub Container Image Library](https://hub.docker.com/)
+
+## 作業概要
+
+1. ConoHa VPSの初期設定
+   1. VPSサーバー追加
+   1. セキュリティグループの設定
+1. OS（Debian）の初期設定
+   1. SSHサーバ設定
+   1. ユーザ設定
+   1. ファイアウォール設定
+   1. SSHサーバを公開鍵認証方式へ変更
+1. ドメイン設定
+   1. 独自ドメイン取得・設定
+   1. HTTPS化（Let's Encrypt）
+1. Docker Compressによるコンテナ化
+   1. ASP.NET Core Web APIのDocker化
+   1. ConoHa VPS側の作業
+1. Webアプリの実行
+
+## 作業詳細
+
+### ConoHa VPSの初期設定
+
+#### VPSサーバー追加
+
+- conohaにログインし、左メニューの「+サーバ追加」より、VPSサーバを追加する
+- 今回は、以下を選択
+  - サービス - VPS
+  - イメージタイプ - OS / Debian 12.05（x86_64）
+  - 料金タイプ - 12か月
+  - プラン - 512MB 1Core SSD30GB
+- 任意のroot用パスワードを入力
+- ネームタグは、サーバーリストで識別しやすい名前を任意で設定
+
+#### セキュリティグループの設定
+
+- 今後SSH接続で作業するため、ポートを開ける
+- OS側のファイアウォールの他、conohaのコントロールパネルでも設定が必要
+- conohaにはSSH用の設定が準備されているが、デフォルトの22ポートを避けるため、既存の設定をベースに任意のポートを開放する
+- まずconohaの設定を行う
+
+1. コントロールパネル左側のメニューより、ネットワーク情報 → セキュリティグループを開く
+
+1. 既存の「IPv4v6SSH」を参考に、40022ポートを許可した設定を新規追加する
+
+| 通信方向 | イーサタイプ | プロトコル | ポート範囲 | IP/CIDR |
+| -------- | ------------ | ---------- | ---------- | ------- |
+| Out      | IPv6         | All        |            |         |
+| In       | IPv6         | TCP        | 40022      | ::/0    |
+| Out      | IPv4         | All        |            |         |
+| In       | IPv4 TCP     | 40022      | 0.0.0.0/0  |
+
+<Alert type='info' content='ポート番号は任意の値を設定（ここでは40022）                   ' />
+
+1. 次に、作成したセキュリティグループをサーバーに設定する
+
+1. サーバーのネットワーク情報のセキュリティグループに、作成した設定を追加する。
+
+1. コントロールパネル左側のメニューより、サーバー → 該当サーバー（ネームタグのリンク）→ ネットワーク情報を選択
+
+1. 下段のセキュリティグループの鉛筆アイコンをクリック
+
+1. +アイコンをクリックし、先ほど作成したSSH用のセキュリティグループを追加する
+
+1. Webアプリ公開用に、IPv4v6-Web（80と442）も併せて追加しておく
+
+<Alert type='info' content='pingで疎通テストをするにはIPv4v6-ICMPを追加する' />
+
+### OS（Debian）の初期設定
+
+- 今後、SSH接続し作業ができるように、conohaのブラウザコンソールで設定作業を行う
+- コンソールは以下から起動できる
+  - conohaコントロールパネルの左メニュー → サーバー → 該当サーバ → コンソール
+
+#### ユーザ設定
+
+- 作業用の一般ユーザを作成する
+
+```bash add-user
+$ adduser ユーザ名
+$ gpasswd -a ユーザ名 sudo
+```
+
+- 一度ログアウトし、作成したユーザでログインしなおす
+
+```bash logout
+$ logout
+```
+
+#### デフォルトエディタの変更
+
+- デフォルトのエディタ「nano」に不慣れのため、vimに変更する
+
+```shell change-editor
+$ sudo apt update
+$ sudo atp install vim
+$ sudo update-alternatives --set editor /usr/bin/vim.basic
+```
+
+- 作業用にnvimもインストールしておく
+- nvimはsnapでインストールする
+
+```shell install-neovim
+$ sudo apt update
+$ sudo atp install snapd -y
+$ sudo snap install nvim --classic
+```
+
+#### SSHサーバ設定
+
+<Alert type='info' content='今回のDebianはopensshがインストール済みだが無い場合は追加する' />
+
+- 以下を目的とし設定を行う
+  - SSH接続用の指定Port解放
+  - rootユーザによるSSHログイン禁止
+  - 公開鍵認証の許可
+  - 空パスワードの禁止
+- 設定が必要なファイルは以下の2つ
+  - /etc/ssh/sshd_config
+  - /etc/ssh/sshd_config.d/\*.conf
+
+```shell open-sshd_config
+$ sudo vim /etc/ssh/sshd_config
+```
+
+```text sshd_config
+# The strategy used for options in the default sshd_config shipped with
+# OpenSSH is to specify options with their default value where
+# possible, but leave them commented.  Uncommented options override the
+# default value.
+
+Include /etc/ssh/sshd_config.d/*.conf
+
+Port 40022// [!code ++]
+
+#AddressFamily any
+#ListenAddress 0.0.0.0
+
+# 省略 #
+
+#PermitRootLogin prohibit-password// [!code --]
+PermitRootLogin no// [!code ++]
+
+# 省略 #
+
+#PubkeyAuthentication yes// [!code --]
+PubkeyAuthentication yes// [!code ++]
+
+# 省略 #
+
+#PermitEmptyPasswords no// [!code --]
+PermitEmptyPasswords no// [!code ++]
+```
+
+ssh.socketとsshを再起動し、設定変更を反映
+
+```shell restart-ssh
+$ sudo systemctl restart ssh.socket
+$ sudo systemctl restart ssh
+```
+
+### ファイアウォール設定（ssh用ポート許可）
+
+- conohaのコントロールパネルでポートの使用制限を設定したが、OS側にも行っておく
+- ファイアウォールはufwを使用する
+
+```shell ufw-version
+$ ufw --version
+ufw 0.36.2
+Copyright 2008-2023 Canonical Ltd.
+```
+
+- 無ければインストールする
+
+```shell ufw-install
+$ sudo apt update
+$ sudo apt install ufw
+```
+
+```shell enable-ufw
+$ sudo ufw enable
+Firewall is active and enabled on system startup
+```
+
+SSH接続用ポートの通信許可を追加
+
+```shell allow-port
+$ sudo ufw allow 40022/tcp
+Rule added
+Rule added (v6)
+```
+
+設定の確認
+
+```shell check-ufw
+$ sudo ufw status verbose
+Status: active
+Logging: on (low)
+Default: reject (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+```
+
+設定の読み込み
+
+```shell reload-ufw
+sudo ufw reload
+```
+
+初期設定のSSH通信許可ルールを削除
+
+```shell delete-port
+$ sudo ufw status numbered
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] OpenSSH                    ALLOW IN    Anywhere
+[ 2] 40022/tcp                  ALLOW IN    Anywhere
+[ 3] OpenSSH (v6)               ALLOW IN    Anywhere (v6)
+[ 4] 40022/tcp (v6)             ALLOW IN    Anywhere (v6)
+$ sudo ufw delete 1
+Deleting:
+ allow OpenSSH
+```
+
+削除結果を確認
+
+```shell check-status
+sudo ufw status numbered
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] 40022/tcp                  ALLOW IN    Anywhere
+[ 2] OpenSSH (v6)               ALLOW IN    Anywhere (v6)
+[ 3] 40022/tcp (v6)             ALLOW IN    Anywhere (v6)
+```
+
+IPv6用の初期設定ルールも削除しておく
+
+```shell delete-port
+sudo ufw delete 2
+Deleting:
+ allow OpenSSH
+```
+
+再々度確認
+
+```shell check-status
+sudo ufw status numbered
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] 10022/tcp                  ALLOW IN    Anywhere
+[ 2] 10022/tcp (v6)             ALLOW IN    Anywhere (v6)
+```
+
+サーバ再起動
+
+```shell reboot
+sudo reboot
+```
+
+- 以下を確認しておく
+  - 一般ユーザログインできること
+  - 22番ポートを使用してログインできないと
+  - rootユーザでログインできないこと
+
+### SSHサーバを公開鍵認証方式へ変更
+
+#### 公開鍵をVPSに設定
+
+- vps側のsshディレクトリ権限を修正
+
+```shell change-permission
+cd ~
+mkdir .ssh
+chmod 700 .ssh
+```
+
+- ローカルで鍵を生成し、VPSに送る
+
+```shell generate-and-send-key
+cd ~/.ssh
+ssh-keygen -f id_rsa_conoha
+ssh-copy-id -p 40022 -i ~/.ssh/id_rsa_conoha.pub remote-user@remote-url
+```
+
+- ローカルの~/.ssh/configを修正し「ssh conoha」で接続できるようにする
+
+```text config
+Host conoha
+    HostName リモートのアドレス
+    IdentityFile ~/.ssh/id_rsa_conoha
+    User リモートのユーザ名
+	Port ポート番号
+```
+
+- 先ほどローカルから送付したvps側の鍵ファイル権限を修正
+
+```shell
+cd ~/.ssh
+chmod 600 authorized_keys
+```
+
+#### SSHサーバ設定変更
+
+- sshd_configを以下のとおり修正
+
+```text sshd_config
+$ sudo vim /etc/ssh/sshd_config
+
+PasswordAuthentication yes   # 変更前
+
+PasswordAuthentication no    # 変更後
+```
+
+- sshd_configに、「Include /etc/ssh/sshd_config.d/\*.conf」とある通り、該当ファイルの内容も修正しておく必要がある
+
+```shell /etc/ssh/sshd_config.d/*.conf
+$ ls /etc/ssh/sshd_config.d
+50-cloud-init.conf
+$ sudo vim /etc/ssh/sshd_config.d/50-cloud-init.conf
+PasswordAuthentication no
+```
+
+- sshdを再起動し設定を反映
+
+```shell restart-ssh
+sudo systemctl restart sshd
+```
+
+- 設定の反映状況を確認
+
+```shell check-settings
+$ sudo sshd -T | grep passwordauthentication
+passwordauthentication no
+```
+
+### ドメイン設定
+
+#### 独自ドメイン取得・設定
+
+_ コントロールパネル→ドメインよりドメインを取得する
+_ コントロールパネル→DNSより、取得したドメインを追加する
+
+- ConoHaで取得したドメインのネームサーバがver2.0のため、ver2.0に切り替えて行う（ver3.0で試したが、うまく行かなかったため）
+- 終わったらver3.0に戻しておく
+- 編集ボタン（鉛筆アイコン）→追加（＋アイコン）より、以下を追加する
+
+| タイプ | 名称 | TTL  | 値                 |
+| ------ | ---- | ---- | ------------------ |
+| A      | @    | 3600 | サーバのIPアドレス |
+| A      | www  | 3600 | サーバのIPアドレス |
+
+#### HTTPS化（Let's Encrypt）
+
+- 設定したドメインを対象に、コマンドで証明書を取得する
+- 今回設定したドメインはmakuta-kobo-app.top
+- ドメイン本体と、実際に運用するサブドメインと併せて実行する
+
+```shell get-letsencrypt
+$ sudo certbot certonly --standalone -d makuta-kobo-app.top -d www.makuta-kobo-app.top
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Requesting a certificate for makuta-kobo-app.top and www.makuta-kobo-app.top
+
+Successfully received certificate.
+Certificate is saved at: /etc/letsencrypt/live/makuta-kobo-app.top/fullchain.pem
+Key is saved at:         /etc/letsencrypt/live/makuta-kobo-app.top/privkey.pem
+This certificate expires on 2025-02-14.
+These files will be updated when the certificate renews.
+Certbot has set up a scheduled task to automatically renew this certificate in the background.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+If you like Certbot, please consider supporting our work by:
+ * Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+ * Donating to EFF:                    https://eff.org/donate-le
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+```
+
+### Docker Composeによるコンテナ化
+
+#### ASP.NET Core Web APIのDocker化
+
+- webアプリのDockerイメージを作成し、Docker Hubにアップロードする
+- まずプロジェクト直下にDockerfileを作る
+
+```docker Dockerfile
+# https://hub.docker.com/_/microsoft-dotnet
+FROM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build
+WORKDIR /source
+
+# copy csproj files and restore as distinct layers
+COPY ["OneThird.WebAPI/*.csproj", "OneThird.WebAPI/"]
+COPY ["OneThirdCL.Domain/*.csproj", "OneThirdCL.Domain/"]
+COPY ["OneThirdCL.Infrastructure/*.csproj", "OneThirdCL.Infrastructure/"]
+RUN dotnet restore "OneThird.WebAPI/OneThird.WebAPI.csproj"
+
+# copy and build app and libraries
+COPY ["OneThird.WebAPI/", "OneThird.WebAPI/"]
+COPY ["OneThirdCL.Domain/", "OneThirdCL.Domain/"]
+COPY ["OneThirdCL.Infrastructure/", "OneThirdCL.Infrastructure/"]
+WORKDIR "/source/OneThird.WebAPI"
+RUN dotnet publish -o /app
+
+# final stage/image
+FROM mcr.microsoft.com/dotnet/nightly/aspnet:8.0-jammy-chiseled-composite
+WORKDIR /app
+COPY --from=build /app/ .
+ENV ASPNETCORE_URLS http://*:5000
+ENTRYPOINT ["./OneThird.WebAPI"]
+```
+
+- Program.csに以下を追加
+
+```csharp Program.cs
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+```
+
+- dockerイメージをビルド
+
+```shell docker-build
+$ docker build -t onethird-api:latest .
+```
+
+- Docker Hub にログイン
+
+```shell docker-login
+$ docker login -u ユーザ名 -p パスワード
+```
+
+- Docker Hub にアップロード
+
+```shell upload-to-docker-hub
+$ docker tag onethird-api sa39bo/repos:latest
+$ docker push sa39bo/repos
+```
+
+### ConoHa VPS側の作業
+
+- conohaに作業ディレクトリ、nginxディレクトリを作成する
+
+```shell create-directory
+$ mkdir -p ~/work/myproject/nginx
+```
+
+- 3つのファイルを格納する
+
+```docker Dockerfile
+FROM nginx:latest
+
+COPY ./nginx.conf /etc/nginx/nginx.conf
+
+COPY ./site.conf.template /etc/nginx/templates/site.conf.template
+
+CMD [ "nginx", "-g", "daemon off;" ]
+```
+
+- nginx.conf
+
+```text nginx.conf
+worker_processes 1;
+
+events { worker_connections 1024; }
+
+http {
+    sendfile on;
+
+    include /etc/nginx/conf.d/site.conf;
+}
+```
+
+- site.conf.template
+
+```text site.conf.template
+upstream web-app {
+    server ${BACKEND_HOST};
+}
+
+server {
+    listen 80;
+    server_name $hostname;
+    location / {
+        proxy_pass         http://web-app;
+        proxy_redirect     off;
+        proxy_http_version 1.1;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection keep-alive;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   X-Forwarded-Host $server_name;
+    }
+}
+```
+
+- ~/work/myproject/docker-compose.yml作成
+
+```yaml docker-compose.yml
+services:
+  app:
+      image: [docker hubユーザ名]/[docker hub リポジトリ名]:latest
+    environment:
+      - 環境変数があれば=ここに記載する
+      - linuxの場合jsonの階層は=アンダーバー2つ__で書く
+    ports:
+      - "5000:5000"
+    networks:
+      - webnet
+
+  nginx:
+    build:
+      context: ./nginx
+    environment:
+      BACKEND_HOST: "app:5000"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - webnet
+```
+
+### Webアプリの実行
+
+- あとはDocker Composeでアプリを起動すれば終了
+
+```shell docker-compose
+$ docker compose up -d
+```
+
+## 参考サイト
+
+### ConoHa VPS
+
+- [【Ubuntu】ConoHaのVPSを作成した時にはじめにやること | VPS Life](https://vpslife.server-memo.net/conoha_ubuntu_vps_first_settings/)
+- [ConoHa VPSでDockerを使う方法 - VPS ONE](https://vps-one.site/docker-conoha-vps/)
+
+### Docker
+
+- [ASP.NET Core のWebアプリケーションを docker-compose で Dockerアプリケーション として構築する #C# - Qiita](https://qiita.com/wasimaru/items/4b160b48dae7f2618074)
+- [Docker Compose と HTTPS を使用してコンテナー内に ASP.NET Core イメージをホストする | Microsoft Learn](https://learn.microsoft.com/ja-jp/aspnet/core/security/docker-compose-https?view=aspnetcore-8.0)
+- [Docker コンテナーで ASP.NET Core アプリを実行する | Microsoft Learn](https://learn.microsoft.com/ja-jp/aspnet/core/host-and-deploy/docker/building-net-docker-images?view=aspnetcore-8.0)
+
+### ASP.NET Core
+
+- [Nginx 搭載の Linux で ASP.NET Core をホストする | Microsoft Learn](https://learn.microsoft.com/ja-jp/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-8.0&tabs=linux-ubuntu)
+- [ASP.NET Core Environment variable colon in Linux - Stack Overflow](https://stackoverflow.com/questions/40094998/asp-net-core-environment-variable-colon-in-linux)
