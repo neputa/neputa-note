@@ -29,9 +29,7 @@ const siteTitle =
     ? siteConfig.title
     : `${title} ${titleSeparator} ${siteConfig.title}`
 
-import { join } from 'path'
-import { AstroFont } from 'astro-font'
-import { convertCompilerOptionsFromJson } from 'typescript'
+const isProd = import.meta.env.PROD
 ---
 
 <!-- Global Metadata -->
@@ -43,6 +41,13 @@ import { convertCompilerOptionsFromJson } from 'typescript'
 
 <!-- Canonical URL -->
 <link rel='canonical' href={canonicalURL} />
+
+{
+  isProd && (
+  <link rel='preload' as='style' href='/_astro/_slug_.Da6gzC0y.css' />
+  <link rel='preload' as='style' href='/_astro/_slug_.CcCI8WNd.css' />
+  )
+}
 
 <!-- Primary Meta Tags -->
 <title>{siteTitle}</title>
