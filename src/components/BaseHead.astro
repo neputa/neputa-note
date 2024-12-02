@@ -28,8 +28,6 @@ const siteTitle =
   canonicalURL.href === Astro.site?.href
     ? siteConfig.title
     : `${title} ${titleSeparator} ${siteConfig.title}`
-
-const isProd = import.meta.env.PROD
 ---
 
 <!-- Global Metadata -->
@@ -41,13 +39,6 @@ const isProd = import.meta.env.PROD
 
 <!-- Canonical URL -->
 <link rel='canonical' href={canonicalURL} />
-
-{
-  isProd && (
-  <link rel='preload' as='style' href='/_astro/_slug_.Da6gzC0y.css' />
-  <link rel='preload' as='style' href='/_astro/_slug_.CcCI8WNd.css' />
-  )
-}
 
 <!-- Primary Meta Tags -->
 <title>{siteTitle}</title>
