@@ -8,6 +8,39 @@ import remarkCodeBlock from './plugins/remark-code-title.ts'
 import compress from '@playform/compress'
 import partytown from '@astrojs/partytown'
 import react from '@astrojs/react'
+import { promises as fs } from 'fs'
+import path from 'path'
+
+function PreloadCSSPlugin() {
+  return {
+    name: 'preload-css',
+    hooks: {
+      'astro:build:done': async ({ dir }) => {
+        // URLオブジェクトを文字列パスに変換
+        const distDir = path.resolve(dir.pathname)
+
+        // dist ディレクトリ内の HTML ファイルを取得
+        const htmlFiles = (await fs.readdir(distDir)).filter((file) => file.endsWith('.html'))
+
+        for (const file of htmlFiles) {
+          const filePath = path.join(distDir, file)
+
+          // HTML内容を読み込む
+          let content = await fs.readFile(filePath, 'utf-8')
+
+          // CSSリンクを `rel="preload"` に置換
+          content = content.replace(
+            /<link href="(.*?\.css)" rel="stylesheet">/g,
+            `<link href="$1" rel="preload" as="style" onload="this.rel='stylesheet'">`
+          )
+
+          // HTMLを上書き保存
+          await fs.writeFile(filePath, content, 'utf-8')
+        }
+      }
+    }
+  }
+}
 
 // https://astro.build/config
 export default defineConfig({
@@ -65,7 +98,8 @@ export default defineConfig({
       JavaScript: true,
       SVG: false,
       Logger: 1
-    })
+    }),
+    PreloadCSSPlugin()
   ],
   image: {
     service: sharpImageService()
