@@ -114,12 +114,10 @@ const disqusEnabled = disqusConfig.enabled
                 href={getPermalink(prevPost.slug, 'post')}
                 class='flex max-h-14 w-full gap-1 rounded-lg border border-gray-300 p-4 hover:bg-gray-100  hover:text-gray-700 dark:border-gray-700 dark:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white'
               >
-                <>
                   <span class='line-clamp-1 overflow-hidden text-sm'>{prevPost.data.title}</span>
                   <sapn class='w-6'>
                     <ArrowRight />
                   </sapn>
-                </>
               </a>
             ) : (
               <span />
