@@ -29,3 +29,26 @@ const { headings } = Astro.props
   indexDetails()
   document.addEventListener('astro:after-swap', indexDetails)
 </script>
+
+<style>
+  details {
+    user-select: none;
+    & summary span::before {
+      content: '［開く］';
+    }
+  }
+  details[open] {
+    & summary span::before {
+      content: '［閉じる］';
+    }
+    & summary {
+      @apply bg-white dark:bg-inherit;
+    }
+  }
+  details[open] summary ~ * {
+    animation: ease-opacity-t-b 0.5s ease;
+  }
+  summary {
+    cursor: pointer;
+  }
+</style>

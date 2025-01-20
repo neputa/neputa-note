@@ -50,7 +50,7 @@ const { lang, title, code } = Astro.props
 </figure>
 
 <script>
-  const coppyBlock = () => {
+  const copyBlock = () => {
     const codeBlock = document.querySelectorAll('.code-block')
 
     codeBlock.forEach((code) => {
@@ -69,6 +69,33 @@ const { lang, title, code } = Astro.props
       })
     })
   }
-  coppyBlock() // initial load
-  document.addEventListener('astro:after-swap', coppyBlock) // re-run after each page change
+  copyBlock() // initial load
+  document.addEventListener('astro:after-swap', copyBlock) // re-run after each page change
 </script>
+
+<style is:global>
+  .prose figure.code-block {
+    @apply mt-6 mb-12;
+  }
+  .prose pre {
+    @apply rounded-tl-none rounded-tr-none mt-0 px-0;
+  }
+  .prose code {
+    @apply grid grid-flow-row;
+  }
+  .line {
+    @apply indent-3;
+  }
+  .add {
+    @apply bg-[#142b19] indent-1;
+  }
+  .remove {
+    @apply bg-[#3a1f26] indent-1;
+  }
+  .add::before {
+    @apply content-['+'] text-green-500;
+  }
+  .remove::before {
+    @apply content-['-'] text-red-500;
+  }
+</style>

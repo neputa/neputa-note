@@ -45,22 +45,6 @@
     @apply border border-slate-300;
   }
 
-  .prose blockquote {
-    @apply py-2 px-4 dark:bg-slate-900 bg-gray-200 border-l-gray-300 dark:border-l-slate-800 md:ml-4;
-  }
-
-  .prose blockquote p {
-    @apply text-gray-600 dark:text-gray-400;
-  }
-
-  .prose blockquote cite {
-    @apply block mt-4;
-  }
-  .prose blockquote cite,
-  .prose blockquote cite a {
-    @apply text-sm;
-  }
-
   .prose ul {
     @apply mt-2 mr-0 mb-3 ml-4 p-0 leading-6;
   }
@@ -88,12 +72,6 @@
     @apply leading-6;
   }
 }
-.glass {
-  background: rgba(57, 56, 56, 0.52);
-  backdrop-filter: blur(13px) saturate(150%);
-  -webkit-backdrop-filter: blur(13px) saturate(150%);
-  z-index: -1;
-}
 
 .primary-btn {
   @apply bg-primary-700 text-white border-primary-700  dark:bg-primary-700 dark:border-primary-700  inline-flex items-center justify-center rounded-full border font-bold text-center text-lg leading-snug transition py-3.5 px-6 md:px-8 ease-in duration-200 focus:ring-blue-500 focus:ring-offset-blue-200 focus:ring-2 focus:ring-offset-2 hover:bg-gray-100 hover:border-gray-600 dark:text-slate-300  dark:hover:bg-slate-800 dark:hover:border-slate-800 cursor-pointer;
@@ -105,87 +83,6 @@
 
 p:empty {
   display: none;
-}
-
-lite-youtube {
-  @apply my-8;
-}
-
-/* table */
-table {
-  @apply w-full text-left;
-}
-
-thead {
-  @apply text-xs text-gray-700 uppercase dark:text-gray-400 font-semibold;
-}
-
-thead tr {
-  @apply bg-slate-300 dark:bg-slate-900;
-}
-
-tr {
-  @apply bg-slate-200 border-b border-b-gray-400 dark:bg-gray-800 dark:border-gray-700;
-}
-
-th {
-  @apply px-6 py-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white;
-}
-
-td {
-  @apply px-6 py-4 whitespace-nowrap text-sm;
-}
-
-/* details and summary */
-details {
-  user-select: none;
-  & summary span::before {
-    content: '［開く］';
-  }
-}
-details[open] {
-  & summary span::before {
-    content: '［閉じる］';
-  }
-  & summary {
-    @apply bg-white dark:bg-inherit;
-  }
-}
-
-details[open] summary ~ * {
-  animation: ease-opacity-t-b 0.5s ease;
-}
-
-summary {
-  cursor: pointer;
-}
-
-/*
-  shiki
-*/
-.prose figure.code-block {
-  @apply mt-6 mb-12;
-}
-.prose pre {
-  @apply rounded-tl-none rounded-tr-none mt-0 px-0;
-}
-.prose code {
-  @apply grid grid-flow-row;
-}
-.line {
-  @apply indent-3;
-}
-.add {
-  @apply bg-[#142b19] indent-1;
-}
-.remove {
-  @apply bg-[#3a1f26] indent-1;
-}
-.add::before {
-  @apply content-['+'] text-green-500;
-}
-.remove::before {
-  @apply content-['-'] text-red-500;
 }
 
 astro-breadcrumbs .c-breadcrumbs__link {

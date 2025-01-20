@@ -1,0 +1,18 @@
+table {
+  @apply w-full text-left;
+}
+thead {
+  @apply text-xs text-gray-700 uppercase dark:text-gray-400 font-semibold;
+}
+thead tr {
+  @apply bg-slate-300 dark:bg-slate-900;
+}
+tr {
+  @apply bg-slate-200 border-b border-b-gray-400 dark:bg-gray-800 dark:border-gray-700;
+}
+th {
+  @apply px-6 py-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white;
+}
+td {
+  @apply px-6 py-4 whitespace-nowrap text-sm;
+}
