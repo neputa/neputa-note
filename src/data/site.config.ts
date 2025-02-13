@@ -11,7 +11,8 @@ interface SiteConfig {
 export const siteConfig: SiteConfig = {
   author: 'neputa',
   title: 'neputa note',
-  description: '個人Blog。 Book感想、システム開発の備忘録、その他雑記など。',
+  description:
+    '個人Blogです。 本・映画・ドラマの感想、趣味のプログラミングに関する備忘録、そのほか日々の雑記などを綴っています。サイトはAstroで構築しています。',
   lang: 'ja-JP',
   ogLocale: 'ja-JP',
   shareMessage: '',
