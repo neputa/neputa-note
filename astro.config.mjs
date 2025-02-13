@@ -88,20 +88,29 @@ export default defineConfig({
       }
     }),
     compress({
-      CSS: true,
+      CSS: {
+        level: 2 // CSSの最小化レベルを設定
+      },
+      JavaScript: {
+        mangle: true, // JavaScriptの変数名を短縮
+        compress: true // JavaScriptの圧縮を有効にする
+      },
       HTML: {
         'html-minifier-terser': {
           removeAttributeQuotes: false
         }
       },
       Image: false,
-      JavaScript: true,
       SVG: false,
       Logger: 1
     }),
     PreloadCSSPlugin()
   ],
   image: {
-    service: sharpImageService()
+    service: sharpImageService({
+      cache: true, // キャッシュメカニズムを有効にする
+      quality: 80, // 画像の品質を設定
+      formats: ['webp', 'jpeg'] // 最適化する画像フォーマット
+    })
   }
 })
