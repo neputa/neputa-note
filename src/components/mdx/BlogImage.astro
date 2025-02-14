@@ -5,7 +5,7 @@ const { title, src, alt } = Astro.props
 ---
 
 <figure class='w-fit'>
-  <Image src={src} alt={alt} format='webp' />
+  <Image src={src} alt={alt} format='webp' loading='lazy' />
   {
     /* eslint-disable astro/no-set-html-directive */
     title && (
