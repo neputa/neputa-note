@@ -1,7 +1,7 @@
 ---
 import { siteConfig } from '@/site-config'
 import '../styles/global.css'
-import { ViewTransitions } from 'astro:transitions'
+import { ClientRouter } from 'astro:transitions'
 import Favicons from '@/components/meta/Favicons'
 
 export interface Props {
@@ -43,8 +43,8 @@ const siteTitle =
 <!-- Primary Meta Tags -->
 <title>{siteTitle}</title>
 
-<!-- ViewTransitions  -->
-<ViewTransitions />
+<!-- ClientRouter  -->
+<ClientRouter />
 
 <!-- SEO -->
 <meta name='title' content={siteTitle} />
