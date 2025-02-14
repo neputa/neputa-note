@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import { mdxToHtml } from '../src/utils/mdxUtils'
 
 // テスト用のMDXコンテンツ
@@ -30,11 +31,10 @@ More content here.
 </div>
 `
 
-// テスト実行
-test('removeInitialImports関数のテスト', async () => {
-  console.log('# Original:\n', mdxContent)
-  const cleanedMdxContent = await mdxToHtml(mdxContent)
-  console.log('# Cleaned:\n', cleanedMdxContent)
-  const result = mdxContent !== cleanedMdxContent
-  expect(result).toBe(true)
+describe('MDX Utils Tests', () => {
+  it('removeInitialImports関数のテスト', async () => {
+    const cleanedMdxContent = await mdxToHtml(mdxContent)
+    const result = mdxContent !== cleanedMdxContent
+    expect(result).toBe(true)
+  })
 })
