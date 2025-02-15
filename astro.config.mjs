@@ -89,23 +89,23 @@ export default defineConfig({
         forward: ['dataLayer.push']
       }
     }),
-    // compress({
-    //   CSS: {
-    //     level: 2
-    //   },
-    //   JavaScript: {
-    //     mangle: true,
-    //     compress: true
-    //   },
-    //   HTML: {
-    //     'html-minifier-terser': {
-    //       removeAttributeQuotes: false
-    //     }
-    //   },
-    //   Image: false,
-    //   SVG: false,
-    //   Logger: 1
-    // }),
+    compress({
+      CSS: {
+        level: 2
+      },
+      JavaScript: {
+        mangle: true,
+        compress: true
+      },
+      HTML: {
+        'html-minifier-terser': {
+          removeAttributeQuotes: false
+        }
+      },
+      Image: false,
+      SVG: false,
+      Logger: 1
+    }),
     PreloadCSSPlugin()
   ],
   image: {
