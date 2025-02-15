@@ -1,11 +1,8 @@
-import { nodeModuleNameResolver } from 'typescript'
-
-/** @type {import('tailwindcss').Config} */
-const defaultTheme = require('tailwindcss/defaultTheme')
+import defaultTheme from 'tailwindcss/defaultTheme'
+import typographyPlugin from '@tailwindcss/typography'
 
 module.exports = {
-  darkMode: 'class',
-  content: ['./src/**/*.{astro,html,js,md,mdx,ts,tsx}'],
+  content: ['./src/**/*.{astro,html,js,jsx,json,md,mdx,svelte,ts,tsx,vue}'],
   theme: {
     extend: {
       colors: {
@@ -24,19 +21,16 @@ module.exports = {
       },
       fontFamily: {
         body: [
-          'Avenir',
-          'Helvetica Neue',
-          'Helvetica',
-          'Arial',
-          'Hiragino Sans',
-          'ヒラギノ角ゴシック',
-          'YuGothic',
+          ...defaultTheme.fontFamily.sans,
+          'Roboto',
           'Yu Gothic',
+          'YuGothic',
+          'ヒラギノ角ゴシックPro',
+          'HiraginoKakuGothicPro',
           'メイリオ',
           'Meiryo',
-          'ＭＳ Ｐゴシック',
-          'MS PGothic',
-          'sans-serif'
+          'Osaka',
+          'ＭＳＰゴシック'
         ]
       },
       fontSize: {
@@ -60,5 +54,6 @@ module.exports = {
       }
     }
   },
-  plugins: [require('@tailwindcss/typography')]
+  plugins: [typographyPlugin],
+  darkMode: 'class'
 }

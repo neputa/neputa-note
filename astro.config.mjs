@@ -64,9 +64,8 @@ export default defineConfig({
     drafts: true
   },
   integrations: [
-    mdx({
-      syntaxHighlight: false,
-      drafts: true
+    tailwind({
+      applyBaseStyles: false
     }),
     sitemap({
       filter: (page) =>
@@ -80,30 +79,33 @@ export default defineConfig({
         return item
       }
     }),
-    tailwind(),
+    mdx({
+      syntaxHighlight: false,
+      drafts: true
+    }),
     react(),
     partytown({
       config: {
         forward: ['dataLayer.push']
       }
     }),
-    compress({
-      CSS: {
-        level: 2 // CSSの最小化レベルを設定
-      },
-      JavaScript: {
-        mangle: true, // JavaScriptの変数名を短縮
-        compress: true // JavaScriptの圧縮を有効にする
-      },
-      HTML: {
-        'html-minifier-terser': {
-          removeAttributeQuotes: false
-        }
-      },
-      Image: false,
-      SVG: false,
-      Logger: 1
-    }),
+    // compress({
+    //   CSS: {
+    //     level: 2
+    //   },
+    //   JavaScript: {
+    //     mangle: true,
+    //     compress: true
+    //   },
+    //   HTML: {
+    //     'html-minifier-terser': {
+    //       removeAttributeQuotes: false
+    //     }
+    //   },
+    //   Image: false,
+    //   SVG: false,
+    //   Logger: 1
+    // }),
     PreloadCSSPlugin()
   ],
   image: {
