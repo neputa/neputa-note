@@ -102,8 +102,8 @@ export default defineConfig({
           removeAttributeQuotes: false
         }
       },
-      Image: false,
-      SVG: false,
+      Image: true,
+      SVG: true,
       Logger: 1
     }),
     PreloadCSSPlugin()
