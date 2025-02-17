@@ -10,6 +10,7 @@ import partytown from '@astrojs/partytown'
 import react from '@astrojs/react'
 import { promises as fs } from 'fs'
 import path from 'path'
+import inline from '@playform/inline'
 
 function PreloadCSSPlugin() {
   return {
@@ -89,6 +90,8 @@ export default defineConfig({
         forward: ['dataLayer.push']
       }
     }),
+    inline(),
+    PreloadCSSPlugin(),
     compress({
       CSS: {
         level: 2
@@ -105,8 +108,7 @@ export default defineConfig({
       Image: true,
       SVG: true,
       Logger: 1
-    }),
-    PreloadCSSPlugin()
+    })
   ],
   image: {
     service: sharpImageService({
