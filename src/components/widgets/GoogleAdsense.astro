@@ -4,7 +4,7 @@ const adsClientId = import.meta.env.VITE_ADS_CLIENT_ID ?? process.env.VITE_ADS_C
 const adsBannerId = import.meta.env.VITE_ADS_BANNER_ID ?? process.env.VITE_ADS_BANNER_ID
 ---
 
-<div class='ads-container mt-16 min-w-fit'>
+<div class='ads-container mt-16 min-w-fit min-h-fit'>
   <p class='mb-6 border-t border-t-gray-300 pt-6 text-lg font-bold dark:text-white'>広告</p>
   <div>
     <ins class="adsbygoogle" style="display:block" data-ad-client={adsClientId} data-ad-slot={adsBannerId} data-ad-format="auto" data-full-width-responsive="true" />
