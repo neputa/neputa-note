@@ -12,37 +12,6 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import inline from '@playform/inline'
 
-function PreloadCSSPlugin() {
-  return {
-    name: 'preload-css',
-    hooks: {
-      'astro:build:done': async ({ dir }) => {
-        // URLオブジェクトを文字列パスに変換
-        const distDir = path.resolve(dir.pathname)
-
-        // dist ディレクトリ内の HTML ファイルを取得
-        const htmlFiles = (await fs.readdir(distDir)).filter((file) => file.endsWith('.html'))
-
-        for (const file of htmlFiles) {
-          const filePath = path.join(distDir, file)
-
-          // HTML内容を読み込む
-          let content = await fs.readFile(filePath, 'utf-8')
-
-          // CSSリンクを `rel="preload"` に置換
-          content = content.replace(
-            /<link href="(.*?\.css)" rel="stylesheet">/g,
-            `<link href="$1" rel="preload" as="style" onload="this.rel='stylesheet'">`
-          )
-
-          // HTMLを上書き保存
-          await fs.writeFile(filePath, content, 'utf-8')
-        }
-      }
-    }
-  }
-}
-
 // https://astro.build/config
 export default defineConfig({
   devToolbar: {
@@ -91,22 +60,26 @@ export default defineConfig({
       }
     }),
     inline(),
-    PreloadCSSPlugin(),
     compress({
       CSS: {
-        level: 2
+        level: 2,
+        cache: true
       },
       JavaScript: {
         mangle: true,
-        compress: true
+        compress: true,
+        cache: true
       },
       HTML: {
         'html-minifier-terser': {
           removeAttributeQuotes: false
-        }
+        },
+        cache: true
       },
-      Image: true,
-      SVG: true,
+      Image: false,
+      SVG: {
+        cache: true
+      },
       Logger: 1
     })
   ],
