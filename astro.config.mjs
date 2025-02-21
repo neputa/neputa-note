@@ -8,8 +8,6 @@ import remarkCodeBlock from './plugins/remark-code-title.ts'
 import compress from '@playform/compress'
 import partytown from '@astrojs/partytown'
 import react from '@astrojs/react'
-import { promises as fs } from 'fs'
-import path from 'path'
 import inline from '@playform/inline'
 
 // https://astro.build/config
