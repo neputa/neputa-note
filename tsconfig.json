@@ -1,21 +1,44 @@
 {
-  "extends": "astro/tsconfigs/strict",
+  "extends": "./node_modules/astro/tsconfigs/strict",
   "compilerOptions": {
     "strictNullChecks": true,
     "baseUrl": ".",
     "verbatimModuleSyntax": true,
     "paths": {
-      "@/components/*": ["src/components/*.astro"],
-      "@/layouts/*": ["src/layouts/*.astro"],
-      "@/utils": ["src/utils/index.ts"],
-      "@/data/*": ["src/data/*"],
-      "@/site-config": ["src/data/site.config.ts"],
-      "@/styles": ["src/styles/"],
-      "@/images/*": ["src/assets/images/*"],
-      "@/videos/*": ["src/assets/videos/*"]
+      "@/components/*": [
+        "src/components/*.astro"
+      ],
+      "@/layouts/*": [
+        "src/layouts/*.astro"
+      ],
+      "@/utils": [
+        "src/utils/index.ts"
+      ],
+      "@/data/*": [
+        "src/data/*"
+      ],
+      "@/site-config": [
+        "src/data/site.config.ts"
+      ],
+      "@/styles": [
+        "src/styles/"
+      ],
+      "@/images/*": [
+        "src/assets/images/*"
+      ],
+      "@/videos/*": [
+        "src/assets/videos/*"
+      ]
     },
     "jsx": "react-jsx",
-    "jsxImportSource": "react"
+    "jsxImportSource": "react",
+    "module": "ESNext", // モジュールの設定を追加
+    "moduleResolution": "node" // モジュール解決の設定を追加
   },
-  "exclude": ["node_modules", "**/node_modules/*", ".vscode", "dist"]
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*",
+    ".vscode",
+    "dist"
+  ]
 }
