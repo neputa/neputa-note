@@ -55,5 +55,5 @@ export const getPermalink = (slug: string = '', type: string = ''): string => {
 
 // slugの / を整形 先頭:無し - 末尾:有り
 const formatSlug = (slug: string): string => {
-  return slug === ('' || '/') ? '' : slug.replace(/^\/|\/$/g, '') + '/'
+  return slug === '' || slug === '/' ? '' : slug.replace(/^\/|\/$/g, '') + '/'
 }
