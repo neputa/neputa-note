@@ -1,0 +1,112 @@
+---
+title: CloudflareでのTTFB改善方法とその影響について
+description: CloudflareでのTTFB改善方法を解説し、その影響を考察。サイトパフォーマンス向上のためのヒントを紹介します。
+pubDate: 2025-03-03T21:16:39.781Z
+modDate: 2025-03-03T21:16:39.781Z
+heroImage: ../../../../assets/images/blog/cloudflare-network.webp
+category:
+  - DEV
+tags:
+  - cloudflare
+  - dev
+draft: false
+keywords: null
+fmContentType: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 記事の概要
+
+このブログはAstroで作成し、Cloudflare Pagesでホストしている。Astroは、ビルド時に静的ファイルを生成し、Cloudflareのキャッシュ機能の恩恵もあり、高速なパフォーマンスを実現している。しかし、PageSpeed Insightsでは、TTFB（Time To First Byte）が遅いと指摘される。
+
+![PageSpeed Insightsによる測定結果](@/images/blog/pagespeedinsights-ttfb.webp)
+
+この原因について、参考になる記事があった。その内容をまとめ、備忘録として残す。
+
+## 用語等の説明
+
+### Astroとは
+
+- 開発スタイルはReactなど流行りのフレームワーク同様、コンポーネントつまり部品を作成し、それをLayoutでテンプレート化、最終的なページへと集約する。JavaScriptで動的にHTMLを書き出すことでコンポーネントやレイアウトを流用、共通化する。
+- 言語は厳密なTypeScript、JavaScriptを混在等、設定で調節できる。
+- これらは .astro拡張子のファイルで構成してくが、他フレームワークのコンポーネントとの混在が可能。
+
+[Astroを選ぶ理由 | Docs](https://docs.astro.build/ja/concepts/why-astro/)
+
+### Cloudflareとは
+
+> Cloudflare, Inc.（クラウドフレア）は、コンテンツデリバリネットワーク（CDN）やインターネットセキュリティサービス、DDoS防御、分散型ドメイン名サーバシステムを提供するアメリカ合衆国の企業で、同社が提供するCDNは閲覧者とホスティングプロバイダー間でリバースプロキシとして動作する。
+<cite>-- [Cloudflare - Wikipedia](https://ja.wikipedia.org/wiki/Cloudflare)より引用</cite>
+
+### TTFBとは
+
+> Time to First Byte (TTFB) とは、ブラウザーがページをリクエストしてから、サーバーから最初の情報を受信するまでの時間を指します。この時間には DNS ルックアップと、 TCP ハンドシェイクと SSL ハンドシェイク（リクエストがHTTPSを使用している場合）を使用して接続を確立する時間が含まれます。 <cite>-- [MDN Web Docs 用語集](https://developer.mozilla.org/ja/docs/Glossary/Time_to_first_byte)より引用</cite>
+
+## 記事詳細
+
+このブログのTTFBだが、Chromeの拡張機能「[TTFB Checker](https://chromewebstore.google.com/detail/ttfb-checker/jchakbpmachilgijdicgobpcehcaplhj?hl=ja)」や、同じくChromeの「[Lighthouse](https://developer.chrome.com/docs/lighthouse?hl=ja)」においては200～300ms前後である。これは、十分に高速であると言える。
+
+PageSpeed Insightsと、手元のチェックとの差異は、Cloudflareのキャッシュ機能によるものと考えられる。次のサイトで、そのあたりを分かりやすく説明している。
+
+<BlogCard
+    title="How to Reduce TTFB (Time to First Byte) With Cloudflare"
+    description="Turning on Cloudflare increases TTFB, but it doesn&#39;t matter as much as you may think. Here are some ways to reduce TTFB and make it even lower than without Cloudflare."
+    url='https://discover.hubpages.com/technology/Reduce-TTFB-Time-To-First-Byte-with-CloudFlare?utm_source=pocket_saves'
+    domain='discover.hubpages.com' />
+
+この記事内容を参考に、要点を次にまとめる。
+
+### 要点
+
+- Cloudflareのオーバーヘッド要因は主に以下の2つ
+  - コンテンツの最適化（最小化、圧縮など）
+  - ユーザ/Cloudflare/オリジン3者間の暗号化と復号化（実質2度発生）
+- TTFBの値が高くても、サイト全体のロードがはるかに速いことはよくある
+- Cloudflareとオリジン間のSSL省略でTTFBを改善できる
+- 結論として、十分にキャッシュを活用しサイトのロードが十分に早ければ、セキュリティを下げてまでTTFBを改善する必要はない
+
+### Cloudflareのオーバーヘッド要因
+
+この3者間をベースに話しを進める。
+
+ブラウザ - Cloudflare - オリジン
+
+- コンテンツの最適化（最小化、圧縮など）
+  - Cloudflareは、オリジンからのコンテンツを最適化するためminifyや圧縮を行う。
+  - これにより、コンテンツ全体のサイズを小さくし、転送時間を短縮する。
+- ユーザ/Cloudflare/オリジン3者間の暗号化と復号化（実質2度発生）
+  - ブラウザとCloudflare間の通信は暗号化され、Cloudflareとオリジン間の通信も暗号化される。
+  - このため、暗号化と復号化の処理が2度発生することになり、TTFBが遅くなる。
+
+### TTFBの値とサイト全体のロード速度の関係
+
+- つまり、Cloudflareが行う処理はTTFBを遅くするが、ブラウザにコンテンツ全体を返すまでの時間を短縮する
+- ユーザ体験が向上し、ネットワークトラフィックを削減できるのであれば、最初のバイトを返す意義は薄いと思われる
+- 実際、Cloudflareは次のような記事を書いている
+  [Stop worrying about Time To First Byte (TTFB)](https://blog.cloudflare.com/ttfb-time-to-first-byte-considered-meaningles/)
+
+### TTFB改善案
+
+- 記事にはTTFBを改善する方法として、Cloudflareとオリジン間のSSL省略を挙げている
+- これにより、暗号化と復号化の処理をそれぞれ1回分ずつ省略でき、TTFBを改善できる
+
+ブラウザ - HTTPS - Cloudflare - HTTP - オリジン
+
+### ツールによるTTFBの測定
+
+- Chromeの拡張機能「TTFB Checker」や「Lighthouse」を使って、TTFBを測定することができる
+- 記事で紹介している「[Performance Test | KeyCDN Tools](https://tools.keycdn.com/performance)」は、URLを入力するだけでグローバルな複数拠点における測定値を表示してくれる
+
+![KeyCDN Toolsによる測定](@/images/blog/keycdn-tools.webp)
+
+### 結論
+
+  - CloudflareのSSL設定でTTFBを改善することは可能だが、サイト全体のロード速度が十分に速い場合は、セキュリティを下げてまでTTFBを改善する必要はない
+  - ツールを使ってTTFBを測定し、問題が無ければ必ずしもPageSpeed Insightsの計測値に振り回される必要はない
+
+## まとめ
+
+指標は大事だが、その向こうには常に議論があり変化する。
+最も大事なのはユーザ体験である、とあらためて認識しなおす機会になった。

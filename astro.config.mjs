@@ -2,14 +2,14 @@ import { defineConfig, sharpImageService } from 'astro/config'
 import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
 import tailwind from '@astrojs/tailwind'
+import { register } from 'ts-node' // ts-nodeをインポート
+register({ transpileOnly: true }) // ts-nodeを登録
 import { remarkReadingTime } from './src/utils/readTime.ts'
 import rehypeExternalLinks from 'rehype-external-links'
 import remarkCodeBlock from './plugins/remark-code-title.ts'
 import compress from '@playform/compress'
 import partytown from '@astrojs/partytown'
 import react from '@astrojs/react'
-import { promises as fs } from 'fs'
-import path from 'path'
 import inline from '@playform/inline'
 
 // https://astro.build/config

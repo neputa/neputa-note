@@ -77,6 +77,7 @@
     "@typescript-eslint/parser": "^8.24.1",
     "@vitest/ui": "^3.0.6",
     "astro-breadcrumbs": "^3.3.1",
+    "astro-purgecss": "^5.2.0",
     "autoprefixer": "^10.4.20",
     "clsx": "2.1.1",
     "cssnano": "^7.0.6",
@@ -95,12 +96,14 @@
     "prettier": "^3.5.1",
     "prettier-config-standard": "^7.0.0",
     "prettier-plugin-astro": "^0.14.1",
+    "purgecss": "^7.0.2",
     "reading-time": "^1.5.0",
     "rehype-autolink-headings": "^7.1.0",
     "shiki": "^3.0.0",
     "slugify": "^1.6.6",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "3.4.17",
+    "ts-node": "^10.9.1",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.24.1",
     "vitest": "^3.0.6"
@@ -113,5 +116,5 @@
       "prettier --write --plugin-search-dir=."
     ]
   },
-  "packageManager": "pnpm@9.5.0+sha512.140036830124618d624a2187b50d04289d5a087f326c9edfc0ccd733d76c4f52c3a313d4fc148794a2a9d81553016004e6742e8cf850670268a7387fc220c903"
+  "packageManager": "pnpm@10.5.2+sha512.da9dc28cd3ff40d0592188235ab25d3202add8a207afbedc682220e4a0029ffbff4562102b9e6e46b4e3f9e8bd53e6d05de48544b0c57d4b0179e22c76d1199b"
 }
