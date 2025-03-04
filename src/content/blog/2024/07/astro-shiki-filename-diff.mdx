@@ -158,7 +158,8 @@ $ pnpm add -D @shikijs/transformers
 ---
 import { Code } from 'astro:components'
 import { type BuiltinLanguage, type SpecialLanguage } from 'shiki'
-import { transformerNotationDiff } from '@shikijs/transformers' // [!code ++]
+// [!code ++]
+import { transformerNotationDiff } from '@shikijs/transformers'
 interface Props {
   lang?: string
   title?: string
@@ -179,7 +180,8 @@ const { lang, title, code } = Astro.props
       code={decodeURIComponent(code)}
       wrap={false}
       theme={'dark-plus'}
-      transformers={[ transformerNotationDiff() ]}{} // [!code ++]
+// [!code ++]
+      transformers={[ transformerNotationDiff() ]}{}
     />
   </div>
 </figure>

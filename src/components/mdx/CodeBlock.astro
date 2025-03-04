@@ -41,9 +41,9 @@ const { lang, title, code } = Astro.props
       wrap={false}
       theme={'dark-plus'}
       transformers={[
-        transformerNotationDiff(),
+        transformerNotationDiff({ matchAlgorithm: 'v3' }),
         transformerMetaHighlight(),
-        transformerNotationFocus()
+        transformerNotationFocus({ matchAlgorithm: 'v3' })
       ]}
     />
   </div>
