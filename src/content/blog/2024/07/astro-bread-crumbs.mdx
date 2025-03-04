@@ -75,8 +75,10 @@ $ pnpm add -D astro-breadcrumbs
 ---
 import HeaderLink from './HeaderLink.astro'
 import { SITE_TITLE } from '../consts'
-import { Breadcrumbs } from 'astro-breadcrumbs' // [!code ++]
-import 'astro-breadcrumbs/breadcrumbs.css' // [!code ++]
+// [!code ++]
+import { Breadcrumbs } from 'astro-breadcrumbs'
+// [!code ++]
+import 'astro-breadcrumbs/breadcrumbs.css'
 ---
 
 <header>
@@ -88,7 +90,8 @@ import 'astro-breadcrumbs/breadcrumbs.css' // [!code ++]
       <HeaderLink href='/about'>About</HeaderLink>
     </div>
   </nav>
-  <Breadcrumbs />// [!code ++]
+// [!code ++]
+  <Breadcrumbs />
 </header>
 ```
 
@@ -176,8 +179,10 @@ import { Breadcrumbs } from 'astro-breadcrumbs'
   {Astro.slots.has("index") && index === 0 ? (
     <slot name="index" slot="index" />
   ) : (
-    text // [!code --]
-    decodeURI(text) // [!code ++]
+// [!code --]
+    text
+// [!code ++]
+    decodeURI(text)
   )}
 </BreadcrumbLink>
 
@@ -190,8 +195,10 @@ import { Breadcrumbs } from 'astro-breadcrumbs'
 ```json package.json
 {
   "devDependencies": {
-    "astro-breadcrumbs": "^2.3.1", // [!code --]
-    "astro-breadcrumbs": "git+https://github.com/neputa/astro-breadcrumbs-fork.git" // [!code ++]
+// [!code --]
+    "astro-breadcrumbs": "^2.3.1",
+// [!code ++]
+    "astro-breadcrumbs": "git+https://github.com/neputa/astro-breadcrumbs-fork.git"
   }
 }
 ```

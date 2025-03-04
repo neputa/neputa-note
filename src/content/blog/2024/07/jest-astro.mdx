@@ -141,18 +141,29 @@ Ran all test suites.
 /* prettier-ignore */
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 export default {
-  preset: 'ts-jest', // [!code --]
-  preset: 'ts-jest/presets/default-esm', // [!code ++]
+// [!code --]
+  preset: 'ts-jest',
+// [!code ++]
+  preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
-  transform: { // [!code ++]
-    '^.+\\.ts?$': [ // [!code ++]
-      'ts-jest', // [!code ++]
-      { // [!code ++]
-        useESM: true, // [!code ++]
-        tsconfig: 'tsconfig.test.json' // [!code ++]
-      } // [!code ++]
-    ] // [!code ++]
-  } // [!code ++]
+// [!code ++]
+  transform: {
+// [!code ++]
+    '^.+\\.ts?$': [
+// [!code ++]
+      'ts-jest',
+// [!code ++]
+      {
+// [!code ++]
+        useESM: true,
+// [!code ++]
+        tsconfig: 'tsconfig.test.json'
+// [!code ++]
+      }
+// [!code ++]
+    ]
+// [!code ++]
+  }
 }
 ```
 

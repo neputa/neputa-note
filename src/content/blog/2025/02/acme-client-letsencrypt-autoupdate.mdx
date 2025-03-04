@@ -92,17 +92,19 @@ nginxのDockerfileとsite.conf.templateに、Certbotの設定を追加する。
 ```docker nginx/Dockerfile
 FROM nginx:latest
 
-RUN apt-get update && apt-get install -y certbot // [!code ++]
+// [!code ++]
+RUN apt-get update && apt-get install -y certbot
 
 COPY ./nginx.conf /etc/nginx/nginx.conf
 COPY ./site.conf.template /etc/nginx/templates/site.conf.template
 
-RUN mkdir -p /var/www/certbot // [!code ++]
+// [!code ++]
+RUN mkdir -p /var/www/certbot
 
 CMD [ "nginx", "-g", "daemon off;" ]
 ```
 
-```apache nginx/site.conf.template
+```log nginx/site.conf.template
 upstream app {
     server app:5000;
 }
@@ -115,9 +117,12 @@ server {
        return 301 https://$host$request_uri;
     }
 
-    location /.well-known/acme-challenge/ { // [!code ++]
-        root /var/www/certbot; // [!code ++]
-    } // [!code ++]
+// [!code ++]
+    location /.well-known/acme-challenge/ {
+// [!code ++]
+        root /var/www/certbot;
+// [!code ++]
+    }
 }
 
 server {
@@ -158,19 +163,26 @@ services:
       BACKEND_HOST: "app:5000"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/www/certbot:/var/www/certbot // [!code ++]
+// [!code ++]
+      - /var/www/certbot:/var/www/certbot
     ports:
       - "80:80"
       - "443:443"
     networks:
       - webnet
 
-  certbot: // [!code ++]
-    image: certbot/certbot // [!code ++]
-    volumes: // [!code ++]
-      - /etc/letsencrypt:/etc/letsencrypt // [!code ++]
-      - /var/www/certbot:/var/www/certbot // [!code ++]
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h; done'" // [!code ++]
+// [!code ++]
+  certbot:
+// [!code ++]
+    image: certbot/certbot
+// [!code ++]
+    volumes:
+// [!code ++]
+      - /etc/letsencrypt:/etc/letsencrypt
+// [!code ++]
+      - /var/www/certbot:/var/www/certbot
+// [!code ++]
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h; done'"
 
 networks:
   webnet:
