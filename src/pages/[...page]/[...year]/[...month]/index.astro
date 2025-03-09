@@ -26,10 +26,15 @@ const posts = allPosts
     return date.getFullYear() === parseInt(year) && date.getMonth() + 1 === parseInt(month)
   })
   .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf())
+
+const title = `${year}年${month}月の記事`
 ---
 
-<BaseLayout>
-  <TitlePage title=`${year}年${month}月の記事` />
+<BaseLayout
+  title={title}
+  description={`このページは、${year}年${month}月に投稿した記事の一覧を掲載している。年毎の記事一覧を確認する場合は、各記事ページの上部にある「年」のリンクをクリックしてほしい。`}
+>
+  <TitlePage title={title} />
   <ListPosts posts={posts} />
   <GoogleAdsense />
 </BaseLayout>

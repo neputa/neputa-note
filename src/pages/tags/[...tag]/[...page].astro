@@ -32,8 +32,11 @@ const tag = params.tag
 const posts = page.data
 ---
 
-<BaseLayout title={tag}>
-  <TitlePage title={`#${tag}`} />
+<BaseLayout
+  title={`#${tag} - ${page.currentPage}ページ目`}
+  description={`このページは、「${tag}」タグを含む記事一覧の${page.currentPage}ページ目。各タグの一覧は複数ページに分かれていることがある。一覧下部のページネーションから、他のページに移動できる。`}
+>
+  <TitlePage title={`#${tag} - ${page.currentPage}ページ目`} />
   <ListPosts posts={posts} />
   <Pagination page={page} />
   <GoogleAdsense />

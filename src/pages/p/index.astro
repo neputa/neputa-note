@@ -2,10 +2,15 @@
 import TitlePage from '@/components/widgets/TitlePage'
 import BaseLayout from '@/layouts/BaseLayout'
 import { getPermalink } from '@/utils'
+
+const title = '情報ページ一覧'
 ---
 
-<BaseLayout>
-  <TitlePage title='ページ一覧' />
+<BaseLayout
+  title={title}
+  description='このページは、このブログ内の、投稿記事以外のページへリンク一覧を掲載している。'
+>
+  <TitlePage title={title} />
   <div class='prose dark:prose-invert'>
     <ul class='text-lg'>
       <li><a href={getPermalink('about-me', 'page')}>プロフィール</a></li>

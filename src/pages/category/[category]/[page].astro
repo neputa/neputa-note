@@ -3,7 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout'
 import ListPosts from '@/components/widgets/ListPosts'
 import ListCategories from '@/components/widgets/ListCategories'
 import TitlePage from '@/components/widgets/TitlePage'
-import { sluglify, unsluglify, getCategories, getPosts } from '@/utils'
+import { sluglify, unsluglify, getCategories, getPosts, getCategoryDescriptions } from '@/utils'
 import { siteConfig } from '@/data/site.config'
 import Pagination from '@/components/widgets/Pagination'
 import GoogleAdsense from '@/components/widgets/GoogleAdsense'
@@ -32,10 +32,13 @@ const { page } = Astro.props
 
 const unsluglifyNameCategory = unsluglify(params.category!.toLowerCase())
 const posts = page.data
+const title = `「${unsluglifyNameCategory.toUpperCase()}」の${page.currentPage}ページ目`
+const descriptions = getCategoryDescriptions()
+const description = `このページは、「${unsluglifyNameCategory.toUpperCase()}」カテゴリの${page.currentPage}ページ目。このカテゴリは、${descriptions[unsluglifyNameCategory.toUpperCase()]}`
 ---
 
-<BaseLayout title={params.category}>
-  <TitlePage title={unsluglifyNameCategory.toUpperCase()} />
+<BaseLayout title={title} description={description}>
+  <TitlePage title={title} />
   <ListCategories activeCategory={params.category} />
   <ListPosts posts={posts} />
   <Pagination page={page} />
