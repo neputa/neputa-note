@@ -8,7 +8,10 @@ import GoogleAdsense from '@/components/widgets/GoogleAdsense'
 const tags = await getTagsWithCounts()
 ---
 
-<BaseLayout title='Tags'>
+<BaseLayout
+  title='Tags'
+  description='このブログの記事は、「タグ」で分類している。各タグのカッコ内は、記事数を表している。以下リンクから、各タグの記事一覧を確認することができる。また、一つの記事に複数のタグが付与されることもある。'
+>
   <TitlePage title='Tags' />
   <div class='flex flex-wrap justify-center gap-4'>
     {

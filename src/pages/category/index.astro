@@ -5,10 +5,14 @@ import { getCategories } from '@/utils'
 import GoogleAdsense from '@/components/widgets/GoogleAdsense'
 
 const categories = getCategories()
+const title = 'カテゴリ一覧'
 ---
 
-<BaseLayout>
-  <TitlePage title='カテゴリ一覧' />
+<BaseLayout
+  title={title}
+  description='このブログの記事は、4つのカテゴリに分類している。以下リンクから、各カテゴリの記事一覧を確認できる。すべての記事一覧を見る場合は、「全記事」を選択されたし。'
+>
+  <TitlePage title={title} />
   <div class='prose'>
     {
       categories &&

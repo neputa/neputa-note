@@ -2,7 +2,7 @@
 layout: '@/layouts/MarkdownLayout'
 title: About Me
 author: neputa
-description: 'このブログを書いている私「neputa」の自己紹介ページ'
+description: 'このブログの著者「neputa」の自己紹介ページ。内容は、不定期で更新。'
 pubDate: '2019-10-11 11:41:00'
 modDate: '2024-05-13 23:06:05'
 draft: false

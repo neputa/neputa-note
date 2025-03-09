@@ -30,10 +30,15 @@ const groupedPosts: GroupedPosts = allPosts
     acc[month].push(post)
     return acc
   }, {})
+
+const title = `${year}年の記事一覧`
 ---
 
-<BaseLayout>
-  <TitlePage title=`${year}年の記事` />
+<BaseLayout
+  title={title}
+  description={`このページは、${year}年に投稿した記事の一覧を掲載している。月別の記事一覧を確認する場合は、各記事ページの上部にある「月」のリンクをクリックしてほしい。`}
+>
+  <TitlePage title={title} />
   {
     Object.entries(groupedPosts).map(async ([month, posts]) => (
       <>
