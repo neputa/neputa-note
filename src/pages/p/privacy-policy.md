@@ -1,8 +1,8 @@
 ---
 layout: '@/layouts/MarkdownLayout'
-title: このブログサイト「neputa note」の、「プライバシ・ポリシー」を掲載したページ
+title: プライバシ・ポリシー
 author: neputa
-description: 'neputa-note.netのプライバシーポリシー・免責事項'
+description: このブログサイト「neputa note」の、「プライバシ・ポリシー」を掲載したページ
 pubDate: '2021-07-28 22:50:00'
 modDate: '2024-04-04 14:12:31'
 draft: false
