@@ -1,0 +1,346 @@
+---
+title: .NET MAUIのCollectionViewにドラッグアンドドロップを実装する
+description: .NET MAUIのCollectionViewでドラッグアンドドロップを簡単に実装する方法を解説。プロパティ設定やMVVMパターンを活用した効率的な実装手法を、サンプルコードとともに紹介します。Androidでの動作確認済み。
+pubDate: 2025-04-14T02:32:53.477Z
+modDate: 2025-04-14T02:32:53.477Z
+heroImage: ../../../../assets/images/blog/dotnet-maui-draganddrop.webp
+category:
+  - DEV
+tags:
+  - dotnet
+  - MAUI
+  - dev
+draft: true
+keywords: null
+fmContentType: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+import Video from '@/components/common/Video'
+import mp4Demo from '@/videos/blog/drag-and-drop-demo.mp4'
+
+## 概要
+
+.NET MAUIのCollectionViewでドラッグアンドドロップを実装する方法をまとめる。
+
+現在のCollectionViewでは、プロパティを設定するだけでドラッグアンドドロップが実装できるようになっている。
+
+また、ドラッグアンドドロップの完了を検知するイベントも用意されている。
+
+これらの使用例をサンプルコードを交えて紹介する。
+
+iPhoneが手元にないので、Androidでの動作のみ確認している。
+
+## 環境
+
+- Visual Studio 2022
+- .NET 9.0
+- Android 15
+- nuget packages
+  - CommunityToolkit.Maui 11.2.0
+  - CommunityToolkit.Mvvm 8.4.0
+
+## ソースファイル（GitHub）
+
+[CodeSandbox/DragAndDrop at main · neputa/CodeSandbox](https://github.com/neputa/CodeSandbox/tree/main/DragAndDrop)
+
+## 作業詳細
+
+### 事前作業
+
+今回のサンプルでは、CommunityToolkit.Mauiを使用する。
+また、MVVMパターンを使用するため、CommunityToolkit.Mvvmも使用する。
+
+- [NuGet Gallery | CommunityToolkit.Maui 11.2.0](https://www.nuget.org/packages/CommunityToolkit.Maui/)
+- [NuGet Gallery | CommunityToolkit.Mvvm 8.4.0](https://www.nuget.org/packages/CommunityToolkit.Mvvm)
+
+nuget packagesをインストールし、以下ファイルに追加する。
+
+- MauiProgram.cs
+- MainView.xaml
+- MainViewModel.cs
+
+#### 1. DI - MauiProgram.cs
+
+```csharp MauiProgram.cs
+using CommunityToolkit.Maui; // [!code ++]
+
+## 省略
+
+public static class MauiProgram
+{
+    public static MauiApp CreateMauiApp()
+    {
+        var builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
+            .UseMauiCommunityToolkit() // [!code ++]
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            })
+            .UseMauiCommunityToolkit();
+
+        return builder.Build();
+    }
+}
+```
+
+#### 2. XAML
+
+```xml MainView.xaml
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"// [!code ++]
+    >
+
+    <!-- 省略 -->
+
+</ContentPage>
+```
+
+#### 3. ViewModel
+
+```csharp MainViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;// [!code ++]
+using CommunityToolkit.Mvvm.Input;// [!code ++]
+
+// 省略
+```
+
+### CollectionViewの設定
+
+CollectionViewのドラッグアンドドロップを有効にするには、'CanReorderItems'プロパティを'True'に設定する。
+
+```xml MainView.xaml
+<!-- 省略 -->
+
+<CollectionView
+    ItemsSource="{Binding CollectionViewItems}"
+    SelectionMode="None"
+    CanReorderItems="True">// [!code highlight]
+
+    <!-- 省略 -->
+
+</CollectionView>
+
+<!-- 省略 -->
+```
+
+ユーザがドラッグアンドドロップを行うと、'CollectionView'の'ItemReordered'イベントが発生する。
+
+コードビハインドにイベントを追加することもできるが、MVVMパターンを使用しているため、'Behaviors'を使用してViewModelにイベントをバインドする。
+
+```xml MainView.xaml
+<!-- 省略 -->
+
+<CollectionView
+    ItemsSource="{Binding CollectionViewItems}"
+    SelectionMode="None"
+    CanReorderItems="True">
+    <CollectionView.Behaviors>// [!code highlight]
+        <toolkit:EventToCommandBehavior// [!code highlight]
+            EventName="ReorderCompleted"// [!code highlight]
+            Command="{Binding BindingContext.ReorderCompletedCommand, Source={x:Reference MainViewContent}}"// [!code highlight]
+            CommandParameter="{Binding .}"/>// [!code highlight]
+    </CollectionView.Behaviors>// [!code highlight]
+
+    <!-- 省略 -->
+
+</CollectionView>
+
+<!-- 省略 -->
+```
+
+これで、コマンドメソッド（ここでは'ReorderCompletedCommand'）に、ドラッグアンドドロップしたアイテムの情報が渡される。
+
+非常に簡単に実装できる。
+
+## Demo
+
+簡単なサンプルを作成してみた。
+
+概要としては以下のとおり。
+
+- 10桁のランダムな数字を表示するCollectionViewを作成し、ドラッグアンドドロップを行うと、アイテムの背景色が変わる
+- アイテムの背景色は、'Toggle'プロパティを使用している
+- 'Toggle'プロパティは、'ReorderCompletedCommand'メソッドでトグルされる
+- 'Border'の'Trigger'を使用し、'Toggle'プロパティの値に応じて背景色を変更する
+
+すべてのソースはGitHubにアップしている。
+
+[CodeSandbox/DragAndDrop at main · neputa/CodeSandbox](https://github.com/neputa/CodeSandbox/tree/main/DragAndDrop)
+
+### ソースコード
+
+以下に、MauiProgram.cs、MainView.xaml、MainView.xaml.cs、MainViewModel.csのコードを示す。
+
+#### 1. MauiProgram.cs
+
+```csharp MauiProgram.cs
+using CommunityToolkit.Maui;
+using DragAndDrop.ViewModels;
+using DragAndDrop.Views;
+using Microsoft.Extensions.Logging;
+
+namespace DragAndDrop;
+public static class MauiProgram
+{
+    public static MauiApp CreateMauiApp()
+    {
+        var builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
+            .UseMauiCommunityToolkit()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
+
+        builder.Services.AddTransient<MainView>();
+        builder.Services.AddTransient<MainViewModel>();
+
+#if DEBUG
+        builder.Logging.AddDebug();
+#endif
+
+        return builder.Build();
+    }
+}
+```
+
+#### 2. MainView.xaml
+
+```xml MainView.xaml
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:DragAndDrop.ViewModels"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    x:Name="MainViewContent"
+    x:DataType="vm:MainViewModel"
+    x:Class="DragAndDrop.Views.MainView">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30,0"
+            Spacing="25">
+            <CollectionView
+                ItemsSource="{Binding CollectionViewItems}"
+                SelectionMode="None"
+                CanReorderItems="True">
+                <CollectionView.Behaviors>
+                    <toolkit:EventToCommandBehavior
+                        EventName="ReorderCompleted"
+                        Command="{Binding BindingContext.ReorderCompletedCommand, Source={x:Reference MainViewContent}}"
+                        CommandParameter="{Binding .}"/>
+                </CollectionView.Behaviors>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:RandomValue">
+                        <VerticalStackLayout>
+                            <Border
+                                Margin="0, 10"
+                                Padding="20"
+                                Background="LightSeaGreen"
+                                StrokeShape="RoundRectangle 10">
+                                <Border.Triggers>
+                                    <DataTrigger
+                                        TargetType="Border"
+                                        Binding="{Binding BindingContext.Toggle, Source={x:Reference MainViewContent}}"
+                                        Value="True" >
+                                        <Setter Property="Background" Value="Orange" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Label Text="{Binding Value}" FontSize="Large"/>
+                            </Border>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
+```
+
+#### 3. MainView.xaml.cs
+
+```csharp MainView.xaml.cs
+using DragAndDrop.ViewModels;
+
+namespace DragAndDrop.Views;
+
+public partial class MainView : ContentPage
+{
+    public MainView(MainViewModel mainViewModel)
+    {
+        InitializeComponent();
+        BindingContext = mainViewModel;
+    }
+}
+```
+
+#### 4. MainViewModel.cs
+
+```csharp MainViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace DragAndDrop.ViewModels;
+
+public partial class MainViewModel : ObservableObject
+{
+    [ObservableProperty]
+    private List<RandomValue> _collectionViewItems = [];
+
+    [ObservableProperty]
+    private bool _toggle;
+
+    public MainViewModel()
+    {
+        Initialize();
+
+        Toggle = true;
+    }
+
+    private void Initialize()
+    {
+        var random = new Random();
+
+        // 10桁のランダム値のListを作成 (Linqを使用)
+        CollectionViewItems = [.. Enumerable
+            .Range(0, 10)
+            .Select(_ => new RandomValue(random.NextInt64(1000000000, 10000000000)))];
+    }
+
+    [RelayCommand]
+    private void ReorderCompleted(RandomValue randomValue)
+    {
+        Toggle = !Toggle;
+    }
+}
+
+public record RandomValue(long Value);
+```
+
+実際の動作はこんな感じ。
+
+<Video src={mp4Demo} caption='ドラッグアンドドロップ Demo' />
+
+## まとめ
+
+.NET MAUIのCollectionViewでドラッグアンドドロップを実装する方法を紹介した。
+
+以前、TapGestureRecognizerを使い苦戦しながら実装したことがあったが、今はプロパティを設定するだけで簡単に実装できるようになっている。
+
+また、TapGestureRecognizerを使用した場合より、パフォーマンスが格段に向上している。
+
+## 参考
+
+- [CollectionView Drag & Drop Item Reordering Spec · Issue #3767 · dotnet/maui](https://github.com/dotnet/maui/issues/3767?utm_source=pocket_shared)
+- [CollectionView Class (Microsoft.Maui.Controls) | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/api/microsoft.maui.controls.collectionview?view=net-maui-9.0#events)
