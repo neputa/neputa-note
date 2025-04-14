@@ -1,5 +1,5 @@
 {
-  "extends": "./node_modules/astro/tsconfigs/base",
+  "extends": "./node_modules/astro/tsconfigs/strict",
   "compilerOptions": {
     "strictNullChecks": true,
     "baseUrl": ".",
