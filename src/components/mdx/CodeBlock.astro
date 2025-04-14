@@ -5,7 +5,7 @@ import CopyIcon from '../icons/CopyIcon.astro'
 import CheckIcon from '../icons/CheckIcon.astro'
 import {
   transformerNotationDiff,
-  transformerMetaHighlight,
+  transformerNotationHighlight,
   transformerNotationFocus
 } from '@shikijs/transformers'
 interface Props {
@@ -42,7 +42,7 @@ const { lang, title, code } = Astro.props
       theme={'dark-plus'}
       transformers={[
         transformerNotationDiff({ matchAlgorithm: 'v3' }),
-        transformerMetaHighlight(),
+        transformerNotationHighlight({ matchAlgorithm: 'v3' }),
         transformerNotationFocus({ matchAlgorithm: 'v3' })
       ]}
     />
@@ -86,16 +86,19 @@ const { lang, title, code } = Astro.props
   .line {
     @apply indent-3;
   }
+  .highlighted {
+    @apply bg-[#ffffff35];
+  }
   .add {
-    @apply bg-[#142b19] indent-1;
+    @apply bg-[#1f4527] indent-1;
   }
   .remove {
-    @apply bg-[#3a1f26] indent-1;
+    @apply bg-[#5b313c] indent-1;
   }
   .add::before {
-    @apply content-['+'] text-green-500;
+    @apply content-['+'] text-green-400;
   }
   .remove::before {
-    @apply content-['-'] text-red-500;
+    @apply content-['-'] text-red-400;
   }
 </style>
