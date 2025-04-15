@@ -1,0 +1,41 @@
+# ==== Commit Messages ====
+
+# ==== Commit Messages(Template) ====
+# Prefix: :emoji: 変更内容 #Issue番号
+# 例) fix: :bug: コメント追加 #438
+# ==== Prefix ====
+# blog: ブログ記事に関する変更
+# fix: バグ修正
+# feat: 新機能の追加
+# update: バグではない機能修正
+# docs: ドキュメントの更新や改善
+# disable: 無効化
+# upgrade: バージョンアップ
+# style: コードフォーマットの修正、UIのみの変更
+# refactor: リファクタリング
+# test: テストの追加や改善
+# chore: ビルドプロセスの変更や改善
+# perf: パフォーマンスの改善
+# WIP: 作業中
+
+# ==== Emojis ====
+# ✨  :sparkles (blog) 新しい記事
+# 🍱  :bento: (blog)  記事の修正
+# 🐛  :bug: (fix) バグ修正
+# 👍  :+1: (fix) 機能改善や機能修正
+# ✨  :sparkles: (feat) 部分的な機能追加
+# 🎉  :tada: (feat) 大きな機能追加
+# 📦️  :package: (update) 依存パッケージなどのアップデート
+# 👮  :cop: (update) セキュリティ関連の改善
+# ⚙   :gear: (update) config変更
+# 📚  :books: (docs) ドキュメント
+# 📝  :memo: (docs) 文言修正
+# 🔥  :fire: (disable) 不要な機能・使われなくなった機能の削除
+# ⬆️  :arrow_up: (upgrade) バージョンアップ
+# 🎨  :art: (style) UIのみの変更
+# 👕  :shirt: (style) Lintエラーの修正やコードスタイルの修正
+# ♻️  :recycle: (refactor)) リファクタリング
+# ✅  :white_check_mark: (test) テストの追加や改善
+# 💚  :green_heart: (chore) ビルドプロセスの変更や改善
+# 🚀  :rocket: (perf) パフォーマンス改善
+# 🚧  :construction: (WIP) 作業中
