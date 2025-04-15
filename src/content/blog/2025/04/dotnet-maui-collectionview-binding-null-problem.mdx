@@ -2,7 +2,7 @@
 title: .NET MAUI CollectionViewでBindingの値がnullになる問題を解決する方法
 description: .NET MAUI CollectionViewでBinding . （Binding dot）の値がnullになる問題の原因と解決方法を備忘録としてまとめた。公式ドキュメントにしっかりと書かれていることだったので自戒の意味も込めて備忘録として残す。
 pubDate: 2025-04-15T03:52:04.963Z
-modDate: 2025-04-15T03:52:04.963Z
+modDate: 2025-04-15T04:26:20.365Z
 heroImage: ../../../../assets/images/blog/dotnet-maui-collectionview-problem.webp
 category:
   - DEV
@@ -117,7 +117,7 @@ XAMLでコンパイル済みのバインドを使用しているが、エラー�
                             <SwipeItem
                                 Text="Delete"
                                 Command="{Binding Source={x:Reference collectionView}, Path=, Path=BindingContext.DeleteCommand}"
-                                CommandParameter="{Binding .}" />// [!code highlight]
+                                CommandParameter="{Binding .}" />
                         </SwipeItems>
                     </SwipeView.RightItems>
                     <Label Text="{Binding Name}" />
@@ -131,7 +131,7 @@ XAMLでコンパイル済みのバインドを使用しているが、エラー�
 </ContentPage>
 ```
 
-ここでは、仮に`Item`というクラスを使用しているとする。
+ここでは、仮に"Item"というクラスを使用しているとする。
 
 ```csharp Item.cs
 
@@ -143,7 +143,7 @@ public class Item
 }
 ```
 
-`x:DataType`で型を指定することで、Bindingのコンテキストが正しく解決されるようになる。
+"x:DataType"で型を指定することで、Bindingのコンテキストが正しく解決されるようになる。
 
 ## まとめ
 
