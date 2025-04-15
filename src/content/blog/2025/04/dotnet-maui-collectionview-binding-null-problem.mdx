@@ -1,0 +1,156 @@
+---
+title: .NET MAUI CollectionViewでBindingの値がnullになる問題を解決する方法
+description: .NET MAUI CollectionViewでBinding . （Binding dot）の値がnullになる問題の原因と解決方法を備忘録としてまとめた。公式ドキュメントにしっかりと書かれていることだったので自戒の意味も込めて備忘録として残す。
+pubDate: 2025-04-15T03:52:04.963Z
+modDate: 2025-04-15T03:52:04.963Z
+heroImage: ../../../../assets/images/blog/dotnet-maui-collectionview-problem.webp
+category:
+  - DEV
+tags:
+  - dotnet
+  - MAUI
+  - dev
+draft: false
+keywords: null
+fmContentType: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 概要
+
+.NET MAUIのCollectionViewを使用しているときに、"Binding ."の値がnullになる問題に直面した。
+
+状況としては、CollectionViewの"SwipeItemView"でスワイプしたときに実行するCommandのパラメータをBindingで指定しているのだが、値がnullになってしまうというもの。
+
+原因と解決策を備忘録としてまとめる。
+
+## 環境
+
+- .NET 8.0 （net8.0-android）
+- CommunityToolkit.Maui 9.1.1
+- CommunityToolkit.Mvvm 8.3.2
+
+## 問題の詳細
+
+以下のようなCollectionViewを使用している。
+
+```xml MainView.xaml
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:CollectionViewDemos.ViewModels"
+    x:Class="CollectionViewDemos.Views"
+    x:DataType="local:HslColorViewModel"
+    Title="MainVIew">
+
+    <!-- 省略 -->
+
+    <CollectionView
+        x:Name="collectionView"
+        ItemsSource="{Binding Items}"
+        SelectionMode="None">
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <SwipeView>
+                    <SwipeView.RightItems>
+                        <SwipeItems>
+                            <SwipeItem
+                                Text="Delete"
+                                Command="{Binding Source={x:Reference collectionView}, Path=, Path=BindingContext.DeleteCommand}"
+                                CommandParameter="{Binding .}" />// [!code highlight]
+                        </SwipeItems>
+                    </SwipeView.RightItems>
+                    <Label Text="{Binding Name}" />
+                </SwipeView>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+
+    <!-- 省略 -->
+
+</ContentPage>
+```
+
+問題が起きているのは、上記のハイライト部分。
+
+XAMLでコンパイル済みのバインドを使用しているが、エラーや警告も出ていない。
+
+また、デバッグ時には問題なく動作する。
+
+ところが、Releaseビルドで実行すると"Binding .の値がnull"になってしまう。
+
+## 原因
+
+ちゃんと公式に書いてあった。
+
+> Bindings in a DataTemplate are interpreted in the context of the object being templated. Therefore, when using compiled bindings in a DataTemplate, the DataTemplate needs to declare the type of its data object using the x:DataType attribute. Failure to do this could result in the DataTemplate inheriting an incorrect x:DataType from its parent scope:
+> DataTemplateのバインディングは、テンプレート化されるオブジェクトのコンテキストで解釈されます。 したがって、DataTemplateでコンパイルされたバインディングを使用する場合、DataTemplateはx:DataType属性を使用してデータオブジェクトの型を宣言する必要があります。これを行わないと、DataTemplateがその親スコープから正しくないx:DataTypeを継承してしまう可能性があります <cite>-- [Compiled bindings - .NET MAUI | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/maui/fundamentals/data-binding/compiled-bindings?utm_source=pocket_shared&view=net-maui-9.0)より引用</cite>
+
+## 解決策
+
+つまり、こうしなさいということ。
+
+```xml MainView.xaml
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:CollectionViewDemos.ViewModels"
+    xmlns:local="clr-namespace:CollectionViewDemos.Models"
+    x:Class="CollectionViewDemos.Views"
+    x:DataType="models:HslColorViewModel"
+    Title="MainVIew">
+
+    <!-- 省略 -->
+
+    <CollectionView
+        x:Name="collectionView"
+        ItemsSource="{Binding Items}"
+        SelectionMode="None">
+        <CollectionView.ItemTemplate>
+            <DataTemplate>// [!code --]
+            <DataTemplate x:DataType="local:Item">// [!code ++]
+                <SwipeView>
+                    <SwipeView.RightItems>
+                        <SwipeItems>
+                            <SwipeItem
+                                Text="Delete"
+                                Command="{Binding Source={x:Reference collectionView}, Path=, Path=BindingContext.DeleteCommand}"
+                                CommandParameter="{Binding .}" />// [!code highlight]
+                        </SwipeItems>
+                    </SwipeView.RightItems>
+                    <Label Text="{Binding Name}" />
+                </SwipeView>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+
+    <!-- 省略 -->
+
+</ContentPage>
+```
+
+ここでは、仮に`Item`というクラスを使用しているとする。
+
+```csharp Item.cs
+
+namespace CollectionViewDemos.Models;
+
+public class Item
+{
+    public string Name { get; set; }
+}
+```
+
+`x:DataType`で型を指定することで、Bindingのコンテキストが正しく解決されるようになる。
+
+## まとめ
+
+GitHub Copilot先生の助けを借りながら取り組んでいたが、なかなか解決できずにいた。
+
+最終的には、公式ドキュメントを見て解決できた。
+
+新しい技術を使うときは、ドキュメントをしっかり読むこと大事。
+
+以上。
