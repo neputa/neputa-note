@@ -1,0 +1,133 @@
+---
+title: "Neovim: インサートモードを抜けるときにIMEをオフにする"
+description: Neovimでインサートモードを抜ける際にIMEを自動オフにする設定方法を解説。Windows、Ubuntu、WSL環境で使用するVSCodeでも動作するように設定を行う。
+pubDate: 2025-04-17T00:00:00.000Z
+modDate: 2025-04-17T00:00:00.000Z
+heroImage: ../../../../assets/images/blog/neovim-logo.webp
+category:
+  - DEV
+tags:
+  - dev
+  - Neovim
+  - Ubuntu
+draft: false
+keywords: null
+fmContentType: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 概要
+
+Neovimのインサートモードで日本語入力を行い、ノーマルモードに戻るとき、IMEをオフにするのが面倒だ。戻し忘れてコマンドが使えないなんてVimあるあるだと思う。
+
+この問題を解決するには、日本語をやめるか、設定で対処するかの2択になる。
+
+そこで、インサートモードを抜けるときに、自動的にIMEをオフになるように設定することにした。
+
+Linux（Ubuntu）限定であれば、とても簡単に設定することができる。
+
+ただし、WindowsやリモートWSLでVSCodeを使っている場合は少し面倒な設定が必要になる。
+
+今回は以下の環境で動作するように、IME自動オフの設定を行う。
+
+- Ubuntu + Neovim
+- Windows + Neovim
+- Windows + WSL + Neovim
+- Windows + WSL + VSCode + Neovim拡張機能
+
+## 前提条件
+
+### IME切り換えツール
+
+IMEオフは、Neovimの設定で外部アプリケーションを実行することで実現する。
+
+- Ubuntu: fcitx5
+- それ以外: zenhan
+
+#### fcitx5
+
+fcitx5は、aptでインストールできる。
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install fcitx5
+```
+#### zenhan
+
+- 以下サイトの"[実行ファイル](https://github.com/iuchim/zenhan/releases/download/v0.0.1/zenhan.zip)"リンクからダウンロードする
+  - [Win版の VS Code+VSCodeVim でノーマルモードに戻った時にIMEを半角英数入力にする #VSCode - Qiita](https://qiita.com/iuchi/items/9ddcfb48063fc5ab626c)
+- zipファイルを解凍し、zenhan.exeを任意の場所に配置する
+- bin32とbin64の2つのフォルダがあるので、環境に応じたフォルダにPATHを通す
+
+### Neovimの設定
+
+- luaで記述する
+- init.luaでもよいし、ファイルを分けてもよい
+- 環境問わず使える設定にする
+
+## 設定の詳細
+
+### Neovimの設定
+
+UbuntuでもWindowsでも動作するように、environmentを取得して、分岐するように設定する。
+
+```lua init.lua
+-- 実行環境を判定する関数
+local function detect_environment()
+  local env = {}
+
+  -- Linux
+  env.is_linux = vim.fn.has("unix") == 1 and not vim.fn.has("wsl") == 1
+
+  -- Windows
+  env.is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
+
+  -- WSL
+  env.is_wsl = vim.fn.has("wsl") == 1
+
+  -- VSCode Neovim
+  env.is_vscode = vim.g.vscode ~= nil
+
+  return env
+end
+
+-- 実行環境を取得
+local env = detect_environment()
+
+-- モード変更時IME自動オフ
+if env.is_linux then
+  vim.api.nvim_set_keymap("i", "<silent> <Esc>", "<Esc>:call system('fcitx5-remote -c')<CR>", { noremap = true })
+elseif env.is_vscode or env.is_wsl then
+  vim.o.shell = "/usr/bin/bash --login"
+  vim.cmd('autocmd InsertLeave * :call system("zenhan.exe 0")')
+  vim.cmd('autocmd CmdlineLeave * :call system("zenhan.exe 0")')
+elseif env.is_windows then
+  vim.o.shell = "cmd.exe"
+  vim.cmd("autocmd InsertLeave * :call system('zenhan 0')")
+  vim.cmd("autocmd CmdlineLeave * :call system('zenhan 0')")
+end
+```
+
+### 解説
+
+- 以下条件で分岐している
+  - Linux
+  - VSCode or WSL
+  - Windows
+- "VSCode or WSL" と、"Windows"は、同じコマンドを呼び出しているが、shellが異なるため、分岐している
+- WSLのUbuntuは、ホストOSのWindowsで設定した環境変数パスを参照できるらしく、exeファイル名のみで実行可能
+  - "echo $PATH"すると、Windowsで登録したパスが含まれている
+
+## まとめ
+
+Neovimのインサートモードを抜けるときにIMEをオフにする設定を行った。
+
+これで、ノーマルモードに戻るときにIMEをオフにする手間が省ける。
+
+IME変換の宿命を負った日本のVimmerたちのモード変更が少しでも楽になることを願ってやまない。
+
+## 参考
+
+- [Win版の VS Code+VSCodeVim でノーマルモードに戻った時にIMEを半角英数入力にする #VSCode - Qiita](https://qiita.com/iuchi/items/9ddcfb48063fc5ab626c)
