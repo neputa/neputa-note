@@ -1,0 +1,175 @@
+---
+title: WindowsとUbuntu用のドットファイルの作成方法
+description: WindowsとUbuntu用のdotfiles作成法を解説。環境構築を簡素化し、効率的な作業を実現する方法を紹介します。
+pubDate: 2025-04-15T05:24:55.448Z
+modDate: 2025-04-15T05:24:55.448Z
+heroImage: ../../../../assets/images/blog/dotfiles.webp
+category:
+  - DEV
+tags:
+  - Ubuntu
+  - Windows
+  - dev
+draft: false
+keywords: null
+fmContentType: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 概要
+
+遅まきながら、WindowsとUbuntu用のdotfilesを作成した。
+
+環境の新規構築、リセットのたび、いつも面倒な思いをしてきた。世界にはこんな便利な仕組みがあったというのに。
+
+備忘録を兼ね、私のdotfilesの作成方法を紹介する。
+
+## dotfilesとは
+
+> Many programs are configured using plain-text files known as “dotfiles” (because the file names begin with a ., e.g. ~/.gitconfig, so that they are hidden in the directory listing ls by default).<br />
+> ...<br />
+> Customizing and adapting your tools to your preferred workflow will make you more productive. We advise you to invest time in customizing your tool yourself rather than cloning someone else’s dotfiles from GitHub.
+>
+> 多くのプログラムは「ドットファイル」と呼ばれるプレーンテキストのファイルを使って設定されます（ファイル名が.で始まるため、例えば~/.gitconfigのように、デフォルトではlsというディレクトリリストで隠れてしまいます）。<br />
+> （中略）<br />
+> ツールをカスタマイズし、好みのワークフローに合わせることで、より生産性が上がります。 GitHubから他人のドットファイルをクローンするのではなく、自分でツールをカスタマイズすることに時間を投資することをお勧めします。 <cite>-- [Dotfiles · Missing Semester](https://missing.csail.mit.edu/2019/dotfiles/) より引用（翻訳: [DeepL翻訳](https://www.deepl.com/ja/translator)）</cite>
+
+## dotfilesの要件
+
+### 要件の概要
+
+#### 使用イメージ（こんな感じで使いたい）
+
+1. 新しいOSをインストール
+2. ターミナル起動
+3. dotfilesのコマンド実行
+4. 環境構築完了
+
+#### 技術要件
+
+- ターゲットOS
+  - Windows 11 or later
+  - Ubuntu 24.04 LTS or later（WSL2を含む）
+- 実行スクリプト
+  - Ubuntu: bash
+  - Windows: PowerShell
+- dotfilesの管理場所
+  - GitHub
+
+#### インストール内容
+
+- インストールする項目
+  - 設定ファイル
+  - アプリケーション
+- インストール項目の分類
+  - 共通
+  - Windows
+  - Ubuntu
+
+#### スクリプトの処理内容
+
+1. Gitのインストール（未インストールの場合）
+2. dotfilesリポジトリをクローン
+3. 共通設定をインストール
+    - リポジトリ内の設定ファイルにローカルへのシンボリックリンクを作成
+    - 既存の設定ファイルがある場合はバックアップ
+4. OS固有の設定をインストール
+    - 共通と同様の処理を行う
+5. アプリケーションをインストール
+
+### 要件の補足
+
+- Ubuntuがaptで完結するのに対し、Windowsはwinget、Chocolatey、scoopなど、複数のパッケージマネージャーがあって困る
+- そこで、WindowsはUniGetUIのみインストールし、手動で一括インストールする（その後の運用を考えるとこれが楽）
+- UniGetUIは、バンドルリストを手動で管理し、変更があった場合はリストをリポジトリに保存する
+- 設定ファイルは、原則、リポジトリ内のファイルにシンボリックリンクを作成する
+- つまり、今後の変更はリポジトリに反映されるので、リポジトリを更新するだけで、他のPCでも同じ環境を再現できる
+
+#### UniGetUIとは
+
+> アプリのインストール / アップデート / アンインストール を、一元的に管理することができるソフト。<br />
+> Winget / Scoop / Chocolatey / Pip / Npm / .NET ツール / PowerShell Gallery の GUI で、アプリのインストール / アンインストール / アップデート を、分かりやすいウインドウ上で実行できるようにしてくれます。 <cite>-- [UniGetUI のダウンロードと使い方 - ｋ本的に無料ソフト・フリーソフト](https://www.gigafree.net/system/install/UniGetUI.html)より引用</cite>
+
+
+## 実際のdotfiles
+
+### GitHubのリポジトリ
+
+<BlogCard
+    title="neputa/dotfiles"
+    description="Contribute to neputa/dotfiles development by creating an account on GitHub."
+    url='https://github.com/neputa/dotfiles'
+    domain='github.com' />
+
+### ディレクトリ構成
+
+- Setup-Windows.ps1: Windows用のセットアップスクリプト
+- setup_ubuntu.sh: Ubuntu用のセットアップスクリプト
+- common: 共通設定
+- ubuntu: Ubuntu用の設定
+- utils: ユーティリティスクリプト
+- windows: Windows用の設定
+
+```bash .dotfiles/
+.
+├── Setup-Windows.ps1
+├── setup_ubuntu.sh
+├── common
+│   └── config
+├── ubuntu
+│   ├── apps
+│   └── config
+├── utils
+└── windows
+    ├── UniGetUI
+    ├── config
+    ├── PowerToys
+    └── terminal
+```
+
+### 使用方法
+
+<Alert type='danger' content='実行すると、ローカルの環境を書き換えるので注意' />
+
+- Ubuntuの場合は、ターミナルを開いて、以下のコマンドを実行する
+- 実行すると、/home/user/.dotfilesにリポジトリがクローンされる
+- その後、ローカルの設定ファイルへのシンボリックリンクが作成される
+- 既存の設定ファイルがある場合は、バックアップが作成される
+- その後、アプリケーションのインストールが行われる
+
+```bash bash
+bash -c "$(wget -qO- https://raw.githubusercontent.com/neputa/dotfiles/refs/heads/main/setup_ubuntu.sh)"
+```
+
+- Windowsの場合は、管理者権限でPowerShellを開いて、以下のコマンドを実行する
+- 実行すると、C:\Users\user\.dotfilesにリポジトリがクローンされる
+- その後の処理は、Ubuntuと同様
+
+```powershell PowerShell
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/neputa/dotfiles/refs/heads/main/Setup-Windows.ps1").Content
+```
+
+処理内容は、リポジトリ内のスクリプトを参照されたし。
+
+## まとめ
+
+dotfilesを作成することで、環境構築の手間を大幅に削減できることがわかった。
+
+また、GitHubにリポジトリを作成することで、他のPCでも同じ環境を再現できるようになった。
+
+まだまだ途上のdotfilesだが、今後も地道に改善していく次第。
+
+と思っていたら、「[chezmoi](https://www.chezmoi.io/?utm_source=pocket_saves)」という、dotfilesを管理するためのツールがあることを知った。
+
+自力でスクリプトを書くのも楽しいが、こういったツールを使うことで、より効率的にdotfilesを管理できるかもしれない。
+
+よきdotfilesライフを。
+
+## 参考
+
+- [Dotfiles · Missing Semester](https://missing.csail.mit.edu/2019/dotfiles/)
+- [【初心者版】必要最小限のdotfilesを運用する #Mac - Qiita](https://qiita.com/ganyariya/items/d9adffc6535dfca6784b?utm_source=chatgpt.com)
+- [victoriadrake/dotfiles: Dotfiles and automagic set-up scripts for Linux flavours](https://github.com/victoriadrake/dotfiles)
+- [felipecrs/dotfiles: Bootstrap your Ubuntu in a single command!](https://github.com/felipecrs/dotfiles)
