@@ -7,9 +7,7 @@
     "ghcr.io/devcontainers-community/npm-features/typescript:1": { },
     "ghcr.io/devcontainers-extra/features/pnpm:2": { },
     "ghcr.io/devcontainers-extra/features/prettier:1": { },
-    "ghcr.io/devcontainers-contrib/features/jest": {
-      "version": "latest"
-    }
+    "ghcr.io/devcontainers-extra/features/jest:2": { }
   },
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
@@ -17,7 +15,8 @@
   "mounts": [
     "source=try-node-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
     "source=try-node-dist,target=${containerWorkspaceFolder}/dist,type=volume",
-    "source=try-node-pnpm,target=${containerWorkspaceFolder}/.pnpm-store,type=volume"
+    "source=try-node-pnpm,target=${containerWorkspaceFolder}/.pnpm-store,type=volume",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/node/.ssh,readonly,type=bind"
   ],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -29,7 +28,8 @@
   "forwardPorts": [ 4321 ],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "sudo chown node node_modules dist && pnpm install",
+  "postCreateCommand": "sudo chown node node_modules dist .pnpm-store && pnpm install",
+
 
   // Configure tool-specific properties.
   "customizations": {
