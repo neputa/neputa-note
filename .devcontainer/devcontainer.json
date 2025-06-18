@@ -1,0 +1,89 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+{
+  "name": "Node.js & TypeScript",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bullseye",
+  "features": {
+    "ghcr.io/devcontainers-community/npm-features/typescript:1": { },
+    "ghcr.io/devcontainers-extra/features/pnpm:2": { },
+    "ghcr.io/devcontainers-extra/features/prettier:1": { },
+    "ghcr.io/devcontainers-extra/features/jest:2": { }
+  },
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+
+  "mounts": [
+    "source=try-node-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=try-node-dist,target=${containerWorkspaceFolder}/dist,type=volume",
+    "source=try-node-pnpm,target=${containerWorkspaceFolder}/.pnpm-store,type=volume",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/node/.ssh,type=bind",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/nvim,target=/home/${localEnv:USER}/.config/nvim,type=bind,consistency=cached"
+  ],
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "portsAttributes": {
+    "4321": {
+      "label": "Application"
+    }
+  },
+  "forwardPorts": [ 4321 ],
+
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y locales && sudo sed -i '/ja_JP.UTF-8/s/^# //g' /etc/locale.gen && sudo locale-gen && sudo update-locale LANG=ja_JP.UTF-8 LC_ALL=ja_JP.UTF-8 && sudo chown node node_modules dist .pnpm-store && pnpm install",
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "codespaces": {
+      "openFiles": [ "src/pages/index.astro" ]
+    },
+    "vscode": {
+      "extensions": [
+        "astro-build.astro-vscode",
+        "eliostruyf.vscode-front-matter",
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss",
+        "vunguyentuan.vscode-postcss",
+        "3w36zj6.textlint",
+        "unifiedjs.vscode-mdx"
+      ]
+    },
+    "settings": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true,
+      "eslint.options": {
+        "extensions": [
+          ".js",
+          ".jsx",
+          ".md",
+          ".mdx",
+          ".ts",
+          ".tsx",
+          ".astro"
+        ]
+      },
+      "eslint.validate": [
+        "markdown",
+        "javascript",
+        "typescript",
+        "mdx",
+        "astro"
+      ],
+      "textlint.languages": [
+        "mdx",
+        "markdown",
+        "plaintext",
+        "html"
+      ],
+      "prettier.documentSelectors": [
+        "**/*.astro"
+      ],
+      "[mdx]": {
+        "editor.acceptSuggestionOnCommitCharacter": false,
+        "editor.defaultFormatter": "unifiedjs.vscode-mdx"
+      }
+    }
+  },
+
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  "remoteUser": "node"
+}
