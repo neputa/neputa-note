@@ -60,6 +60,7 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
             loading='eager'
             class='my-8 max-h-[200px] w-full rounded-md  object-cover sm:max-h-[300px] lg:max-h-[500px]'
             alt={`img of ${title}`}
+            fetchpriority='high'
           />
         )
       }
