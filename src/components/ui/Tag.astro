@@ -9,7 +9,7 @@ const { tag } = Astro.props
 
 <a href={getPermalink(tag.toLowerCase(), 'tag')} aria-label={tag}>
   <span
-    class='w-fit rounded-sm bg-gray-300 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-gray-300 md:px-5 md:py-2'
+    class='inline-flex w-fit rounded-sm bg-gray-300 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-gray-300 md:px-5 md:py-2 min-h-[2.25rem] md:min-h-[2.75rem] items-center justify-center whitespace-nowrap'
   >
     #{tag ?? 'Blog Tag'}
   </span>

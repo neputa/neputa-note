@@ -14,14 +14,14 @@ const { pubDate, modDate = undefined, readTime = undefined, classNames = undefin
 
 <div
   class:list={[
-    'flex flex-wrap gap-x-1 text-xs md:text-sm text-opacity-50',
+    'flex flex-wrap gap-x-1 gap-y-1 text-xs md:text-sm text-opacity-50 min-h-[2rem] md:min-h-[2.5rem] items-center justify-center',
     classNames && classNames
   ]}
 >
-  <p>初稿:<FormattedDate date={pubDate} /></p>
+  <p class='whitespace-nowrap'>初稿:<FormattedDate date={pubDate} /></p>
   {
     modDate && !datesAreOnSameDay(modDate, pubDate) && (
-      <p>
+      <p class='whitespace-nowrap'>
         <>
           <span class='ml-1'>更新:</span>
           <FormattedDate date={modDate} />
@@ -29,7 +29,7 @@ const { pubDate, modDate = undefined, readTime = undefined, classNames = undefin
       </p>
     )
   }
-  <p>
+  <p class='whitespace-nowrap'>
     {readTime && '- ' + readTime + ' -'}
   </p>
 </div>
