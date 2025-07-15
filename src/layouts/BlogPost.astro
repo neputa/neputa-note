@@ -6,6 +6,7 @@ import type { MarkdownHeading } from 'astro'
 import { Image } from 'astro:assets'
 import PostInfo from '@/components/widgets/PostInfo'
 import MobileFooter from '@/components/widgets/MobileFooter'
+import Jsonld from '@/components/Jsonld'
 
 type Props = {
   id: CollectionEntry<'blog'>['id']
@@ -25,6 +26,15 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
   articleDate={pubDate}
   modifiedDate={modDate}
 >
+  <Jsonld
+    title={title}
+    description={description}
+    pubDate={pubDate}
+    modDate={modDate}
+    tags={tags}
+    slug={id}
+    heroImage={heroImage}
+  />
   <article class='min-w-full sm:max-w-none md:max-w-none md:py-4'>
     <header class='mb-3 flex flex-col items-center justify-center gap-4 min-h-[200px] md:min-h-[240px]'>
       <div class='flex flex-col gap-2 w-full'>

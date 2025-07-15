@@ -19,6 +19,10 @@ export default defineConfig({
   },
   trailingSlash: 'always',
   site: 'https://www.neputa-note.net/',
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'hover'
+  },
   // Write here your website url
   markdown: {
     syntaxHighlight: false,
@@ -67,12 +71,20 @@ export default defineConfig({
       },
       JavaScript: {
         mangle: true,
-        compress: true,
+        compress: {
+          drop_console: true, // console.logを削除
+          dead_code: true,
+          unused: true
+        },
         cache: true
       },
       HTML: {
         'html-minifier-terser': {
-          removeAttributeQuotes: false
+          removeAttributeQuotes: false,
+          collapseWhitespace: true,
+          removeComments: true,
+          minifyCSS: true,
+          minifyJS: true
         },
         cache: true
       },
@@ -86,8 +98,8 @@ export default defineConfig({
   image: {
     service: sharpImageService({
       cache: true, // キャッシュメカニズムを有効にする
-      quality: 80, // 画像の品質を設定
-      formats: ['webp', 'jpeg'] // 最適化する画像フォーマット
+      quality: 85, // 画像の品質を向上（80→85）
+      formats: ['avif', 'webp', 'jpeg'] // AVIF形式を追加
     })
   }
 })
