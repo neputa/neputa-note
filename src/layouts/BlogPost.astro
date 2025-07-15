@@ -26,23 +26,25 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
   modifiedDate={modDate}
 >
   <article class='min-w-full sm:max-w-none md:max-w-none md:py-4'>
-    <header class='mb-3 flex flex-col items-center justify-center gap-4 min-h-[170px]'>
-      <div class='flex flex-col gap-2'>
-        <h1 class='leading-snug text-center text-3xl font-semibold min-h-[3.5rem]'>
+    <header class='mb-3 flex flex-col items-center justify-center gap-4 min-h-[200px] md:min-h-[240px]'>
+      <div class='flex flex-col gap-2 w-full'>
+        <h1 class='leading-snug text-center text-3xl font-semibold min-h-[4rem] md:min-h-[5rem] flex items-center justify-center px-4'>
           {title}
         </h1>
         {
           pubDate && (
-            <PostInfo
-              pubDate={pubDate}
-              modDate={modDate}
-              classNames='items-center justify-center'
-              readTime={readTime}
-            />
+            <div class='min-h-[2.5rem] md:min-h-[3rem] flex items-center justify-center'>
+              <PostInfo
+                pubDate={pubDate}
+                modDate={modDate}
+                classNames='items-center justify-center'
+                readTime={readTime}
+              />
+            </div>
           )
         }
       </div>
-      <div class='flex flex-wrap items-center justify-center gap-4 min-h-[2.5rem]'>
+      <div class='flex flex-wrap items-center justify-center gap-4 min-h-[3rem] md:min-h-[4rem] w-full px-4'>
         {tags.map((tag: string) => <Tag tag={tag} />)}
       </div>
     </header>
