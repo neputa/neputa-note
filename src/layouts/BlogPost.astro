@@ -61,19 +61,21 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
     <>
       {
         heroImage && (
-          <Image
-            src={heroImage}
-            width={1000}
-            height={500}
-            quality={100}
-            widths={[320, 768, 1000]}
-            sizes='(max-width:639px) 320px, (max-width: 1023px) 768px, 1000px'
-            format='webp'
-            loading='eager'
-            class='my-8 max-h-[200px] w-full rounded-md  object-cover sm:max-h-[300px] lg:max-h-[500px]'
-            alt={`img of ${title}`}
-            fetchpriority='high'
-          />
+          <div class='my-8 w-full h-[200px] sm:h-[300px] lg:h-[500px] overflow-hidden rounded-md bg-gray-200 dark:bg-gray-800'>
+            <Image
+              src={heroImage}
+              width={1000}
+              height={500}
+              quality={100}
+              widths={[320, 768, 1000]}
+              sizes='(max-width:639px) 320px, (max-width: 1023px) 768px, 1000px'
+              format='webp'
+              loading='eager'
+              class='w-full h-full object-cover'
+              alt={`img of ${title}`}
+              fetchpriority='high'
+            />
+          </div>
         )
       }
     </>
