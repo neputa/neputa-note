@@ -84,4 +84,29 @@
   astro-breadcrumbs .c-breadcrumbs__link {
     @apply text-sm font-normal underline text-gray-600 dark:text-gray-200 min-h-6;
   }
+
+  /* Details要素のCLS防止 */
+  .details-stable {
+    @apply min-h-[2.5rem] overflow-hidden transition-all duration-300 ease-in-out;
+  }
+
+  .details-stable summary {
+    @apply min-h-[2.5rem] flex items-center cursor-pointer justify-between;
+  }
+
+  .details-stable summary::marker {
+    @apply content-none;
+  }
+
+  .details-stable summary::-webkit-details-marker {
+    @apply hidden;
+  }
+
+  .details-stable summary::after {
+    @apply content-['▶'] inline-block ml-2 transition-transform duration-200 text-gray-500 dark:text-gray-400;
+  }
+
+  .details-stable[open] summary::after {
+    @apply rotate-90;
+  }
 }

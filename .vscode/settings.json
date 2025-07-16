@@ -278,5 +278,20 @@
     "המוסד",
     "מוסד"
   ],
-  "npm.packageManager": "pnpm"
+  "npm.packageManager": "pnpm",
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "postcss.validate": false,
+  "stylelint.validate": [ "css", "postcss" ],
+  "files.associations": {
+    "*.css": "postcss"
+  },
+  "tailwindCSS.includeLanguages": {
+    "postcss": "css"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    "class:list=\\{([^}]*)\\}",
+    "class:list=\\[([^\\]]*)\\]"
+  ]
 }

@@ -4,14 +4,15 @@ import TableOfContents from '../ui/TableOfContents.astro'
 const { headings } = Astro.props
 ---
 
-<details id='details-index' class='mt-8 py-4'>
+<details id='details-index' class='details-stable mt-8 py-4'>
   <summary
-    class='mb-3 flex items-center justify-between bg-slate-800/20 p-2 text-2xl font-bold dark:bg-slate-800 dark:text-white'
+    class='mb-3 flex items-center bg-slate-800/20 p-2 text-2xl font-bold dark:bg-slate-800 dark:text-white min-h-[3rem] cursor-pointer'
   >
-    <p>目次</p>
-    <span class='text-sm'></span>
+    <p class='text-lg'>目次</p>
   </summary>
-  <TableOfContents headings={headings} />
+  <div class='transition-all duration-300 ease-in-out'>
+    <TableOfContents headings={headings} />
+  </div>
 </details>
 
 <script>
@@ -19,36 +20,47 @@ const { headings } = Astro.props
     const detailsElement = document.getElementById('details-index')
     const mediaQuery = window.matchMedia('(min-width: 768px)')
 
-    // 初期チェック
+    // 初期チェック - CLS回避のため適切な高さを設定
     if (mediaQuery.matches) {
       detailsElement && detailsElement.setAttribute('open', '')
     } else {
       detailsElement && detailsElement.removeAttribute('open')
     }
+
+    // メディアクエリの変更を監視
+    mediaQuery.addEventListener('change', (e) => {
+      if (e.matches) {
+        detailsElement && detailsElement.setAttribute('open', '')
+      } else {
+        detailsElement && detailsElement.removeAttribute('open')
+      }
+    })
   }
   indexDetails()
   document.addEventListener('astro:after-swap', indexDetails)
 </script>
 
 <style>
-  details {
-    user-select: none;
-    & summary span::before {
-      content: '［開く］';
-    }
-  }
-  details[open] {
-    & summary span::before {
-      content: '［閉じる］';
-    }
-    & summary {
-      @apply bg-white dark:bg-inherit;
-    }
-  }
   details[open] summary ~ * {
-    animation: ease-opacity-t-b 0.5s ease;
+    animation: ease-opacity-t-b 0.3s ease;
   }
+
   summary {
     cursor: pointer;
+  }
+
+  /* CLS防止のための安定したレイアウト */
+  details summary {
+    display: flex;
+    align-items: center;
+    min-height: 3rem;
+  }
+
+  details summary::marker {
+    content: none;
+  }
+
+  details summary::-webkit-details-marker {
+    display: none;
   }
 </style>

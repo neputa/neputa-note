@@ -36,9 +36,13 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
     heroImage={heroImage}
   />
   <article class='min-w-full sm:max-w-none md:max-w-none md:py-4'>
-    <header class='mb-3 flex flex-col items-center justify-center gap-4 min-h-[200px] md:min-h-[240px]'>
+    <header
+      class='mb-3 flex flex-col items-center justify-center gap-4 min-h-[200px] md:min-h-[240px]'
+    >
       <div class='flex flex-col gap-2 w-full'>
-        <h1 class='leading-snug text-center text-3xl font-semibold min-h-[4rem] md:min-h-[5rem] flex items-center justify-center px-4'>
+        <h1
+          class='leading-snug text-center text-3xl font-semibold min-h-[4rem] md:min-h-[5rem] flex items-center justify-center px-4'
+        >
           {title}
         </h1>
         {
@@ -54,31 +58,35 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
           )
         }
       </div>
-      <div class='flex flex-wrap items-center justify-center gap-4 min-h-[3rem] md:min-h-[4rem] w-full px-4'>
+      <div
+        class='flex flex-wrap items-center justify-center gap-4 min-h-[3rem] md:min-h-[4rem] w-full px-4'
+      >
         {tags.map((tag: string) => <Tag tag={tag} />)}
       </div>
     </header>
-    <>
+    <div class='my-8 w-full aspect-[5/2] overflow-hidden rounded-md bg-gray-200 dark:bg-gray-800'>
       {
-        heroImage && (
-          <div class='my-8 w-full h-[200px] sm:h-[300px] lg:h-[500px] overflow-hidden rounded-md bg-gray-200 dark:bg-gray-800'>
-            <Image
-              src={heroImage}
-              width={1000}
-              height={500}
-              quality={100}
-              widths={[320, 768, 1000]}
-              sizes='(max-width:639px) 320px, (max-width: 1023px) 768px, 1000px'
-              format='webp'
-              loading='eager'
-              class='w-full h-full object-cover'
-              alt={`img of ${title}`}
-              fetchpriority='high'
-            />
+        heroImage ? (
+          <Image
+            src={heroImage}
+            width={1000}
+            height={400}
+            quality={100}
+            widths={[320, 768, 1000]}
+            sizes='(max-width:639px) 320px, (max-width: 1023px) 768px, 1000px'
+            format='webp'
+            loading='eager'
+            class='w-full h-full object-cover'
+            alt={`img of ${title}`}
+            fetchpriority='high'
+          />
+        ) : (
+          <div class='w-full h-full flex items-center justify-center text-gray-500 dark:text-gray-400'>
+            <span class='text-lg'>No Image</span>
           </div>
         )
       }
-    </>
+    </div>
 
     <div>
       <slot />
