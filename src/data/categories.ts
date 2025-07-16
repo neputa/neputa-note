@@ -1,5 +1,5 @@
 // List of categories for blog posts
-export const CATEGORIES = ['DEV', 'BOOK', 'MEDIA', 'DIARY', '全記事']
+export const CATEGORIES = ['DEV', 'BOOK', 'MEDIA', 'DIARY', 'ALL']
 
 interface Descriptions {
   [key: string]: string
@@ -11,5 +11,5 @@ export const DESCRIPTIONS: Descriptions = {
     '音楽や映像作品など、書籍以外のコンテンツに関する感想記事のカテゴリー。映像作品は、映画館での鑑賞記録や、NetflixやAmazon Prime Videoで視聴した作品について。',
   DIARY:
     '個人的な生活に関する日記記事のカテゴリー。身近な印象的だった出来事の記録や、思考の整理、感情のはけ口として書いたもの。',
-  全記事: 'このブログの全記事。'
+  ALL: 'このブログのALL。'
 }

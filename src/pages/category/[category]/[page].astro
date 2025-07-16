@@ -15,7 +15,7 @@ export async function getStaticPaths({ paginate }: any) {
   return categories.flatMap((category: string) => {
     const unsluglifyNameCategory = unsluglify(category!.toLowerCase())
     const filteredPosts =
-      category === '全記事'
+      category === 'ALL'
         ? allPosts
         : allPosts.filter((post) => post.data.category[0].toLowerCase() === unsluglifyNameCategory)
 
