@@ -24,7 +24,7 @@
     "start": "astro dev",
     "build": "astro build",
     "sync": "astro sync",
-    "preview": "astro preview",
+    "preview": "astro preview --host",
     "postbuild": "pagefind --site dist",
     "format:check": "prettier --plugin-search-dir=. --check .",
     "format": "prettier --plugin-search-dir=. --write .",

@@ -38,7 +38,7 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
   <article class='min-w-full sm:max-w-none md:max-w-none md:py-4'>
     <header class='mb-3 flex flex-col items-center justify-center gap-4'>
       <div class='flex flex-col'>
-        <h1 class='text-balancetext-center text-3xl font-semibold' style='min-height: 3rem;'>
+        <h1 class='text-balance text-center text-3xl font-semibold' style='min-height: 3rem;'>
           {title}
         </h1>
         {
@@ -52,9 +52,6 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
           )
         }
       </div>
-      <div class='flex flex-wrap items-center justify-center gap-3' style='min-height: 2rem;'>
-        {tags.map((tag: string) => <Tag tag={tag} />)}
-      </div>
     </header>
     <div class='my-8 w-full aspect-[5/2] overflow-hidden rounded-md bg-gray-200 dark:bg-gray-800'>
       {
@@ -62,7 +59,7 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
           <Image
             src={heroImage}
             width={1000}
-            height={400}
+            height={500}
             quality={100}
             widths={[320, 768, 1000]}
             sizes='(max-width:639px) 320px, (max-width: 1023px) 768px, 1000px'

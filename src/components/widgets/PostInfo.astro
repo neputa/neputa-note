@@ -14,10 +14,10 @@ const { pubDate, modDate = undefined, readTime = undefined, classNames = undefin
 
 <div
   class:list={[
-    'flex flex-wrap gap-x-1 gap-y-1 text-xs md:text-sm text-opacity-50 min-h-[2rem] md:min-h-[2.5rem] items-center justify-center',
+    'flex flex-wrap gap-1 text-xs text-opacity-50 items-center justify-center',
     classNames && classNames
   ]}
-  style='min-height: 2rem;'
+  style='min-height: 2.5rem;'
 >
   <p class='whitespace-nowrap'>初稿:<FormattedDate date={pubDate} /></p>
   {
