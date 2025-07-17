@@ -56,7 +56,10 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
         }
       </div>
     </header>
-    <div class='my-8 w-full aspect-[5/2] overflow-hidden rounded-md bg-gray-200 dark:bg-gray-800'>
+    <div
+      style='aspect-ratio: 5/2;width: 100%;margin-top: 2rem;margin-bottom: 2rem;'
+      class='overflow-hidden rounded-md bg-gray-200 dark:bg-gray-800'
+    >
       {
         heroImage ? (
           <Image

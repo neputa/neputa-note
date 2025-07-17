@@ -28,7 +28,8 @@ const { title, description, image, articleDate, modifiedDate } = Astro.props
 
   <body class='bg-white text-stone-950 dark:bg-[#0a0910] dark:text-white'>
     <main
-      class='mt-4 grid gap-12 overflow-hidden px-3 antialiased sm:mx-auto sm:max-w-2xl sm:px-8 md:max-w-6xl md:overflow-visible lg:px-4'
+      class='grid gap-12 overflow-hidden antialiased sm:max-w-2xl md:max-w-6xl md:overflow-visible'
+      style='margin-top: 1rem;padding-left: 0.75rem;padding-right: 0.75rem;'
     >
       <Header />
       <slot />
