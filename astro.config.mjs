@@ -11,6 +11,97 @@ import compress from '@playform/compress'
 import partytown from '@astrojs/partytown'
 import react from '@astrojs/react'
 import inline from '@playform/inline'
+import { promises as fs } from 'fs'
+import path from 'path'
+
+function PreloadCSSPlugin() {
+  return {
+    name: 'preload-css',
+    hooks: {
+      'astro:build:done': async ({ dir }) => {
+        console.log('🔧 PreloadCSSPlugin: Starting CSS preload conversion...')
+
+        // URLオブジェクトを文字列パスに変換
+        const distDir = path.resolve(dir.pathname)
+        console.log(`📁 Processing directory: ${distDir}`)
+
+        // 再帰的にHTMLファイルを取得する関数
+        const getHtmlFilesRecursive = async (directory) => {
+          const files = []
+          const items = await fs.readdir(directory, { withFileTypes: true })
+
+          for (const item of items) {
+            const fullPath = path.join(directory, item.name)
+            if (item.isDirectory()) {
+              const subFiles = await getHtmlFilesRecursive(fullPath)
+              files.push(...subFiles)
+            } else if (item.name.endsWith('.html')) {
+              files.push(fullPath)
+            }
+          }
+          return files
+        }
+
+        // dist ディレクトリ内の HTML ファイルを再帰的に取得
+        const htmlFiles = await getHtmlFilesRecursive(distDir)
+        console.log(`📄 Found ${htmlFiles.length} HTML files to process`)
+
+        let totalReplacements = 0
+
+        for (const filePath of htmlFiles) {
+          const relativePath = path.relative(distDir, filePath)
+          console.log(`🔄 Processing: ${relativePath}`)
+
+          // HTML内容を読み込む
+          let content = await fs.readFile(filePath, 'utf-8')
+          const originalContent = content
+
+          // noscriptタグ内のlinkタグを一時的に保護
+          const noscriptTags = []
+          content = content.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, (match, offset) => {
+            const placeholder = `<!--NOSCRIPT_PLACEHOLDER_${noscriptTags.length}-->`
+            noscriptTags.push(match)
+            return placeholder
+          })
+
+          // CSSリンクを `rel="preload"` に置換（noscriptタグ内は除外済み）
+          const cssLinkRegex = /<link\s+(?:[^>]*\s+)?rel="stylesheet"(?:\s+[^>]*)?(?:\s+href="([^"]*\.css)"|\s+href='([^']*\.css)')(?:[^>]*)?>/g
+          const replacements1 = content.match(cssLinkRegex)
+          content = content.replace(
+            cssLinkRegex,
+            (match) => {
+              // href属性を抽出
+              const hrefMatch = match.match(/href=["']([^"']*\.css)["']/)
+              const href = hrefMatch ? hrefMatch[1] : ''
+              return `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high">`
+            }
+          )
+
+          // noscriptタグを復元
+          content = content.replace(/<!--NOSCRIPT_PLACEHOLDER_(\d+)-->/g, (match, index) => {
+            return noscriptTags[parseInt(index)]
+          })
+
+          const fileReplacements = (replacements1?.length || 0)
+          totalReplacements += fileReplacements
+
+          if (fileReplacements > 0) {
+            console.log(`  ✅ ${relativePath}: ${fileReplacements} CSS links converted to preload`)
+          } else {
+            console.log(`  ⚪ ${relativePath}: No CSS links found`)
+          }
+
+          // HTMLを上書き保存
+          if (content !== originalContent) {
+            await fs.writeFile(filePath, content, 'utf-8')
+          }
+        }
+
+        console.log(`🎉 PreloadCSSPlugin: Complete! Total ${totalReplacements} CSS links converted to preload`)
+      }
+    }
+  }
+}
 
 // https://astro.build/config
 export default defineConfig({
@@ -64,6 +155,7 @@ export default defineConfig({
       }
     }),
     inline(),
+    PreloadCSSPlugin(),
     compress({
       CSS: {
         level: 2,

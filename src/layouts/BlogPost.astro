@@ -35,10 +35,13 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
     slug={id}
     heroImage={heroImage}
   />
-  <article class='min-w-full sm:max-w-none md:max-w-none md:py-4'>
-    <header class='mb-3 flex flex-col items-center justify-center gap-4'>
+  <article class='min-w-full sm:max-w-none md:max-w-none'>
+    <header class='flex flex-col items-center justify-center' style='margin-bottom: 0.75rem'>
       <div class='flex flex-col'>
-        <h1 class='text-balance text-center text-3xl font-semibold' style='min-height: 3rem;'>
+        <h1
+          class='text-balance text-center'
+          style='font-size: 1.875rem;line-height: 2.25rem;font-weight: 600;margin-bottom: .5rem;'
+        >
           {title}
         </h1>
         {
