@@ -45,7 +45,8 @@ const { title, description, image, articleDate, modifiedDate } = Astro.props
     <TwSizeIndicator />
     <style>
       body {
-        margin-left: calc(100vw - 100%); /* prevent layout shift */
+        /* フォールバック用 */
+        overflow-y: scroll;
       }
     </style>
   </body>
