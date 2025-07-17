@@ -14,10 +14,10 @@ const { pubDate, modDate = undefined, readTime = undefined, classNames = undefin
 
 <div
   class:list={[
-    'flex flex-wrap gap-1 text-xs text-opacity-50 items-center justify-center',
+    'flex flex-wrap gap-x-1 text-opacity-50 items-center justify-center',
     classNames && classNames
   ]}
-  style='min-height: 2.5rem;'
+  style='font-size: 0.95rem;line-height: 1rem;'
 >
   <p class='whitespace-nowrap'>初稿:<FormattedDate date={pubDate} /></p>
   {
@@ -30,7 +30,4 @@ const { pubDate, modDate = undefined, readTime = undefined, classNames = undefin
       </p>
     )
   }
-  <p class='whitespace-nowrap'>
-    {readTime && '- ' + readTime + ' -'}
-  </p>
 </div>
