@@ -18,16 +18,20 @@ const {
     class='relative overflow-hidden bg-gray-200 dark:bg-gray-800'
     href={getPermalink(slug, 'post')}
   >
-    <Image
-      src={heroImage}
-      width={600}
-      height={300}
-      format='webp'
-      loading={loading}
-      class='h-full min-w-full rounded-[2px] object-cover transition-all duration-200 hover:scale-[101%]'
-      alt={`img of ${title}`}
-      fetchpriority='high'
-    />
+    <div class='w-full h-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center'>
+      <Image
+        src={heroImage}
+        width={600}
+        height={300}
+        format='webp'
+        loading={loading}
+        class='w-full h-full object-cover transition-all duration-200 hover:scale-[101%]'
+        alt={`img of ${title}`}
+        fetchpriority='high'
+        decoding='async'
+        style='aspect-ratio: 600/300'
+      />
+    </div>
 
     <div class='absolute bottom-0 z-30 h-20 w-full'>
       <div class='glass absolute bottom-0 -z-10 min-h-full w-full'></div>

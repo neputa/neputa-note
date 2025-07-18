@@ -1,11 +1,25 @@
 ---
 import { Image } from 'astro:assets'
 
-const { title, src, alt } = Astro.props
+const { title, src, alt, width, height } = Astro.props
 ---
 
 <figure class='w-fit'>
-  <Image src={src} alt={alt} format='webp' loading='lazy' />
+  <div
+    class='relative overflow-hidden bg-gray-200 dark:bg-gray-700 rounded'
+    style={`aspect-ratio: ${width || 800}/${height || 600}`}
+  >
+    <Image
+      src={src}
+      alt={alt}
+      format='webp'
+      loading='lazy'
+      width={width || 800}
+      height={height || 600}
+      class='w-full h-full object-cover'
+      decoding='async'
+    />
+  </div>
   {
     /* eslint-disable astro/no-set-html-directive */
     title && (

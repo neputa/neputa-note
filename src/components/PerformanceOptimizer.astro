@@ -1,0 +1,73 @@
+---
+// CLS最適化のためのパフォーマンス関連ヘッダー
+---
+
+<!-- DNS prefetch for external resources -->
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel='dns-prefetch' href='//cdnjs.cloudflare.com' />
+
+<!-- フォントの最適読み込み -->
+<link rel='preconnect' href='https://fonts.googleapis.com' crossorigin />
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+
+<!-- Critical resource hints -->
+<link
+  rel='preload'
+  as='style'
+  href='/styles/critical.css'
+  onload="this.onload=null;this.rel='stylesheet'"
+/>
+
+<!-- Layout stability meta -->
+<meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover' />
+
+<script>
+  // Early layout stability detection
+  if ('PerformanceObserver' in window) {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.entryType === 'layout-shift') {
+          const layoutShiftEntry = entry as any
+          if (!layoutShiftEntry.hadRecentInput) {
+            console.log('Layout shift detected:', layoutShiftEntry.value)
+          }
+        }
+      }
+    })
+
+    observer.observe({ entryTypes: ['layout-shift'] })
+  }
+</script>
+
+<style>
+  /* Critical CSS for immediate layout stability */
+  html {
+    overflow-y: scroll; /* Prevent layout shift from scrollbar */
+  }
+
+  body {
+    margin-left: calc(100vw - 100%); /* Prevent horizontal layout shift */
+  }
+
+  /* Skeleton loading for images */
+  .loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, transparent 37%, #f0f0f0 63%);
+    background-size: 400% 100%;
+    animation: loading 1.4s ease infinite;
+  }
+
+  @keyframes loading {
+    0% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: -100% 50%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .loading-skeleton {
+      animation: none;
+    }
+  }
+</style>

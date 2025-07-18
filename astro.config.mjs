@@ -19,7 +19,7 @@ function PreloadCSSPlugin() {
     name: 'preload-css',
     hooks: {
       'astro:build:done': async ({ dir }) => {
-        console.log('🔧 PreloadCSSPlugin: Starting CSS preload conversion...')
+        console.log('🔧 PreloadCSSPlugin: Starting CSS optimization...')
 
         // URLオブジェクトを文字列パスに変換
         const distDir = path.resolve(dir.pathname)
@@ -47,6 +47,7 @@ function PreloadCSSPlugin() {
         console.log(`📄 Found ${htmlFiles.length} HTML files to process`)
 
         let totalReplacements = 0
+        let totalInlined = 0
 
         for (const filePath of htmlFiles) {
           const relativePath = path.relative(distDir, filePath)
@@ -64,29 +65,53 @@ function PreloadCSSPlugin() {
             return placeholder
           })
 
-          // CSSリンクを `rel="preload"` に置換（noscriptタグ内は除外済み）
+          // CSSリンクを検索してインライン化または preload に変換
           const cssLinkRegex = /<link\s+(?:[^>]*\s+)?rel="stylesheet"(?:\s+[^>]*)?(?:\s+href="([^"]*\.css)"|\s+href='([^']*\.css)')(?:[^>]*)?>/g
-          const replacements1 = content.match(cssLinkRegex)
-          content = content.replace(
-            cssLinkRegex,
-            (match) => {
-              // href属性を抽出
-              const hrefMatch = match.match(/href=["']([^"']*\.css)["']/)
-              const href = hrefMatch ? hrefMatch[1] : ''
-              return `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high">`
+          const matches = [...content.matchAll(cssLinkRegex)]
+
+          for (const match of matches) {
+            const href = match[1] || match[2]
+            if (href) {
+              try {
+                // CSSファイルのパスを解決
+                const cssPath = path.join(distDir, href)
+
+                // ファイルが存在するかチェック
+                try {
+                  await fs.access(cssPath)
+                  const cssContent = await fs.readFile(cssPath, 'utf-8')
+
+                  // Critical CSSのサイズ制限を拡大し、レイアウト関連CSSを優先的にインライン化
+                  if (cssContent.length <= 20000 || cssContent.includes('aspect-ratio') || cssContent.includes('min-h') || cssContent.includes('grid-rows')) {
+                    content = content.replace(match[0], `<style>${cssContent}</style>`)
+                    totalInlined++
+                    console.log(`  🎨 Inlined CSS: ${href} (${cssContent.length} bytes)`)
+                  } else {
+                    // 大きなCSSファイルはpreloadに変換（より高い優先度を設定）
+                    content = content.replace(match[0], `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high"><noscript><link rel="stylesheet" href="${href}"></noscript>`)
+                    console.log(`  ⚡ Preloaded CSS: ${href} (${cssContent.length} bytes)`)
+                  }
+                } catch (accessError) {
+                  // ファイルが見つからない場合はpreloadに変換
+                  content = content.replace(match[0], `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high">`)
+                  console.log(`  ⚠️ CSS not found, using preload: ${href}`)
+                }
+              } catch (error) {
+                console.log(`  ❌ Error processing CSS: ${href}`, error.message)
+                // エラーの場合もpreloadに変換
+                content = content.replace(match[0], `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high">`)
+              }
+              totalReplacements++
             }
-          )
+          }
 
           // noscriptタグを復元
           content = content.replace(/<!--NOSCRIPT_PLACEHOLDER_(\d+)-->/g, (match, index) => {
             return noscriptTags[parseInt(index)]
           })
 
-          const fileReplacements = (replacements1?.length || 0)
-          totalReplacements += fileReplacements
-
-          if (fileReplacements > 0) {
-            console.log(`  ✅ ${relativePath}: ${fileReplacements} CSS links converted to preload`)
+          if (matches.length > 0) {
+            console.log(`  ✅ ${relativePath}: ${matches.length} CSS links processed`)
           } else {
             console.log(`  ⚪ ${relativePath}: No CSS links found`)
           }
@@ -97,7 +122,7 @@ function PreloadCSSPlugin() {
           }
         }
 
-        console.log(`🎉 PreloadCSSPlugin: Complete! Total ${totalReplacements} CSS links converted to preload`)
+        console.log(`🎉 PreloadCSSPlugin: Complete! ${totalInlined} CSS files inlined, ${totalReplacements - totalInlined} converted to preload`)
       }
     }
   }
@@ -113,6 +138,50 @@ export default defineConfig({
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'hover'
+  },
+  vite: {
+    build: {
+      // チャンクサイズの警告閾値を調整
+      chunkSizeWarningLimit: 500,
+      rollupOptions: {
+        output: {
+          // 手動でチャンクを分割してロード時間を最適化
+          manualChunks: {
+            // Reactライブラリを分離
+            'vendor-react': ['react', 'react-dom'],
+            // UIコンポーネントライブラリを分離
+            'vendor-ui': ['framer-motion', 'motion'],
+            // 検索機能を独立したチャンクに
+            'search': ['@pagefind/default-ui'],
+            // フォーム関連を分離
+            'forms': ['react-hook-form'],
+            // ユーティリティライブラリを分離
+            'utils': ['clsx', 'tailwind-merge']
+          },
+          // 小さなチャンクを統合する最小サイズ
+          experimentalMinChunkSize: 20000
+        }
+      },
+      // CSSコード分割を有効化
+      cssCodeSplit: true,
+      // ターゲットを最新ブラウザに設定してバンドルサイズを削減
+      target: 'es2022'
+    },
+    // モジュールプリロード設定
+    modulePreload: {
+      // 重要なモジュールを事前読み込み
+      polyfill: true,
+      // プリロードするファイルのフィルタリング
+      resolveDependencies: (filename, deps) => {
+        // 重要なチャンクを優先的にプリロード
+        return deps.filter(dep => {
+          return dep.includes('vendor-react') ||
+                 dep.includes('vendor-ui') ||
+                 dep.includes('client') ||
+                 dep.includes('index')
+        })
+      }
+    }
   },
   // Write here your website url
   markdown: {
@@ -166,7 +235,11 @@ export default defineConfig({
         compress: {
           drop_console: true, // console.logを削除
           dead_code: true,
-          unused: true
+          unused: true,
+          // 最適化レベルを向上
+          passes: 2,
+          pure_funcs: ['console.log', 'console.info', 'console.debug'],
+          drop_debugger: true
         },
         cache: true
       },
@@ -176,13 +249,28 @@ export default defineConfig({
           collapseWhitespace: true,
           removeComments: true,
           minifyCSS: true,
-          minifyJS: true
+          minifyJS: true,
+          // HTMLの最適化を強化
+          removeRedundantAttributes: true,
+          removeEmptyAttributes: true,
+          sortAttributes: true,
+          sortClassName: true
         },
         cache: true
       },
       Image: false,
       SVG: {
-        cache: true
+        cache: true,
+        // SVG最適化を強化
+        svgo: {
+          plugins: [
+            'preset-default',
+            {
+              name: 'removeViewBox',
+              active: false
+            }
+          ]
+        }
       },
       Logger: 1
     })
@@ -190,8 +278,23 @@ export default defineConfig({
   image: {
     service: sharpImageService({
       cache: true, // キャッシュメカニズムを有効にする
-      quality: 85, // 画像の品質を向上（80→85）
-      formats: ['avif', 'webp', 'jpeg'] // AVIF形式を追加
+      quality: 80, // より積極的な品質最適化（85→80）
+      formats: ['avif', 'webp', 'jpeg'], // AVIF形式を優先
+      // AVIFの積極的な利用を推進
+      formatOptions: {
+        avif: {
+          quality: 75,
+          effort: 4,
+        },
+        webp: {
+          quality: 82,
+          effort: 4,
+        },
+        jpeg: {
+          quality: 85,
+          mozjpeg: true,
+        }
+      }
     })
   }
 })

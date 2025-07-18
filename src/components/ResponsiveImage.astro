@@ -13,15 +13,20 @@ interface Props {
 const { src, alt, class: className, loading = 'lazy', width, height } = Astro.props
 ---
 
-<Image
-  src={src}
-  alt={alt}
-  class={className}
-  loading={loading}
-  width={width}
-  height={height}
-  format='webp'
-  quality={85}
-  decoding='async'
-  sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-/>
+<div
+  class={`relative overflow-hidden bg-gray-200 dark:bg-gray-700 rounded ${className || ''}`}
+  style={width && height ? `aspect-ratio: ${width}/${height}` : undefined}
+>
+  <Image
+    src={src}
+    alt={alt}
+    loading={loading}
+    width={width}
+    height={height}
+    format='webp'
+    quality={85}
+    decoding='async'
+    sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+    class='w-full h-full object-cover'
+  />
+</div>

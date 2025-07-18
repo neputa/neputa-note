@@ -41,6 +41,33 @@ const siteTitle =
 <!-- DNS Prefetch -->
 <link rel='dns-prefetch' href='//www.google-analytics.com' />
 <link rel='dns-prefetch' href='//www.googletagmanager.com' />
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel='dns-prefetch' href='//fonts.gstatic.com' />
+
+<!-- Preconnect for critical third-party origins -->
+<link rel='preconnect' href='https://www.google-analytics.com' />
+<link rel='preconnect' href='https://www.googletagmanager.com' />
+
+<!-- Resource hints for performance -->
+<link rel='preload' href='/fonts/inter-var.woff2' as='font' type='font/woff2' crossorigin />
+<meta name='theme-color' content='#EE8A85' />
+<meta name='color-scheme' content='light dark' />
+
+<!-- Service Worker Registration -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('🚀 SW registered:', registration.scope)
+        })
+        .catch((error) => {
+          console.log('❌ SW registration failed:', error)
+        })
+    })
+  }
+</script>
 
 <!-- Canonical URL -->
 <link rel='canonical' href={canonicalURL} />
