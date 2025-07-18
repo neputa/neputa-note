@@ -9,11 +9,11 @@ module.exports = {
         white: '#F4F4F4',
         black: '#181818',
         primary: {
-          400: '#FFB8B4',
-          500: '#EE8A85',
-          600: '#D05A54',
-          700: '#BD3A34',
-          900: '#A1241D'
+          400: '#aab7f3',
+          500: '#5f75d6',
+          600: '#2541b1',
+          700: '#1c3290',
+          900: '#14236d'
         },
         secondary: '#BCABAE',
         tertiary: '#393C3C',
