@@ -110,4 +110,40 @@
   .details-stable[open] summary::after {
     @apply rotate-90;
   }
+
+  /* 画像コンテナのCLS防止 */
+  .image-container {
+    @apply relative overflow-hidden bg-gray-200 dark:bg-gray-700;
+    contain: layout style paint;
+  }
+
+  .image-container img {
+    @apply w-full h-full object-cover;
+  }
+
+  /* ダイアログ・モーダルのCLS防止 */
+  dialog[open] {
+    @apply opacity-100;
+    transform: translateY(0);
+  }
+
+  dialog:not([open]) {
+    @apply opacity-0;
+    transform: translateY(-10px);
+    transition:
+      opacity 0.2s ease-out,
+      transform 0.2s ease-out;
+  }
+
+  /* レイアウトシフト防止のためのコンテナークエリ対応 */
+  @container (min-width: 768px) {
+    .container-responsive {
+      @apply grid-cols-2;
+    }
+  }
+
+  /* フォント表示最適化 */
+  @font-face {
+    font-display: swap;
+  }
 }

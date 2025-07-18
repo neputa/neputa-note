@@ -81,14 +81,14 @@ function PreloadCSSPlugin() {
                   await fs.access(cssPath)
                   const cssContent = await fs.readFile(cssPath, 'utf-8')
 
-                  // Critical CSSのサイズ制限（14KB以下をインライン化）
-                  if (cssContent.length <= 14000) {
+                  // Critical CSSのサイズ制限を拡大し、レイアウト関連CSSを優先的にインライン化
+                  if (cssContent.length <= 20000 || cssContent.includes('aspect-ratio') || cssContent.includes('min-h') || cssContent.includes('grid-rows')) {
                     content = content.replace(match[0], `<style>${cssContent}</style>`)
                     totalInlined++
                     console.log(`  🎨 Inlined CSS: ${href} (${cssContent.length} bytes)`)
                   } else {
-                    // 大きなCSSファイルはpreloadに変換
-                    content = content.replace(match[0], `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high">`)
+                    // 大きなCSSファイルはpreloadに変換（より高い優先度を設定）
+                    content = content.replace(match[0], `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high"><noscript><link rel="stylesheet" href="${href}"></noscript>`)
                     console.log(`  ⚡ Preloaded CSS: ${href} (${cssContent.length} bytes)`)
                   }
                 } catch (accessError) {
@@ -225,55 +225,55 @@ export default defineConfig({
     }),
     inline(),
     PreloadCSSPlugin(),
-    // compress({
-    //   CSS: {
-    //     level: 2,
-    //     cache: true
-    //   },
-    //   JavaScript: {
-    //     mangle: true,
-    //     compress: {
-    //       drop_console: true, // console.logを削除
-    //       dead_code: true,
-    //       unused: true,
-    //       // 最適化レベルを向上
-    //       passes: 2,
-    //       pure_funcs: ['console.log', 'console.info', 'console.debug'],
-    //       drop_debugger: true
-    //     },
-    //     cache: true
-    //   },
-    //   HTML: {
-    //     'html-minifier-terser': {
-    //       removeAttributeQuotes: false,
-    //       collapseWhitespace: true,
-    //       removeComments: true,
-    //       minifyCSS: true,
-    //       minifyJS: true,
-    //       // HTMLの最適化を強化
-    //       removeRedundantAttributes: true,
-    //       removeEmptyAttributes: true,
-    //       sortAttributes: true,
-    //       sortClassName: true
-    //     },
-    //     cache: true
-    //   },
-    //   Image: false,
-    //   SVG: {
-    //     cache: true,
-    //     // SVG最適化を強化
-    //     svgo: {
-    //       plugins: [
-    //         'preset-default',
-    //         {
-    //           name: 'removeViewBox',
-    //           active: false
-    //         }
-    //       ]
-    //     }
-    //   },
-    //   Logger: 1
-    // })
+    compress({
+      CSS: {
+        level: 2,
+        cache: true
+      },
+      JavaScript: {
+        mangle: true,
+        compress: {
+          drop_console: true, // console.logを削除
+          dead_code: true,
+          unused: true,
+          // 最適化レベルを向上
+          passes: 2,
+          pure_funcs: ['console.log', 'console.info', 'console.debug'],
+          drop_debugger: true
+        },
+        cache: true
+      },
+      HTML: {
+        'html-minifier-terser': {
+          removeAttributeQuotes: false,
+          collapseWhitespace: true,
+          removeComments: true,
+          minifyCSS: true,
+          minifyJS: true,
+          // HTMLの最適化を強化
+          removeRedundantAttributes: true,
+          removeEmptyAttributes: true,
+          sortAttributes: true,
+          sortClassName: true
+        },
+        cache: true
+      },
+      Image: false,
+      SVG: {
+        cache: true,
+        // SVG最適化を強化
+        svgo: {
+          plugins: [
+            'preset-default',
+            {
+              name: 'removeViewBox',
+              active: false
+            }
+          ]
+        }
+      },
+      Logger: 1
+    })
   ],
   image: {
     service: sharpImageService({
