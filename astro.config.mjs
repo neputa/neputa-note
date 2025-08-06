@@ -296,5 +296,55 @@ export default defineConfig({
         }
       }
     })
+  },
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: (id) => {
+            // React系ライブラリをより細かく分割
+            if (id.includes('react-dom')) {
+              return 'vendor-react-dom';
+            }
+            if (id.includes('react') && !id.includes('react-dom')) {
+              return 'vendor-react';
+            }
+            if (id.includes('framer-motion') || id.includes('motion-dom')) {
+              return 'vendor-motion';
+            }
+            // UI関連をより細かく分割
+            if (id.includes('@radix-ui')) {
+              return 'vendor-radix';
+            }
+            if (id.includes('vaul')) {
+              return 'vendor-vaul';
+            }
+            // 検索関連
+            if (id.includes('@pagefind')) {
+              return 'search';
+            }
+            // フォーム関連
+            if (id.includes('react-hook-form') || id.includes('@hookform')) {
+              return 'forms';
+            }
+            // バリデーション
+            if (id.includes('zod')) {
+              return 'validation';
+            }
+            // ユーティリティ
+            if (id.includes('clsx') || id.includes('tailwind-merge')) {
+              return 'utils-ui';
+            }
+            if (id.includes('date-fns')) {
+              return 'utils-date';
+            }
+            // その他のnode_modules
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          },
+        },
+      },
+    },
   }
 })
