@@ -5,7 +5,6 @@ import TitlePage from '@/components/widgets/TitlePage'
 import { getTags, getPostByTag, getPosts } from '@/utils'
 import { siteConfig } from '@/data/site.config'
 import Pagination from '@/components/widgets/Pagination'
-import GoogleAdsense from '@/components/widgets/GoogleAdsense'
 
 export async function getStaticPaths({ paginate }: any) {
   const tags = await getTags()
@@ -39,5 +38,4 @@ const posts = page.data
   <TitlePage title={`#${tag} - ${page.currentPage}ページ目`} />
   <ListPosts posts={posts} />
   <Pagination page={page} />
-  <GoogleAdsense />
 </BaseLayout>

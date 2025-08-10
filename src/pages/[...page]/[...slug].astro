@@ -11,7 +11,6 @@ import Disqus from '@/components/widgets/Disqus'
 import { disqusConfig } from '@/data/disqus.config'
 import BlogImage from '@/components/mdx/BlogImage'
 import Tag from '@/components/ui/Tag'
-import GoogleAdsense from '@/components/widgets/GoogleAdsense'
 import ToTopIcon from '@/components/icons/ToTopIcon'
 import ArrowLeft from '@/components/icons/ArrowLeft'
 import ArrowRight from '@/components/icons/ArrowRight'
@@ -47,11 +46,12 @@ const disqusEnabled = disqusConfig.enabled
   headings={headings}
   readTime={remarkPluginFrontmatter.minutesRead}
 >
-  <div class='mt-8 grid w-full grid-cols-1 gap-10 md:grid-cols-[20%_auto] md:gap-4 lg:gap-6'>
+  <div class='mt-8 flex w-full flex-col gap-10 md:flex-row md:gap-4 lg:gap-6'>
     <!-- aside  -->
-    <aside class='flex-col gap-8 md:flex'>
+    <aside class='w-full flex-shrink-0 md:w-[20%]'>
       <div
-        class='sticky top-2 w-full self-start overflow-auto pr-2 transition-all duration-200 md:block md:max-h-screen'
+        id='sidebar-container'
+        class='w-full overflow-auto pr-2 transition-all duration-200 md:max-h-[calc(100vh-1rem)]'
       >
         <Share title={post.data.title} />
         {headings && headings.length > 0 && <TableOfContentsDetails {headings} />}
@@ -66,7 +66,7 @@ const disqusEnabled = disqusConfig.enabled
     </aside>
 
     <!-- post -->
-    <article class='w-full max-w-full'>
+    <article class='w-full max-w-full flex-1 md:w-[80%]'>
       <div class='prose prose-quoteless mb-12 min-w-full dark:prose-invert md:prose-lg xl:prose-xl'>
         <Content components={{ 'code-block': CodeBlock, SButton, img: BlogImage, table: Table }} />
       </div>
@@ -85,7 +85,6 @@ const disqusEnabled = disqusConfig.enabled
           閲覧した記事からのおすすめ
         </h2>
         <ListRelatedPosts slug={slug} tags={tags} maxPosts={MAX_POSTS} />
-        <GoogleAdsense />
         <div
           class='gird-rows-2 mt-16 grid w-full justify-between gap-4 border-t border-t-gray-300 pt-6 text-black dark:text-white md:grid-cols-2 md:gap-2'
         >
@@ -142,8 +141,85 @@ const disqusEnabled = disqusConfig.enabled
         })
       })
   }
+
+  const initStickysidebar = () => {
+    const sidebarContainer = document.getElementById('sidebar-container') as HTMLElement
+    const aside = sidebarContainer?.parentElement as HTMLElement
+
+    if (!sidebarContainer || !aside) return
+
+    // メディアクエリチェック（md以上でのみ動作）
+    const mediaQuery = window.matchMedia('(min-width: 768px)')
+
+    const handleScroll = () => {
+      if (!mediaQuery.matches) {
+        // モバイルでは固定しない
+        sidebarContainer.style.position = 'static'
+        sidebarContainer.style.top = 'auto'
+        return
+      }
+
+      const rect = aside.getBoundingClientRect()
+      const sidebarHeight = sidebarContainer.offsetHeight
+      const windowHeight = window.innerHeight
+      const scrollY = window.scrollY
+
+      // サイドバーがビューポートより小さい場合のみ固定
+      if (sidebarHeight <= windowHeight - 16) {
+        // 16px = top margin
+        if (rect.top <= 8) {
+          // 8px = top offset
+          // 固定位置に設定
+          sidebarContainer.style.position = 'fixed'
+          sidebarContainer.style.top = '8px'
+          sidebarContainer.style.width = `${rect.width}px`
+          sidebarContainer.style.zIndex = '10'
+        } else {
+          // 通常位置に戻す
+          sidebarContainer.style.position = 'static'
+          sidebarContainer.style.top = 'auto'
+          sidebarContainer.style.width = 'auto'
+          sidebarContainer.style.zIndex = 'auto'
+        }
+      }
+    }
+
+    // メディアクエリの変更を監視
+    const handleMediaChange = (e: MediaQueryListEvent) => {
+      if (!e.matches) {
+        // モバイルに戻った時は固定を解除
+        sidebarContainer.style.position = 'static'
+        sidebarContainer.style.top = 'auto'
+        sidebarContainer.style.width = 'auto'
+        sidebarContainer.style.zIndex = 'auto'
+      }
+    }
+
+    // イベントリスナーを設定
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll, { passive: true })
+    mediaQuery.addEventListener('change', handleMediaChange)
+
+    // 初回実行
+    handleScroll()
+
+    // クリーンアップ関数を返す
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+      mediaQuery.removeEventListener('change', handleMediaChange)
+    }
+  }
+
+  // 初期化
   toTopScroll()
-  document.addEventListener('astro:after-swap', toTopScroll)
+  const cleanupSidebar = initStickysidebar()
+
+  // Astroのページ遷移時に再初期化
+  document.addEventListener('astro:after-swap', () => {
+    toTopScroll()
+    initStickysidebar()
+  })
 </script>
 
 <style is:global>

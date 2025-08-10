@@ -4,7 +4,6 @@ import TitlePage from '@/components/widgets/TitlePage'
 import BaseLayout from '@/layouts/BaseLayout'
 import { getPermalink } from '@/utils'
 import { getCategories, getCategoryDescriptions } from '@/utils'
-import GoogleAdsense from '@/components/widgets/GoogleAdsense'
 
 export function getStaticPaths() {
   const categories = getCategories()
@@ -37,5 +36,4 @@ const title = `カテゴリー「${category.toUpperCase()}」の概要`
       >
     </a>
   </div>
-  <GoogleAdsense />
 </BaseLayout>
