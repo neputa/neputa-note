@@ -1,5 +1,4 @@
 ---
-import GoogleAdsense from '@/components/widgets/GoogleAdsense'
 import ListCategories from '@/components/widgets/ListCategories'
 import ListPosts from '@/components/widgets/ListPosts'
 import Pagination from '@/components/widgets/Pagination'
@@ -19,5 +18,4 @@ const posts = await getPosts(MAX_POSTS)
     <ListPosts FirstBig={false} posts={posts} />
     <Pagination page={posts} />
   </div>
-  <GoogleAdsense />
 </BaseLayout>

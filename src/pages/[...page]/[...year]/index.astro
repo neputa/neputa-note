@@ -1,11 +1,9 @@
 ---
 // pages/[year]/index.astro
 import ListPosts from '@/components/widgets/ListPosts'
-import PostCard from '@/components/widgets/PostCard'
 import TitlePage from '@/components/widgets/TitlePage'
 import BaseLayout from '@/layouts/BaseLayout'
 import { getPosts } from '@/utils'
-import GoogleAdsense from '@/components/widgets/GoogleAdsense'
 
 export async function getStaticPaths() {
   const allPosts = await getPosts()
@@ -47,5 +45,4 @@ const title = `${year}年の記事一覧`
       </>
     ))
   }
-  <GoogleAdsense />
 </BaseLayout>

@@ -3,7 +3,6 @@ import BaseLayout from '@/layouts/BaseLayout'
 import TitlePage from '@/components/widgets/TitlePage'
 import { getTagsWithCounts } from '@/utils'
 import { getPermalink } from '@/utils'
-import GoogleAdsense from '@/components/widgets/GoogleAdsense'
 
 const tags = await getTagsWithCounts()
 ---
@@ -25,5 +24,4 @@ const tags = await getTagsWithCounts()
       ))
     }
   </div>
-  <GoogleAdsense />
 </BaseLayout>

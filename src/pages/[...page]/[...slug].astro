@@ -11,7 +11,6 @@ import Disqus from '@/components/widgets/Disqus'
 import { disqusConfig } from '@/data/disqus.config'
 import BlogImage from '@/components/mdx/BlogImage'
 import Tag from '@/components/ui/Tag'
-import GoogleAdsense from '@/components/widgets/GoogleAdsense'
 import ToTopIcon from '@/components/icons/ToTopIcon'
 import ArrowLeft from '@/components/icons/ArrowLeft'
 import ArrowRight from '@/components/icons/ArrowRight'
@@ -85,7 +84,6 @@ const disqusEnabled = disqusConfig.enabled
           閲覧した記事からのおすすめ
         </h2>
         <ListRelatedPosts slug={slug} tags={tags} maxPosts={MAX_POSTS} />
-        <GoogleAdsense />
         <div
           class='gird-rows-2 mt-16 grid w-full justify-between gap-4 border-t border-t-gray-300 pt-6 text-black dark:text-white md:grid-cols-2 md:gap-2'
         >
