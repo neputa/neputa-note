@@ -136,52 +136,9 @@ export default defineConfig({
   trailingSlash: 'always',
   site: 'https://www.neputa-note.net/',
   prefetch: {
-    prefetchAll: true,
+    // 重要リンクのみ手動またはhoverでプリフェッチ（過剰プリロードを抑制）
+    prefetchAll: false,
     defaultStrategy: 'hover'
-  },
-  vite: {
-    build: {
-      // チャンクサイズの警告閾値を調整
-      chunkSizeWarningLimit: 500,
-      rollupOptions: {
-        output: {
-          // 手動でチャンクを分割してロード時間を最適化
-          manualChunks: {
-            // Reactライブラリを分離
-            'vendor-react': ['react', 'react-dom'],
-            // UIコンポーネントライブラリを分離
-            'vendor-ui': ['framer-motion', 'motion'],
-            // 検索機能を独立したチャンクに
-            'search': ['@pagefind/default-ui'],
-            // フォーム関連を分離
-            'forms': ['react-hook-form'],
-            // ユーティリティライブラリを分離
-            'utils': ['clsx', 'tailwind-merge']
-          },
-          // 小さなチャンクを統合する最小サイズ
-          experimentalMinChunkSize: 20000
-        }
-      },
-      // CSSコード分割を有効化
-      cssCodeSplit: true,
-      // ターゲットを最新ブラウザに設定してバンドルサイズを削減
-      target: 'es2022'
-    },
-    // モジュールプリロード設定
-    modulePreload: {
-      // 重要なモジュールを事前読み込み
-      polyfill: true,
-      // プリロードするファイルのフィルタリング
-      resolveDependencies: (filename, deps) => {
-        // 重要なチャンクを優先的にプリロード
-        return deps.filter(dep => {
-          return dep.includes('vendor-react') ||
-                 dep.includes('vendor-ui') ||
-                 dep.includes('client') ||
-                 dep.includes('index')
-        })
-      }
-    }
   },
   // Write here your website url
   markdown: {
@@ -299,52 +256,27 @@ export default defineConfig({
   },
   vite: {
     build: {
+      // チャンクサイズ警告はやや緩めだが、過剰な手動分割は避ける
+      chunkSizeWarningLimit: 500,
+      target: 'es2022',
+      cssCodeSplit: true,
       rollupOptions: {
         output: {
+          // 最低限の分割だけをカスタマイズ（不要なvendor強制プリロードを防ぐ）
           manualChunks: (id) => {
-            // React系ライブラリをより細かく分割
-            if (id.includes('react-dom')) {
-              return 'vendor-react-dom';
-            }
-            if (id.includes('react') && !id.includes('react-dom')) {
-              return 'vendor-react';
-            }
-            if (id.includes('framer-motion') || id.includes('motion-dom')) {
-              return 'vendor-motion';
-            }
-            // UI関連をより細かく分割
-            if (id.includes('@radix-ui')) {
-              return 'vendor-radix';
-            }
-            if (id.includes('vaul')) {
-              return 'vendor-vaul';
-            }
-            // 検索関連
-            if (id.includes('@pagefind')) {
-              return 'search';
-            }
-            // フォーム関連
-            if (id.includes('react-hook-form') || id.includes('@hookform')) {
-              return 'forms';
-            }
-            // バリデーション
-            if (id.includes('zod')) {
-              return 'validation';
-            }
-            // ユーティリティ
-            if (id.includes('clsx') || id.includes('tailwind-merge')) {
-              return 'utils-ui';
-            }
-            if (id.includes('date-fns')) {
-              return 'utils-date';
-            }
-            // その他のnode_modules
-            if (id.includes('node_modules')) {
-              return 'vendor';
-            }
+            if (id.includes('react-dom')) return 'vendor-react-dom'
+            if (id.includes('react') && !id.includes('react-dom')) return 'vendor-react'
+            if (id.includes('@pagefind')) return 'search'
+            if (id.includes('react-hook-form') || id.includes('@hookform')) return 'forms'
+            if (id.includes('clsx') || id.includes('tailwind-merge')) return 'utils-ui'
+            if (id.includes('date-fns')) return 'utils-date'
+            if (id.includes('node_modules')) return 'vendor'
           },
-        },
-      },
+          experimentalMinChunkSize: 20000
+        }
+      }
     },
+    // ViteのmodulePreloadヒントはデフォルトに戻す（vendorの強制プリロードを無効化）
+    modulePreload: { polyfill: true }
   }
 })

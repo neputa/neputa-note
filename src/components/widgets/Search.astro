@@ -1,7 +1,6 @@
 ---
 // Inspired by -> https://github.com/chrismwilliams/astro-theme-cactus/blob/main/src/components/Search.astro
 
-import '@pagefind/default-ui/css/ui.css'
 import SearchIcon from '@/components/icons/SearchIcon'
 ---
 
@@ -43,8 +42,8 @@ import SearchIcon from '@/components/icons/SearchIcon'
 </site-search>
 
 <script>
-  import { animate } from 'motion'
   class SiteSearch extends HTMLElement {
+    private _pagefindReady?: boolean
     constructor() {
       super()
       const openBtn = this.querySelector<HTMLButtonElement>('button[data-open-modal]')!
@@ -66,19 +65,35 @@ import SearchIcon from '@/components/icons/SearchIcon'
           window.removeEventListener('keydown', handleEscKey)
         } else return
       }
-      const openModal = (event?: MouseEvent) => {
-        dialog.showModal()
+      const ensurePagefind = async () => {
+        if (this._pagefindReady) return
+        // Load UI CSS and JS lazily together
+        await Promise.all([
+          import('@pagefind/default-ui/css/ui.css'),
+          import('@pagefind/default-ui')
+        ]).then(([_, mod]) => {
+          // @ts-ignore
+          const PagefindUI = mod.PagefindUI || mod.default?.PagefindUI || mod.PagefindUI
+          new PagefindUI({
+            element: '#pagefind__search',
+            baseUrl: import.meta.env.BASE_URL,
+            bundlePath: import.meta.env.BASE_URL.replace(/\/$/, '') + '/pagefind/',
+            showImages: false
+          })
+          this._pagefindReady = true
+        })
+      }
 
-        animate(
-          'dialog',
-          {
-            clipPath: [
-              'polygon(0 0, 100% 0, 100% -200%, -200% -200%)',
-              'polygon(0 0, 100% 0, 100% 100%, 0% 100%)'
-            ],
-            opacity: [0, 1]
-          },
-          { duration: 0.2 }
+      const openModal = async (event?: MouseEvent) => {
+        await ensurePagefind()
+        dialog.showModal()
+        // Lightweight animation using Web Animations API
+        dialog.animate(
+          [
+            { opacity: 0, clipPath: 'polygon(0 0, 100% 0, 100% -200%, -200% -200%)' },
+            { opacity: 1, clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0% 100%)' }
+          ],
+          { duration: 200, easing: 'ease-out' }
         )
         document.body.classList.add('overflow-hidden')
         this.querySelector('input')?.focus()
@@ -88,7 +103,15 @@ import SearchIcon from '@/components/icons/SearchIcon'
       }
 
       const closeModal = () => {
-        dialog.close()
+        // Animate out then close
+        const anim = dialog.animate(
+          [
+            { opacity: 1, clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0% 100%)' },
+            { opacity: 0, clipPath: 'polygon(0 0, 100% 0, 100% -200%, -200% -200%)' }
+          ],
+          { duration: 150, easing: 'ease-in' }
+        )
+        anim.onfinish = () => dialog.close()
         document.body.classList.remove('overflow-hidden')
         window.removeEventListener('click', onWindowClick)
         window.addEventListener('keydown', handleEscKey)
@@ -107,19 +130,10 @@ import SearchIcon from '@/components/icons/SearchIcon'
         }
       })
 
+      // Defer loading search assets until first interaction
       window.addEventListener('DOMContentLoaded', () => {
         if (import.meta.env.DEV) return
-        const onIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1))
-        onIdle(async () => {
-          // @ts-ignore
-          const { PagefindUI } = await import('@pagefind/default-ui')
-          new PagefindUI({
-            element: '#pagefind__search',
-            baseUrl: import.meta.env.BASE_URL,
-            bundlePath: import.meta.env.BASE_URL.replace(/\/$/, '') + '/pagefind/',
-            showImages: false
-          })
-        })
+        // no-op on load; assets are fetched on first open
       })
     }
   }
