@@ -5,9 +5,8 @@ import ContactForm from 'src/components/ui/ContactForm'
 const title = 'お問い合わせ'
 const description = 'このブログに関する問い合わせフォームのページです。'
 
-const siteKey: string = import.meta.env.VITE_NEWT_KEY
-const id: string = import.meta.env.VITE_NEWT_ID
-const formUrl = `https://neputa-note.form.newt.so/v1/${id}`
+const siteKey: string = import.meta.env.VITE_RECAPTCHA_SITE_KEY
+const formUrl: string = import.meta.env.VITE_FORMSPREE_ENDPOINT
 ---
 
 <SinglePageLayout title={title} description={description}>
@@ -15,9 +14,42 @@ const formUrl = `https://neputa-note.form.newt.so/v1/${id}`
     <div
       class='mx-auto flex flex-col rounded-lg border border-gray-200 bg-gray-100 p-4 shadow backdrop-blur dark:border-gray-700 dark:bg-slate-900 sm:p-6 lg:p-8'
     >
-      <ContactForm siteKey={siteKey} formUrl={formUrl} client:load />
+      {
+        !siteKey || !formUrl ? (
+          <div class='p-4 text-red-700 bg-red-100 border border-red-400 rounded'>
+            <strong>設定エラー:</strong> 環境変数が正しく設定されていません。
+            <ul class='mt-2 list-disc list-inside'>
+              {!siteKey && <li>VITE_RECAPTCHA_SITE_KEY が設定されていません</li>}
+              {!formUrl && <li>VITE_FORMSPREE_ENDPOINT が設定されていません</li>}
+            </ul>
+          </div>
+        ) : (
+          <ContactForm siteKey={siteKey} formUrl={formUrl} client:load />
+        )
+      }
     </div>
   </div>
 </SinglePageLayout>
 
-<script is:inline src=`https://www.google.com/recaptcha/api.js?render=${siteKey}&hl=ja`></script>
+<!-- reCAPTCHA v3 script - 他のスクリプトより前に読み込む -->
+<script is:inline define:vars={{ siteKey }}>
+  // reCAPTCHA スクリプトを動的に読み込み
+  if (siteKey) {
+    const script = document.createElement('script')
+    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}&hl=ja`
+    script.async = true
+    script.defer = true
+    document.head.appendChild(script)
+
+    // スクリプトが読み込まれるまで待機
+    script.onload = function () {
+      console.log('reCAPTCHA script loaded successfully')
+    }
+
+    script.onerror = function () {
+      console.error('Failed to load reCAPTCHA script')
+    }
+  } else {
+    console.error('reCAPTCHA site key is not defined')
+  }
+</script>
