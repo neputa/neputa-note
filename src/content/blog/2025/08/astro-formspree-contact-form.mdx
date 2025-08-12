@@ -1,0 +1,410 @@
+---
+title: AstroとFormspreeで簡単な問い合わせフォーム作成
+description: AstroにFormspreeを導入し、react-hook-formとreCAPTCHA v3でバリデーションとスパム対策を実装するお問い合わせフォームの作り方を、環境変数設定からページ実装まで手順で解説。
+pubDate: 2025-08-12T12:30:06.288Z
+modDate: 2025-08-12T12:30:06.288Z
+heroImage: ../../../../assets/images/blog/astro-formspree-contact-form.webp
+category:
+  - DEV
+tags:
+  - Astro
+  - dev
+draft: false
+keywords: null
+fmContentType: blog
+---
+
+import BlogCard from '@/components/mdx/BlogCard'
+import Alert from '@/components/mdx/Alert'
+
+## 概要
+
+- Astroで開発したサイトに問い合わせフォームを追加する方法を解説
+- 主な内容は以下の通り
+  - AstroのプロジェクトにFormspreeを組み込み、簡単な問い合わせフォームを作成
+  - react-hook-formを使用して、フォームのバリデーションと送信処理を実装
+  - reCAPTCHA v3を導入して、スパム対策を強化
+
+## 開発環境
+
+- Ubuntu 24.04 (WSL2)
+- Node.js 22.16.0
+- pnpm 10.5.2
+- Astro 5.11.1
+  - react 19.1.0
+  - react-hook-form 7.60.0
+
+## 経緯
+
+- Astroで開発したこのブログの問い合わせフォームのバックエンドに「Newt」というサービスを使っていた。
+  - [【Astro】Contact FormにValidationとreCAPTCHA v3を追加する - neputa note](https://www.neputa-note.net/2024/07/astro-contactform-recaptchav3-validation/)
+- コロナ禍に開業した国内のサービスであったが、来年2026年11月24日をもってサービスを終了することが発表された。
+- 当初、候補として考えていた「Formspree」を改めて調査し、実装することにした。
+
+## Formspreeの概要
+
+- Formspree（フォームスプリー）は、サーバーを用意せずに手軽にお問い合わせフォームを実装できるサービス。
+- HTMLフォームに専用のエンドポイントを設定するだけで、送信内容をメールで受け取ったり、ダッシュボードで管理したりできる。
+- 無料プランでも基本的な機能が利用でき、スパム対策やreCAPTCHA、ファイル添付、Webhook連携などの拡張機能にも対応している。
+- 静的サイトやJamstack構成のブログ・ポートフォリオサイトなど、バックエンドを持たないサイトでも簡単に導入できるのが大きな特徴。
+- 公式サイト - [Formspree](https://formspree.io/)
+
+## 作業詳細
+
+### reCAPTCHA v3 の登録手順
+
+1.  **Google reCAPTCHA Admin Console にアクセスする**
+    * [https://www.google.com/recaptcha/admin/](https://www.google.com/recaptcha/admin/) にアクセスし、Google アカウントでログイン。
+
+2.  **新しいサイトを登録する**
+    * 管理画面右上の「+」ボタンをクリック。
+    * 「サイトを登録する」画面が表示される。
+
+3.  **サイト情報を入力する**
+    * **ラベル:** サイトを識別するための任意の名前を入力（例：ブログ名、ウェブサイト名など）。
+    * **reCAPTCHA のタイプ:** **「reCAPTCHA v3」** を選択。
+    * **ドメイン:** reCAPTCHA を設置するサイトのドメインを入力。複数のドメインがある場合は、改行して入力（例： example.com 、 www.example.com ）。ローカルでデバッグする場合は、 localhost も追加。
+    * **Google Cloud Platform:** 2025年の間に、reCAPTCHAはGoogle Cloud Platformに統合されるため、必要に応じてプロジェクトを選択または新規作成。
+
+4.  **登録を完了する**
+    * 「送信」ボタンをクリック。
+
+5.  **サイトキーとシークレットキーを取得する**
+    * 登録が完了すると、「サイトキー」と「シークレットキー」が表示されます。
+    * サイトキーはフロントエンドで使用し、シークレットキーはサーバーサイドで使用するので控えておく
+
+### Formspreeの登録手順
+
+今回はフリープラン（月間50件までのフォーム送信が可能）を選択。詳しくは[Formspreeの料金ページ](https://formspree.io/plans)を参照。
+
+1.  **Formspreeのアカウント登録を行い、ダッシュボードにログインする。**
+
+2.  **新規フォームを作成**
+    * Add New > New Form をクリック。
+    * Form Name: 任意の名前を入力（例：Contact Form）。
+    * Project: プロジェクトを選択（必要に応じて新規作成）。
+    * Send emails to: 送信先のメールアドレスを選択。（メールアドレスの追加はAccountページで行う）
+    * Create Formをクリック。
+
+3.  **reCAPTCHAを有効化**
+    * 作成したフォームの「Settings」タブを開く。
+    * 「CAPTCHA」をオンにする。
+    * 「Adjust settings→」をクリック。
+    * CAPTCHA solution: **reCAPTCHA v3** を選択。
+    * Custom Key: reCAPTCHA v3の **シークレットキー** を入力。
+    * Saveをクリックして設定を保存する。
+
+4.  **Endpointの確認**
+    * 作成したフォームの「Overview」タブに戻り、「Form endpoint」を確認。
+    * このURLを後でAstroのフォームで使用する。
+
+### Astroの問い合わせフォームの実装
+
+#### 1. プラグインのインストール
+
+- Astroの[アイランドアーキテクチャ](https://docs.astro.build/ja/concepts/islands/)を活用し、問い合わせフォームの実装はReactコンポーネントで行う。
+- 入力フォームのバリデーションには react-hook-form を使用する。
+- 以下コマンドで必要なパッケージをインストールする。
+
+```bash
+pnpm add react @astrojs/react react-hook-form
+```
+
+- Astroの設定ファイルにReactの統合を追加する。
+
+```astro astro.config.mjs
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  // ...
+  integrations: [react()],
+});
+```
+
+- 参考: [@astrojs/react | Docs](https://docs.astro.build/ja/guides/integrations-guide/react/)
+
+#### 2. 環境変数の設定
+
+- .envファイルを作成し、FormspreeのエンドポイントとreCAPTCHAの**サイトキー**を設定する。
+- 必要に応じて本番環境に、同じ名前の環境変数を設定しておく。
+- .env ファイルはプロジェクトのルートディレクトリに配置し、gitignoreに追加して、バージョン管理から除外する。
+
+```env
+VITE_RECAPTCHA_SITE_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+VITE_FORMSPREE_ENDPOINT=https://formspree.io/f/xxxxxxxx
+```
+
+#### 3. Reactコンポーネントの作成
+
+- このコンポーネントでは、react-hook-form を使用してフォームのバリデーションと送信処理を実装する。
+- reCAPTCHA v3を使用して、スパム対策を行う。
+- Formspreeに送信するreCAPTCHAのトークは g-recaptcha-response として送信する。
+
+```typescript src/components/ui/ContactForm.tsx
+import { useForm } from 'react-hook-form'
+import { useState } from 'react'
+
+type FormValues = {
+  name: string
+  email: string
+  message: string
+}
+
+interface FormProps {
+  formUrl: string
+  siteKey: string
+}
+
+declare global {
+  interface Window {
+    grecaptcha: any
+  }
+}
+
+export default function ContactForm(props: FormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<FormValues>({ mode: 'onChange' })
+
+  const onSubmit = handleSubmit(async (data) => {
+    setIsSubmitting(true)
+    setSubmitError(null)
+
+    if (!props.formUrl) {
+      setSubmitError('設定エラー: FormspreeのURLが設定されていません')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (!props.siteKey) {
+      setSubmitError('設定エラー: reCAPTCHAのサイトキーが設定されていません')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (typeof window.grecaptcha === 'undefined') {
+      setSubmitError('reCAPTCHAが読み込まれていません。ページを再読み込みしてください。')
+      setIsSubmitting(false)
+      return
+    }
+
+    try {
+      window.grecaptcha.ready(() => {
+        window.grecaptcha.execute(props.siteKey, { action: 'submit' }).then(async (token: string) => {
+          const formData = new FormData()
+          Object.entries(data).forEach(([key, value]) => {
+            formData.append(key, value)
+          })
+          formData.append('g-recaptcha-response', token)
+
+          try {
+            const response = await fetch(props.formUrl, {
+              method: 'POST',
+              body: formData,
+              headers: {
+                Accept: 'application/json'
+              }
+            })
+
+            if (response.ok) {
+              location.href = '/thanks/'
+            } else {
+              const responseText = await response.text()
+              setSubmitError(`送信に失敗しました。しばらく時間をおいて再度お試しください。`)
+              setIsSubmitting(false)
+            }
+          } catch (err) {
+            setSubmitError('ネットワークエラーが発生しました。しばらく時間をおいて再度お試しください。')
+            setIsSubmitting(false)
+          }
+        }).catch((error: any) => {
+          setSubmitError('reCAPTCHA エラーが発生しました。ページを再読み込みしてください。')
+          setIsSubmitting(false)
+        })
+      })
+    } catch (err) {
+      setSubmitError('reCAPTCHA の初期化に失敗しました。ページを再読み込みしてください。')
+      setIsSubmitting(false)
+    }
+  })
+
+  return (
+    <form onSubmit={onSubmit}>
+      {submitError && (
+        <div className='mb-4 p-4 text-red-700 bg-red-100 border border-red-400 rounded'>
+          <strong>エラー:</strong> {submitError}
+        </div>
+      )}
+
+      <div className='mb-6'>
+        <label htmlFor='name' className='block text-sm font-medium mb-2'>
+          Name
+          <span className='text-red-800 mx-1 text-sm'>*</span>
+          {errors?.name && (
+            <span id='error-name-required' aria-live='assertive' className='ml-4 text-red-700'>
+              {errors.name.message}
+            </span>
+          )}
+        </label>
+        <input
+          id='name'
+          className='p-4 block w-full text-md rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-900 '
+          {...register('name', { required: '※Name は必須項目です。' })}
+          aria-describedby='error-name-required'
+          placeholder='名前'
+          disabled={isSubmitting}
+        />
+      </div>
+      <div className='mb-6'>
+        <label htmlFor='email' className='block text-sm font-medium mb-2'>
+          Email
+          <span className='text-red-800 mx-1 text-sm'>*</span>
+          {errors?.email && (
+            <span id='error-email-required' aria-live='assertive' className='ml-4 text-red-700'>
+              {errors.email.message}
+            </span>
+          )}
+        </label>
+        <input
+          id='email'
+          type='email'
+          className='p-4 block w-full text-md rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-900'
+          {...register('email', {
+            required: '※Emailは必須項目です。',
+            pattern: {
+              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+              message: '有効なメールアドレスを入力してください'
+            }
+          })}
+          placeholder='メールアドレス'
+          disabled={isSubmitting}
+        />
+      </div>
+      <div className='mb-6'>
+        <label htmlFor='message' className='block text-sm font-medium mb-2'>
+          Message
+          <span className='text-red-800 mx-1 text-sm'>*</span>
+          {errors?.message && (
+            <span id='error-message-required' aria-live='assertive' className='ml-4 text-red-700'>
+              {errors.message.message}
+            </span>
+          )}
+        </label>
+        <textarea
+          id='message'
+          rows={5}
+          className='p-4 block w-full text-md rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-900'
+          {...register('message', { required: '※Message は必須項目です。' })}
+          placeholder='メッセージ'
+          disabled={isSubmitting}
+        ></textarea>
+      </div>
+
+      <div className='mb-6'>
+        <p className='text-xs text-gray-600'>
+          このサイトはreCAPTCHA v3によって保護されており、Googleの
+          <a href='https://policies.google.com/privacy' className='underline' target='_blank' rel='noopener noreferrer'>
+            プライバシーポリシー
+          </a>
+          と
+          <a href='https://policies.google.com/terms' className='underline' target='_blank' rel='noopener noreferrer'>
+            利用規約
+          </a>
+          が適用されます。
+        </p>
+      </div>
+
+      <div className='flex justify-center items-center mb-4'>
+        <button
+          type='submit'
+          className='w-full inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? '送信中...' : '送信'}
+        </button>
+      </div>
+    </form>
+  )
+}
+```
+
+#### 4. Astroページの作成
+
+- .astroファイルを作成し、その中でReactコンポーネントを使用する。
+- このページで、先ほど作成した環境変数を読み込む
+- ちなみにTailwind CSSを使用している。
+
+```astro src/pages/p/contact.astro
+---
+import SinglePageLayout from '@/layouts/SinglePageLayout'
+import ContactForm from 'src/components/ui/ContactForm'
+
+const title = 'お問い合わせ'
+const description = 'このブログに関する問い合わせフォームのページです。'
+
+const siteKey: string = import.meta.env.VITE_RECAPTCHA_SITE_KEY
+const formUrl: string = import.meta.env.VITE_FORMSPREE_ENDPOINT
+---
+
+<SinglePageLayout title={title} description={description}>
+  <div class='mx-auto w-full max-w-3xl'>
+    <div
+      class='mx-auto flex flex-col rounded-lg border border-gray-200 bg-gray-100 p-4 shadow backdrop-blur dark:border-gray-700 dark:bg-slate-900 sm:p-6 lg:p-8'
+    >
+      {
+        !siteKey || !formUrl ? (
+          <div class='p-4 text-red-700 bg-red-100 border border-red-400 rounded'>
+            <strong>設定エラー:</strong> 環境変数が正しく設定されていません。
+            <ul class='mt-2 list-disc list-inside'>
+              {!siteKey && <li>VITE_RECAPTCHA_SITE_KEY が設定されていません</li>}
+              {!formUrl && <li>VITE_FORMSPREE_ENDPOINT が設定されていません</li>}
+            </ul>
+          </div>
+        ) : (
+          <ContactForm siteKey={siteKey} formUrl={formUrl} client:load />
+        )
+      }
+    </div>
+  </div>
+</SinglePageLayout>
+
+<!-- reCAPTCHA v3 script - 他のスクリプトより前に読み込む -->
+<script is:inline define:vars={{ siteKey }}>
+  // reCAPTCHA スクリプトを動的に読み込み
+  if (siteKey) {
+    const script = document.createElement('script')
+    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}&hl=ja`
+    script.async = true
+    script.defer = true
+    document.head.appendChild(script)
+
+    // スクリプトが読み込まれるまで待機
+    script.onload = function () {
+      console.log('reCAPTCHA script loaded successfully')
+    }
+
+    script.onerror = function () {
+      console.error('Failed to load reCAPTCHA script')
+    }
+  } else {
+    console.error('reCAPTCHA site key is not defined')
+  }
+</script>
+```
+
+## 動作確認
+
+- ローカルサーバーで動作確認を行う。
+- 問題がなければ、Google Cloud PlatformのreCAPTCHAの設定で、ドメインからlocalhostを削除し、実際のドメインを追加する。
+
+## まとめ
+
+- FormspreeはreCAPTCHAの登録だけで作業が完了し、非常に簡単だった。
+- このブログのコードはGithubで公開している。
+  - [neputa/neputa-note: Blog site developed by astro](https://github.com/neputa/neputa-note)

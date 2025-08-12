@@ -16,14 +16,14 @@
       "path": "[[workspace]]/src/content/blog/**/**/",
       "previewPath": "/{{pathToken.4}}/{{pathToken.5}}",
       "trailingSlash": true,
-      "contentTypes": ["blog"]
+      "contentTypes": [ "blog" ]
     },
     {
       "title": "Page",
       "path": "[[workspace]]/src/pages/p",
       "trailingSlash": true,
       "previewPath": "/p",
-      "contentTypes": ["page"]
+      "contentTypes": [ "page" ]
     }
   ],
   "frontMatter.taxonomy.contentTypes": [
@@ -110,7 +110,7 @@
           "title": "Content preview",
           "name": "heroImage",
           "type": "image",
-          "default": "../../../../assets/images/blog/default.webp",
+          "default": "../../../../assets/images/blog/default-2025.webp",
           "isPreviewImage": true
         },
         {
@@ -136,7 +136,7 @@
     "Youtubeタグ": {
       "description": "",
       "body": "<YouTube id='XXXXXXXXXXX' />",
-      "fields": []
+      "fields": [ ]
     }
   }
 }
