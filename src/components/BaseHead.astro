@@ -28,6 +28,9 @@ const siteTitle =
   canonicalURL.href === Astro.site?.href
     ? siteConfig.title
     : `${title} ${titleSeparator} ${siteConfig.title}`
+
+// Analytics availability (used to gate connection hints)
+const gaId: string | undefined = import.meta.env.VITE_GA_ID ?? process.env.VITE_GA_ID
 ---
 
 <!-- Global Metadata -->
@@ -39,16 +42,28 @@ const siteTitle =
 <meta name='generator' content={Astro.generator} />
 
 <!-- DNS Prefetch -->
-<link rel='dns-prefetch' href='//www.google-analytics.com' />
-<link rel='dns-prefetch' href='//www.googletagmanager.com' />
-<link rel='dns-prefetch' href='//fonts.googleapis.com' />
-<link rel='dns-prefetch' href='//fonts.gstatic.com' />
+{
+  gaId && (
+    <>
+      <link rel='dns-prefetch' href='//www.google-analytics.com' />
+      <link rel='dns-prefetch' href='//www.googletagmanager.com' />
+    </>
+  )
+}
+<!-- fonts dns-prefetch is handled in PerformanceOptimizer to avoid duplication -->
 
 <!-- Preconnect for critical third-party origins -->
-<link rel='preconnect' href='https://www.google-analytics.com' />
-<link rel='preconnect' href='https://www.googletagmanager.com' />
+{
+  gaId && (
+    <>
+      <link rel='preconnect' href='https://www.google-analytics.com' crossorigin />
+      <link rel='preconnect' href='https://www.googletagmanager.com' crossorigin />
+    </>
+  )
+}
+<!-- Removed same-origin preconnects ('/' and '/pagefind/') as they provide negligible benefit -->
 
-<meta name='theme-color' content='#EE8A85' />
+<!-- theme-color already set above; duplicate removed -->
 <meta name='color-scheme' content='light dark' />
 
 <!-- Service Worker Registration -->

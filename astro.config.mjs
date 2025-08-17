@@ -182,55 +182,55 @@ export default defineConfig({
     }),
     inline(),
     PreloadCSSPlugin(),
-    compress({
-      CSS: {
-        level: 2,
-        cache: true
-      },
-      JavaScript: {
-        mangle: true,
-        compress: {
-          drop_console: true, // console.logを削除
-          dead_code: true,
-          unused: true,
-          // 最適化レベルを向上
-          passes: 2,
-          pure_funcs: ['console.log', 'console.info', 'console.debug'],
-          drop_debugger: true
-        },
-        cache: true
-      },
-      HTML: {
-        'html-minifier-terser': {
-          removeAttributeQuotes: false,
-          collapseWhitespace: true,
-          removeComments: true,
-          minifyCSS: true,
-          minifyJS: true,
-          // HTMLの最適化を強化
-          removeRedundantAttributes: true,
-          removeEmptyAttributes: true,
-          sortAttributes: true,
-          sortClassName: true
-        },
-        cache: true
-      },
-      Image: false,
-      SVG: {
-        cache: true,
-        // SVG最適化を強化
-        svgo: {
-          plugins: [
-            'preset-default',
-            {
-              name: 'removeViewBox',
-              active: false
-            }
-          ]
-        }
-      },
-      Logger: 1
-    })
+    // compress({
+    //   CSS: {
+    //     level: 2,
+    //     cache: true
+    //   },
+    //   JavaScript: {
+    //     mangle: true,
+    //     compress: {
+    //       drop_console: true, // console.logを削除
+    //       dead_code: true,
+    //       unused: true,
+    //       // 最適化レベルを向上
+    //       passes: 2,
+    //       pure_funcs: ['console.log', 'console.info', 'console.debug'],
+    //       drop_debugger: true
+    //     },
+    //     cache: true
+    //   },
+    //   HTML: {
+    //     'html-minifier-terser': {
+    //       removeAttributeQuotes: false,
+    //       collapseWhitespace: true,
+    //       removeComments: true,
+    //       minifyCSS: true,
+    //       minifyJS: true,
+    //       // HTMLの最適化を強化
+    //       removeRedundantAttributes: true,
+    //       removeEmptyAttributes: true,
+    //       sortAttributes: true,
+    //       sortClassName: true
+    //     },
+    //     cache: true
+    //   },
+    //   Image: false,
+    //   SVG: {
+    //     cache: true,
+    //     // SVG最適化を強化
+    //     svgo: {
+    //       plugins: [
+    //         'preset-default',
+    //         {
+    //           name: 'removeViewBox',
+    //           active: false
+    //         }
+    //       ]
+    //     }
+    //   },
+    //   Logger: 1
+    // })
   ],
   image: {
     service: sharpImageService({
