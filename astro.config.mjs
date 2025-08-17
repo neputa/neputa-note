@@ -262,8 +262,9 @@ export default defineConfig({
       cssCodeSplit: true,
       rollupOptions: {
         output: {
-          // 最低限の分割だけをカスタマイズ（不要なvendor強制プリロードを防ぐ）
+          // View Transitionsの最適化：ClientRouterスクリプトを分離し、強制リフローを軽減
           manualChunks: (id) => {
+            if (id.includes('astro/client-router') || id.includes('astro:transitions')) return 'router'
             if (id.includes('react-dom')) return 'vendor-react-dom'
             if (id.includes('react') && !id.includes('react-dom')) return 'vendor-react'
             if (id.includes('@pagefind')) return 'search'
@@ -276,7 +277,13 @@ export default defineConfig({
         }
       }
     },
-    // ViteのmodulePreloadヒントはデフォルトに戻す（vendorの強制プリロードを無効化）
-    modulePreload: { polyfill: true }
+    // View Transitionsの強制リフロー軽減のためのモジュールプリロード最適化
+    modulePreload: {
+      polyfill: true,
+      resolveDependencies: (url, deps, { hostId, hostType }) => {
+        // Routerチャンクの優先度を下げて初期レンダリングブロックを防ぐ
+        return deps.filter(dep => !dep.includes('router'))
+      }
+    }
   }
 })
