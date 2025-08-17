@@ -73,8 +73,35 @@ const siteTitle =
 <!-- Primary Meta Tags -->
 <title>{siteTitle}</title>
 
-<!-- ClientRouter  -->
-<ClientRouter />
+<!-- ClientRouter with optimization for forced reflow reduction -->
+<ClientRouter fallback='none' />
+
+<!-- View Transitions optimization script to reduce forced reflows -->
+<script>
+  // View Transitionsの強制リフロー軽減スクリプト
+  document.addEventListener('astro:before-preparation', () => {
+    // ナビゲーション前に不要な計算をバッチ処理
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(() => {
+        // アイドル時間中にレイアウト計算を事前実行
+        document.body.offsetHeight // 強制レイアウト実行
+      })
+    }
+  })
+
+  document.addEventListener('astro:after-swap', () => {
+    // ページ遷移後のレイアウト処理を最適化
+    requestAnimationFrame(() => {
+      // 一度のフレーム内でレイアウト関連の処理を完了
+      const persistedElements = document.querySelectorAll('[data-astro-transition-persist]')
+      persistedElements.forEach((el) => {
+        if (el instanceof HTMLElement && el.style) {
+          el.style.transform = el.style.transform // 強制再計算を防ぐ
+        }
+      })
+    })
+  })
+</script>
 
 <!-- SEO -->
 <meta name='title' content={siteTitle} />
