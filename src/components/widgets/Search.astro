@@ -67,21 +67,52 @@ import SearchIcon from '@/components/icons/SearchIcon'
       }
       const ensurePagefind = async () => {
         if (this._pagefindReady) return
-        // Load UI CSS and JS lazily together
+
+        const base = import.meta.env.BASE_URL.replace(/\/$/, '') + '/pagefind'
+
+        const loadCss = (href: string) =>
+          new Promise<void>((resolve) => {
+            const exists = document.querySelector<HTMLLinkElement>(
+              `link[rel="stylesheet"][href="${href}"]`
+            )
+            if (exists) return resolve()
+            const link = document.createElement('link')
+            link.rel = 'stylesheet'
+            link.href = href
+            link.onload = () => resolve()
+            link.onerror = () => resolve() // 失敗しても検索は継続
+            document.head.appendChild(link)
+          })
+
+        const loadScript = (src: string) =>
+          new Promise<void>((resolve) => {
+            const exists = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`)
+            if (exists) return resolve()
+            const s = document.createElement('script')
+            s.src = src
+            s.defer = true
+            s.onload = () => resolve()
+            s.onerror = () => resolve() // 失敗しても resolve してブロックしない
+            document.head.appendChild(s)
+          })
+
+        // Pagefind の UI アセットを完全遅延ロード
         await Promise.all([
-          import('@pagefind/default-ui/css/ui.css'),
-          import('@pagefind/default-ui')
-        ]).then(([_, mod]) => {
-          // @ts-ignore
-          const PagefindUI = mod.PagefindUI || mod.default?.PagefindUI || mod.PagefindUI
+          loadCss(`${base}/pagefind-ui.css`),
+          loadScript(`${base}/pagefind-ui.js`)
+        ])
+
+        // @ts-ignore - Pagefind UI はグローバルに公開される
+        const PagefindUI = (window as any).PagefindUI
+        if (typeof PagefindUI === 'function') {
           new PagefindUI({
             element: '#pagefind__search',
             baseUrl: import.meta.env.BASE_URL,
-            bundlePath: import.meta.env.BASE_URL.replace(/\/$/, '') + '/pagefind/',
+            bundlePath: base + '/',
             showImages: false
           })
           this._pagefindReady = true
-        })
+        }
       }
 
       const openModal = async (event?: MouseEvent) => {
