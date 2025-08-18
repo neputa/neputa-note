@@ -33,7 +33,6 @@ const siteTitle =
 const gaId: string | undefined = import.meta.env.VITE_GA_ID ?? process.env.VITE_GA_ID
 ---
 
-<!-- Global Metadata -->
 <meta charset='utf-8' />
 <meta name='viewport' content='width=device-width, initial-scale=1.0' />
 <meta name='theme-color' content='#EE8A85' />
@@ -41,7 +40,6 @@ const gaId: string | undefined = import.meta.env.VITE_GA_ID ?? process.env.VITE_
 <Favicons />
 <meta name='generator' content={Astro.generator} />
 
-<!-- DNS Prefetch -->
 {
   gaId && (
     <>
@@ -50,9 +48,7 @@ const gaId: string | undefined = import.meta.env.VITE_GA_ID ?? process.env.VITE_
     </>
   )
 }
-<!-- fonts dns-prefetch is handled in PerformanceOptimizer to avoid duplication -->
 
-<!-- Preconnect for critical third-party origins -->
 {
   gaId && (
     <>
@@ -61,12 +57,10 @@ const gaId: string | undefined = import.meta.env.VITE_GA_ID ?? process.env.VITE_
     </>
   )
 }
-<!-- Removed same-origin preconnects ('/' and '/pagefind/') as they provide negligible benefit -->
+<link rel='preconnect' href={Astro.site} />
 
-<!-- theme-color already set above; duplicate removed -->
 <meta name='color-scheme' content='light dark' />
 
-<!-- Service Worker Registration -->
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -82,17 +76,90 @@ const gaId: string | undefined = import.meta.env.VITE_GA_ID ?? process.env.VITE_
   }
 </script>
 
-<!-- Canonical URL -->
 <link rel='canonical' href={canonicalURL} />
 
-<!-- Primary Meta Tags -->
 <title>{siteTitle}</title>
 
-<!-- ClientRouter with optimization for forced reflow reduction -->
-<ClientRouter fallback='none' />
+<ClientRouter fallback='none' transition:animate='initial' />
 
-<!-- View Transitions optimization script to reduce forced reflows -->
 <script>
+  // クリティカルなJSファイルを動的に検出して優先読み込み
+  const preloadCriticalScripts = () => {
+    // 重要なコンポーネント名のパターン - ビルド時のハッシュ値に依存しないパターン
+    const criticalPatterns = [/ClientRouter/i, /page/i, /Breadcrumbs/i, /YouTube/i]
+
+    // 現在のページ内のすべてのスクリプトタグを取得
+    const scripts = document.querySelectorAll('script[type="module"]')
+    const preloadedUrls = new Set()
+
+    // すでにpreload済みのURLを記録
+    document.querySelectorAll('link[rel="modulepreload"]').forEach((link) => {
+      const href = link.getAttribute('href')
+      if (href) preloadedUrls.add(href)
+    })
+
+    // すでにロード済みのスクリプトからクリティカルなものを見つける
+    scripts.forEach((script) => {
+      const src = script.getAttribute('src')
+      if (src) {
+        // クリティカルなパターンに一致し、まだプリロードされていないもの
+        if (!preloadedUrls.has(src) && criticalPatterns.some((pattern) => pattern.test(src))) {
+          const link = document.createElement('link')
+          link.rel = 'modulepreload'
+          link.href = src
+          link.fetchPriority = 'high'
+          document.head.appendChild(link)
+          preloadedUrls.add(src)
+        }
+      }
+    })
+
+    // ページ内のすべてのlink[rel="stylesheet"]も優先的に読み込む
+    document.querySelectorAll('link[rel="stylesheet"]').forEach((styleLink) => {
+      const href = styleLink.getAttribute('href')
+      if (href && !preloadedUrls.has(href)) {
+        const link = document.createElement('link')
+        link.rel = 'preload'
+        link.as = 'style'
+        link.href = href
+        link.fetchPriority = 'high'
+        document.head.appendChild(link)
+        preloadedUrls.add(href)
+      }
+    })
+  }
+
+  // 優先度の高いスクリプトを早期に読み込む
+  if (document.readyState === 'loading') {
+    // DOMContentLoaded前にpreloadを設定
+    preloadCriticalScripts()
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOMContentLoaded時に再スキャン
+      preloadCriticalScripts()
+    })
+  } else {
+    // すでにDOMが読み込まれている場合は即時実行
+    preloadCriticalScripts()
+  }
+
+  // Astroの遷移イベントで再スキャン
+  document.addEventListener('astro:after-swap', () => {
+    setTimeout(preloadCriticalScripts, 0)
+  })
+</script>
+
+<script>
+  // Astro Viewトランジションの最適化
+  document.addEventListener('astro:before-preparation', () => {
+    // ナビゲーション前に不要な計算をバッチ処理
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(() => {
+        // アイドル時間中にレイアウト計算を事前実行
+        document.body.offsetHeight // 強制レイアウト実行
+      })
+    }
+  })
+
   // View Transitionsの強制リフロー軽減スクリプト
   document.addEventListener('astro:before-preparation', () => {
     // ナビゲーション前に不要な計算をバッチ処理
