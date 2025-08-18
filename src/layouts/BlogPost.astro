@@ -67,7 +67,7 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
               src={heroImage}
               width={1000}
               height={500}
-              quality={100}
+              quality={80}
               widths={[320, 768, 1000]}
               sizes='(max-width:639px) 320px, (max-width: 1023px) 768px, 1000px'
               format='webp'
@@ -76,7 +76,7 @@ const { title, description, pubDate, modDate, heroImage = null, tags } = data
               alt={`img of ${title}`}
               fetchpriority='high'
               decoding='async'
-              style='aspect-ratio: 5/2'
+              style='aspect-ratio: 5/2; content-visibility: auto; contain-intrinsic-size: 1000px 500px;'
             />
           </div>
         ) : (

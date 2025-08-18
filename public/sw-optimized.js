@@ -4,35 +4,86 @@ const JS_CACHE = 'neputa-js-v3'
 const CSS_CACHE = 'neputa-css-v3'
 const IMAGE_CACHE = 'neputa-images-v3'
 
-// より積極的な静的リソースキャッシュ
+// 常に固定のアセットをプリキャッシュ
 const STATIC_ASSETS = [
   '/',
   '/404.html',
   '/open-graph.png',
   '/favicon.svg',
   '/favicon.ico',
-  '/_astro/_slug_.css',
-  // 重要なJavaScriptチャンクをプリキャッシュ
-  '/_astro/vendor-react.js',
-  '/_astro/vendor-react-dom.js',
-  '/_astro/vendor-motion.js',
-  '/_astro/utils-ui.js'
+  '/_astro/_slug_.css'
 ]
+
+// 動的に検出するクリティカルなJSのパターン - ランタイム中に実際のURLを解決
+const CRITICAL_JS_PATTERNS = [
+  /\/_astro\/.*ClientRouter.*\.js$/,
+  /\/_astro\/.*page.*\.js$/,
+  /\/_astro\/.*Breadcrumbs.*\.js$/,
+  /\/_astro\/.*YouTube.*\.js$/,
+  /\/_astro\/vendor-react.*\.js$/,
+  /\/_astro\/vendor-react-dom.*\.js$/,
+  /\/_astro\/vendor-motion.*\.js$/,
+  /\/_astro\/utils-ui.*\.js$/
+]
+
+// 現在読み込まれているJSアセットを見つける
+const findCriticalAssets = async () => {
+  try {
+    const criticalAssets = new Set();
+
+    // ブラウザーキャッシュから既存のURLを確認
+    const cacheNames = await caches.keys();
+    for (const name of cacheNames) {
+      if (name.includes('neputa-js') || name === CACHE_NAME) {
+        const cache = await caches.open(name);
+        const keys = await cache.keys();
+
+        for (const request of keys) {
+          const url = new URL(request.url);
+          if (url.pathname.startsWith('/_astro/') &&
+              url.pathname.endsWith('.js') &&
+              CRITICAL_JS_PATTERNS.some(pattern => pattern.test(url.pathname))) {
+            criticalAssets.add(request.url);
+          }
+        }
+      }
+    }
+
+    return Array.from(criticalAssets);
+  } catch (error) {
+    console.warn('⚠️ Error finding critical assets:', error);
+    return [];
+  }
+};
 
 // インストール時に重要なリソースをキャッシュ
 self.addEventListener('install', (event) => {
   console.log('🔧 SW installing...')
   event.waitUntil(
     (async () => {
-      const cache = await caches.open(CACHE_NAME)
+      const cache = await caches.open(CACHE_NAME);
+
+      // 静的アセットを先にキャッシュ
       try {
-        await cache.addAll(STATIC_ASSETS)
-        console.log('📦 Precached static assets')
+        await cache.addAll(STATIC_ASSETS);
+        console.log('📦 Precached static assets');
       } catch (error) {
-        console.warn('⚠️ Some assets failed to precache:', error)
+        console.warn('⚠️ Some static assets failed to precache:', error);
         // エラーがあっても続行
       }
-      await self.skipWaiting()
+
+      // 重要なJSアセットを見つけてキャッシュ
+      const criticalAssets = await findCriticalAssets();
+      if (criticalAssets.length > 0) {
+        try {
+          await cache.addAll(criticalAssets);
+          console.log(`📦 Precached ${criticalAssets.length} critical JS assets`);
+        } catch (error) {
+          console.warn('⚠️ Some critical JS assets failed to precache:', error);
+        }
+      }
+
+      await self.skipWaiting();
     })()
   )
 })
