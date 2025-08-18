@@ -14,6 +14,7 @@ const { title, description, image, articleDate, modifiedDate } = Astro.props
 
 <html lang='ja'>
   <head>
+    <PerformanceOptimizer />
     <BaseHead
       title={title}
       description={description}
@@ -23,7 +24,6 @@ const { title, description, image, articleDate, modifiedDate } = Astro.props
     />
     <ProviderTheme />
     <ProviderAnimations />
-    <PerformanceOptimizer />
     <GoogleAnalytics />
     <ValueCommerce />
   </head>
