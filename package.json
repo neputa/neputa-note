@@ -65,7 +65,7 @@
   "devDependencies": {
     "@astrojs/mdx": "4.0.8",
     "@astrojs/sitemap": "3.2.1",
-    "@astrojs/tailwind": "5.1.4",
+    "@astrojs/tailwind": "6.0.2",
     "@eslint/config-array": "^0.19.2",
     "@eslint/js": "^9.31.0",
     "@eslint/object-schema": "^2.1.6",
