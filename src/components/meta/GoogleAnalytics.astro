@@ -1,22 +1,19 @@
 ---
-const gaId: string | undefined = import.meta.env.VITE_GA_ID ?? process.env.VITE_GA_ID
+const gaId: string = import.meta.env.VITE_GA_ID ?? process.env.VITE_GA_ID
 ---
 
-{
-  gaId && (
-    <>
-      <script
-        is:inline
-        data-astro-rerun
-        type='text/partytown'
-        src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-      />
-      <script is:inline data-astro-rerun type='text/partytown'>
-        {`window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments)}
-        gtag('js', new Date());
-        gtag('config', '${gaId}');`}
-      </script>
-    </>
-  )
-}
+<>
+  <script
+    is:inline
+    data-astro-rerun
+    type='text/partytown'
+    src=`https://www.googletagmanager.com/gtag/js?id=${gaId}`></script>
+  <script is:inline data-astro-rerun type='text/partytown' define:vars={{ gaId }}>
+    window.dataLayer = window.dataLayer || []
+    function gtag() {
+      dataLayer.push(arguments)
+    }
+    gtag('js', new Date())
+    gtag('config', gaId)
+  </script>
+</>
