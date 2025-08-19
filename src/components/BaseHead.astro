@@ -28,9 +28,6 @@ const siteTitle =
   canonicalURL.href === Astro.site?.href
     ? siteConfig.title
     : `${title} ${titleSeparator} ${siteConfig.title}`
-
-// Analytics availability (used to gate connection hints)
-const gaId: string | undefined = import.meta.env.VITE_GA_ID ?? process.env.VITE_GA_ID
 ---
 
 <meta charset='utf-8' />
@@ -40,23 +37,11 @@ const gaId: string | undefined = import.meta.env.VITE_GA_ID ?? process.env.VITE_
 <Favicons />
 <meta name='generator' content={Astro.generator} />
 
-{
-  gaId && (
-    <>
-      <link rel='dns-prefetch' href='//www.google-analytics.com' />
-      <link rel='dns-prefetch' href='//www.googletagmanager.com' />
-    </>
-  )
-}
+<link rel='dns-prefetch' href='www.google.co.jp' />
+<link rel='dns-prefetch' href='www.googletagmanager.com' />
+<link rel='preconnect' href='www.google.co.jp' crossorigin />
+<link rel='preconnect' href='www.googletagmanager.com' crossorigin />
 
-{
-  gaId && (
-    <>
-      <link rel='preconnect' href='https://www.google-analytics.com' crossorigin />
-      <link rel='preconnect' href='https://www.googletagmanager.com' crossorigin />
-    </>
-  )
-}
 <link rel='preconnect' href={Astro.site} />
 
 <meta name='color-scheme' content='light dark' />
