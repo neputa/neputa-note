@@ -75,7 +75,7 @@
     "@shikijs/transformers": "^3.8.0",
     "@tailwindcss/typography": "0.5.16",
     "@types/eslint__js": "^8.42.3",
-    "@typescript-eslint/parser": "^8.37.0",
+    "@typescript-eslint/parser": "^8.46.1",
     "@vitest/ui": "^3.2.4",
     "astro-breadcrumbs": "^3.3.1",
     "astro-purgecss": "^5.3.0",
