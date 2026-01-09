@@ -56,7 +56,7 @@
     "react": "^19.1.0",
     "react-compiler-runtime": "19.0.0-beta-63e3235-20250105",
     "react-dom": "^19.1.0",
-    "react-hook-form": "^7.60.0",
+    "react-hook-form": "^7.65.0",
     "rehype-external-links": "^3.0.0",
     "sanitize-html": "^2.17.0",
     "unist-util-visit": "^5.0.0",
