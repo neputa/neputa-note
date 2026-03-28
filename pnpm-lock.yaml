@@ -28,7 +28,7 @@ importers:
         specifier: ^3.1.1
         version: 3.1.1(@types/react@19.2.14)(react@19.2.4)
       '@shikijs/types':
-        specifier: ^3.23.0
+        specifier: npm:@shikijs/types@^3.1.0
         version: 3.23.0
       '@types/grecaptcha':
         specifier: ^3.0.9
