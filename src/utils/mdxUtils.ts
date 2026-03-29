@@ -50,7 +50,6 @@ export function removeInitialImports(content: string): string {
 
   // 2行目がimport文でない場合、処理を行わない
   if (!lines[1].trim().startsWith('import')) {
-    console.log('No imports to remove.')
     return content
   }
 

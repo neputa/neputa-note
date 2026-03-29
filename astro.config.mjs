@@ -10,119 +10,117 @@ import remarkCodeBlock from './plugins/remark-code-title.ts'
 import compress from '@playform/compress'
 import partytown from '@astrojs/partytown'
 import react from '@astrojs/react'
-import inline from '@playform/inline'
-import { promises as fs } from 'fs'
-import path from 'path'
+import { promises as fs } from 'node:fs'
+import path from 'node:path'
 
 function PreloadCSSPlugin() {
+  const cssCache = new Map()
+
+  const shouldInline = (cssContent) => {
+    return (
+      cssContent.length <= 20000 ||
+      cssContent.includes('aspect-ratio') ||
+      cssContent.includes('min-h') ||
+      cssContent.includes('grid-rows')
+    )
+  }
+
+  const resolveCssHref = (href) => href.split('?')[0].split('#')[0]
+
+  const getHtmlFilesRecursive = async (directory) => {
+    const files = []
+    const items = await fs.readdir(directory, { withFileTypes: true })
+
+    for (const item of items) {
+      const fullPath = path.join(directory, item.name)
+      if (item.isDirectory()) {
+        const subFiles = await getHtmlFilesRecursive(fullPath)
+        files.push(...subFiles)
+      } else if (item.name.endsWith('.html')) {
+        files.push(fullPath)
+      }
+    }
+
+    return files
+  }
+
   return {
     name: 'preload-css',
     hooks: {
       'astro:build:done': async ({ dir }) => {
-        console.log('🔧 PreloadCSSPlugin: Starting CSS optimization...')
-
-        // URLオブジェクトを文字列パスに変換
+        const start = Date.now()
         const distDir = path.resolve(dir.pathname)
-        console.log(`📁 Processing directory: ${distDir}`)
-
-        // 再帰的にHTMLファイルを取得する関数
-        const getHtmlFilesRecursive = async (directory) => {
-          const files = []
-          const items = await fs.readdir(directory, { withFileTypes: true })
-
-          for (const item of items) {
-            const fullPath = path.join(directory, item.name)
-            if (item.isDirectory()) {
-              const subFiles = await getHtmlFilesRecursive(fullPath)
-              files.push(...subFiles)
-            } else if (item.name.endsWith('.html')) {
-              files.push(fullPath)
-            }
-          }
-          return files
-        }
-
-        // dist ディレクトリ内の HTML ファイルを再帰的に取得
         const htmlFiles = await getHtmlFilesRecursive(distDir)
-        console.log(`📄 Found ${htmlFiles.length} HTML files to process`)
 
-        let totalReplacements = 0
-        let totalInlined = 0
+        let processedPages = 0
+        let inlined = 0
+        let preloaded = 0
+        let missingCss = 0
 
         for (const filePath of htmlFiles) {
-          const relativePath = path.relative(distDir, filePath)
-          console.log(`🔄 Processing: ${relativePath}`)
-
-          // HTML内容を読み込む
           let content = await fs.readFile(filePath, 'utf-8')
-          const originalContent = content
 
-          // noscriptタグ内のlinkタグを一時的に保護
+          if (!content.includes('rel="stylesheet"') && !content.includes("rel='stylesheet'")) {
+            continue
+          }
+
+          const originalContent = content
           const noscriptTags = []
-          content = content.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, (match, offset) => {
+
+          content = content.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, (match) => {
             const placeholder = `<!--NOSCRIPT_PLACEHOLDER_${noscriptTags.length}-->`
             noscriptTags.push(match)
             return placeholder
           })
 
-          // CSSリンクを検索してインライン化または preload に変換
-          const cssLinkRegex = /<link\s+(?:[^>]*\s+)?rel="stylesheet"(?:\s+[^>]*)?(?:\s+href="([^"]*\.css)"|\s+href='([^']*\.css)')(?:[^>]*)?>/g
+          const cssLinkRegex = /<link\s+(?:[^>]*\s+)?rel="stylesheet"(?:\s+[^>]*)?(?:\s+href="([^"]*\.css(?:\?[^"#>]*)?(?:#[^">]*)?)"|\s+href='([^']*\.css(?:\?[^'#>]*)?(?:#[^'>]*)?)')(?:[^>]*)?>/g
           const matches = [...content.matchAll(cssLinkRegex)]
 
           for (const match of matches) {
-            const href = match[1] || match[2]
-            if (href) {
+            const rawHref = match[1] || match[2]
+            if (!rawHref) continue
+
+            const href = resolveCssHref(rawHref)
+            const cssPath = path.join(distDir, href)
+
+            if (!cssCache.has(href)) {
               try {
-                // CSSファイルのパスを解決
-                const cssPath = path.join(distDir, href)
-
-                // ファイルが存在するかチェック
-                try {
-                  await fs.access(cssPath)
-                  const cssContent = await fs.readFile(cssPath, 'utf-8')
-
-                  // Critical CSSのサイズ制限を拡大し、レイアウト関連CSSを優先的にインライン化
-                  if (cssContent.length <= 20000 || cssContent.includes('aspect-ratio') || cssContent.includes('min-h') || cssContent.includes('grid-rows')) {
-                    content = content.replace(match[0], `<style>${cssContent}</style>`)
-                    totalInlined++
-                    console.log(`  🎨 Inlined CSS: ${href} (${cssContent.length} bytes)`)
-                  } else {
-                    // 大きなCSSファイルはpreloadに変換（より高い優先度を設定）
-                    content = content.replace(match[0], `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high"><noscript><link rel="stylesheet" href="${href}"></noscript>`)
-                    console.log(`  ⚡ Preloaded CSS: ${href} (${cssContent.length} bytes)`)
-                  }
-                } catch (accessError) {
-                  // ファイルが見つからない場合はpreloadに変換
-                  content = content.replace(match[0], `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high">`)
-                  console.log(`  ⚠️ CSS not found, using preload: ${href}`)
-                }
-              } catch (error) {
-                console.log(`  ❌ Error processing CSS: ${href}`, error.message)
-                // エラーの場合もpreloadに変換
-                content = content.replace(match[0], `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high">`)
+                const cssContent = await fs.readFile(cssPath, 'utf-8')
+                cssCache.set(href, cssContent)
+              } catch {
+                cssCache.set(href, null)
               }
-              totalReplacements++
+            }
+
+            const cssContent = cssCache.get(href)
+
+            if (typeof cssContent === 'string' && shouldInline(cssContent)) {
+              content = content.replace(match[0], `<style>${cssContent}</style>`)
+              inlined++
+            } else {
+              if (cssContent === null) missingCss++
+              content = content.replace(
+                match[0],
+                `<link href="${href}" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high"><noscript><link rel="stylesheet" href="${href}"></noscript>`
+              )
+              preloaded++
             }
           }
 
-          // noscriptタグを復元
-          content = content.replace(/<!--NOSCRIPT_PLACEHOLDER_(\d+)-->/g, (match, index) => {
-            return noscriptTags[parseInt(index)]
+          content = content.replace(/<!--NOSCRIPT_PLACEHOLDER_(\d+)-->/g, (_, index) => {
+            return noscriptTags[parseInt(index, 10)]
           })
 
-          if (matches.length > 0) {
-            console.log(`  ✅ ${relativePath}: ${matches.length} CSS links processed`)
-          } else {
-            console.log(`  ⚪ ${relativePath}: No CSS links found`)
-          }
-
-          // HTMLを上書き保存
           if (content !== originalContent) {
             await fs.writeFile(filePath, content, 'utf-8')
+            processedPages++
           }
         }
 
-        console.log(`🎉 PreloadCSSPlugin: Complete! ${totalInlined} CSS files inlined, ${totalReplacements - totalInlined} converted to preload`)
+        const elapsedMs = Date.now() - start
+        console.log(
+          `[preload-css] pages=${processedPages} inlined=${inlined} preloaded=${preloaded} missingCss=${missingCss} time=${elapsedMs}ms`
+        )
       }
     }
   }
@@ -130,6 +128,7 @@ function PreloadCSSPlugin() {
 
 // https://astro.build/config
 export default defineConfig({
+  logLevel: process.env.ASTRO_LOG_LEVEL || 'info',
   devToolbar: {
     enabled: true
   },
@@ -180,7 +179,6 @@ export default defineConfig({
         forward: ['dataLayer.push']
       }
     }),
-    inline(),
     PreloadCSSPlugin(),
     compress({
       CSS: {
@@ -205,13 +203,14 @@ export default defineConfig({
           removeAttributeQuotes: false,
           collapseWhitespace: true,
           removeComments: true,
-          minifyCSS: true,
-          minifyJS: true,
-          // HTMLの最適化を強化
-          removeRedundantAttributes: true,
-          removeEmptyAttributes: true,
-          sortAttributes: true,
-          sortClassName: true
+            // Vite/compress側でCSS/JSは個別最適化済みのため、HTML内再minifyは省略
+            minifyCSS: false,
+            minifyJS: false,
+            // 並び替え系はCPU負荷が高く、圧縮効率への寄与が小さいため無効化
+            removeRedundantAttributes: true,
+            removeEmptyAttributes: false,
+            sortAttributes: false,
+            sortClassName: false
         },
         cache: true
       },
@@ -229,7 +228,7 @@ export default defineConfig({
           ]
         }
       },
-      Logger: 1
+      Logger: 0
     })
   ],
   image: {
@@ -265,8 +264,7 @@ export default defineConfig({
           // View Transitionsの最適化：ClientRouterスクリプトを分離し、強制リフローを軽減
           manualChunks: (id) => {
             if (id.includes('astro/client-router') || id.includes('astro:transitions')) return 'router'
-            if (id.includes('react-dom')) return 'vendor-react-dom'
-            if (id.includes('react') && !id.includes('react-dom')) return 'vendor-react'
+              if (id.includes('react-dom') || id.includes('/react/')) return 'vendor-react'
             if (id.includes('@pagefind')) return 'search'
             if (id.includes('react-hook-form') || id.includes('@hookform')) return 'forms'
             if (id.includes('clsx') || id.includes('tailwind-merge')) return 'utils-ui'
