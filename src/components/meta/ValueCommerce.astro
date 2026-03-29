@@ -6,7 +6,72 @@ const isProd = import.meta.env.PROD
   // prettier-ignore
   isProd && (
     <>
-      <script type='text/partytown' src='https://mlb.valuecommerce.com/mylinkbox.js' />
+      <script is:inline data-astro-rerun>
+        (() => {
+          const w = window
+          const d = document
+          const src = 'https://mlb.valuecommerce.com/mylinkbox.js'
+          const vcSelector = '[vc_mylinkbox_id], [data-vc_mylinkbox_id]'
+
+          const hasVcSlots = () => d.querySelector(vcSelector) !== null
+
+          const refreshVcWidgets = () => {
+            try {
+              if (w.mlbObj && typeof w.mlbObj.finishLoad === 'function') w.mlbObj.finishLoad()
+              if (typeof w.vppDynamicProcess === 'function') w.vppDynamicProcess()
+              if (w.vppObj && typeof w.vppObj.finishLoad === 'function') w.vppObj.finishLoad()
+              if (w.vcparallelObj && typeof w.vcparallelObj.finishLoad === 'function') w.vcparallelObj.finishLoad()
+            } catch {
+              // no-op
+            }
+          }
+
+          const ensureScript = () => {
+            if (!hasVcSlots()) return
+
+            if (d.querySelector('script[data-vc-loader="1"]')) {
+              refreshVcWidgets()
+              return
+            }
+
+            const s = d.createElement('script')
+            s.src = src
+            s.async = true
+            s.defer = true
+            s.setAttribute('data-vc-loader', '1')
+            s.addEventListener('load', refreshVcWidgets, { once: true })
+            d.head.appendChild(s)
+          }
+
+          const scheduleEnsure = () => {
+            if ('requestIdleCallback' in w) {
+              w.requestIdleCallback(ensureScript, { timeout: 4000 })
+            } else if (d.readyState === 'complete') {
+              setTimeout(ensureScript, 1)
+            } else {
+              w.addEventListener(
+                'load',
+                () => {
+                  setTimeout(ensureScript, 1)
+                },
+                { once: true }
+              )
+            }
+          }
+
+          scheduleEnsure()
+
+          if (!w.__vcAfterSwapListenerAttached) {
+            w.__vcAfterSwapListenerAttached = true
+            d.addEventListener('astro:after-swap', () => {
+              setTimeout(() => {
+                ensureScript()
+                refreshVcWidgets()
+              }, 50)
+            })
+          }
+        })()
+      </script>
     </>
   )
 }

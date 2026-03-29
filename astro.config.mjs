@@ -8,7 +8,6 @@ import { remarkReadingTime } from './src/utils/readTime.ts'
 import rehypeExternalLinks from 'rehype-external-links'
 import remarkCodeBlock from './plugins/remark-code-title.ts'
 import compress from '@playform/compress'
-import partytown from '@astrojs/partytown'
 import react from '@astrojs/react'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
@@ -174,11 +173,6 @@ export default defineConfig({
       drafts: true
     }),
     react(),
-    partytown({
-      config: {
-        forward: ['dataLayer.push']
-      }
-    }),
     PreloadCSSPlugin(),
     compress({
       CSS: {
