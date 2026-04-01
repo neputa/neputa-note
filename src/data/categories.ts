@@ -1,5 +1,5 @@
 // List of categories for blog posts
-export const CATEGORIES = ['DEV', 'BOOK', 'MEDIA', 'DIARY', 'ALL']
+export const CATEGORIES = ['ALL', 'DEV', 'BOOK', 'MEDIA', 'DIARY']
 
 interface Descriptions {
   [key: string]: string
