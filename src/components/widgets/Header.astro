@@ -13,6 +13,21 @@ import ArchiveIcon from '../icons/ArchiveIcon.astro'
 import { Breadcrumbs } from 'astro-breadcrumbs'
 import 'astro-breadcrumbs/breadcrumbs.css'
 
+const pathSegments = Astro.url.pathname.split('/').filter(Boolean)
+const isDatedPostPath =
+  pathSegments.length >= 3 && /^\d{4}$/.test(pathSegments[0]) && /^\d{2}$/.test(pathSegments[1])
+
+const disableLinkAttrs = { href: undefined, 'aria-disabled': 'true', tabindex: '-1' }
+const breadcrumbLinkCustomization = [
+  { index: 'last', ...disableLinkAttrs },
+  ...(isDatedPostPath
+    ? [
+        { index: 1, ...disableLinkAttrs },
+        { index: 2, ...disableLinkAttrs }
+      ]
+    : [])
+]
+
 // ADD YOUR SOCIAL NETWORKS HERE
 const SOCIALNETWORKS = [
   {
@@ -98,7 +113,12 @@ const SOCIALNETWORKS = [
     </div>
   </div>
   <div class='not-prose mt-4'>
-    <Breadcrumbs linkTextFormat='lower' ariaLabel='Breadcrumbs' truncated='true'>
+    <Breadcrumbs
+      linkTextFormat='lower'
+      ariaLabel='Breadcrumbs'
+      truncated='true'
+      customizeLinks={breadcrumbLinkCustomization}
+    >
       <svg
         slot='index'
         aria-label='Home Page'
