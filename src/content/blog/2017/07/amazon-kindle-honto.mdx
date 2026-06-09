@@ -21,6 +21,7 @@ type: blog
 import { Image } from 'astro:assets'
 import BlogCard from '@/components/mdx/BlogCard'
 import Alert from '@/components/mdx/Alert'
+import imgBookWalker from '@/images/blog/book-walker.webp'
 
 ## これまでの経緯
 
@@ -252,15 +253,13 @@ import Alert from '@/components/mdx/Alert'
 ### BOOK☆WALKER
 
 <Fragment>
-  <a href='https://ck.jp.ap.valuecommerce.com/servlet/referral?sid=3213907&pid=887412849'>
-    <Image
-      src={'https://ad.jp.ap.valuecommerce.com/servlet/gifbanner?sid=3213907&pid=887412849'}
-      width={350}
-      height={250}
-      format='webp'
-      alt={'book walker'}
-    />
-  </a>
+  <Image
+    src={imgBookWalker}
+    width={350}
+    height={350}
+    format='webp'
+    alt={'book walker'}
+  />
 </Fragment>
 
 - 最近は陰りを見せ始めたニコニコ動画のドワンゴとラノベ漫画の猛者カドカワが合体した「株式会社KADOKAWA・DWANGO」(だから名前つなげるのはヤメよう）が提供するサービスです。
