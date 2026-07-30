@@ -1,10 +1,10 @@
 ---
-layout: '@/layouts/MarkdownLayout'
+layout: "@/layouts/MarkdownLayout"
 title: About Me
 author: neputa
-description: 'このブログの著者「neputa」の自己紹介ページ。内容は、不定期で更新。'
-pubDate: '2019-10-11 11:41:00'
-modDate: '2024-05-13 23:06:05'
+description: このブログの著者「neputa」の自己紹介ページ。内容は、不定期で更新。
+pubDate: 2019-10-11 11:41:00
+modDate: 2026-07-25T08:46:48.643Z
 draft: false
 type: page
 ---
@@ -12,8 +12,9 @@ type: page
 ## neputaについて
 
 - 家族構成は私含め人間×2、シナモン文鳥×1。
-  - ※文鳥の没年月日　2024年1月12日
-- 心を無にして働く勤め人。
+  - ※文鳥の没年月日 2024年1月12日
+- 2026年に視野障害により身体障害者手帳2級を取得
+  - 全盲ではなく「ロービジョン」というカテゴリの人
 
 ## このブログについて
 
@@ -53,8 +54,6 @@ type: page
 
 ## SNSアカウント
 
-- mastodon: [@neputa@fedibird.com](https://fedibird.com/@neputa)
+- bluesky: [@neputa.bsky.social](https://bsky.app/profile/neputa.bsky.social)
 - github: [neputa](https://github.com/neputa)
-- Threads: [@h_neputa](https://www.threads.net/@h_neputa)
 - 読書メーター: [neputa](https://bookmeter.com/users/537950)
-- instagram: [@h_neputa](https://www.instagram.com/h_neputa/)
