@@ -15,10 +15,10 @@ SRC_IMG_DIR = ROOT / "src" / "assets" / "images" / "blog"
 SRC_VIDEO_DIR = ROOT / "src" / "assets" / "videos" / "blog"
 
 DST_ROOT = ROOT.parent / "neputa-note-hatenablog"
-DST_ENTRIES_DIR = DST_ROOT / "draft_entries"
-DST_IMG_DIR = DST_ROOT / "assets" / "images" / "blog"
-DST_VIDEO_DIR = DST_ROOT / "assets" / "videos" / "blog"
-DST_HERO_DIR = DST_ROOT / "assets" / "images" / "hero"
+DST_ENTRIES_DIR = DST_ROOT / "entries"
+DST_IMG_DIR = DST_ROOT / "assets" / "images"
+DST_VIDEO_DIR = DST_ROOT / "assets" / "videos"
+DST_HERO_DIR = DST_IMG_DIR
 HERO_MANIFEST = DST_ROOT / "assets" / "hero-resize-manifest.json"
 
 
@@ -140,13 +140,15 @@ def alias_to_source(path_value: str) -> Path | None:
 def source_to_dest_asset_path(src_path: Path) -> Path | None:
     try:
         rel_img = src_path.relative_to(SRC_IMG_DIR)
-        return DST_IMG_DIR / rel_img
+        flat_name = "__".join(rel_img.parts)
+        return DST_IMG_DIR / flat_name
     except ValueError:
         pass
 
     try:
         rel_video = src_path.relative_to(SRC_VIDEO_DIR)
-        return DST_VIDEO_DIR / rel_video
+        flat_name = "__".join(rel_video.parts)
+        return DST_VIDEO_DIR / flat_name
     except ValueError:
         pass
 
@@ -154,8 +156,8 @@ def source_to_dest_asset_path(src_path: Path) -> Path | None:
 
 
 def relpath_from_entry(out_file: Path, dst_asset: Path) -> str:
-    rel = dst_asset.relative_to(DST_ROOT)
-    return str(Path("..") / Path("..") / Path("..") / rel).replace("\\", "/")
+    rel = Path(dst_asset).relative_to(DST_ROOT)
+    return str(Path("..") / rel).replace("\\", "/")
 
 
 def extract_attr(attrs: str, key: str) -> str:
@@ -447,7 +449,7 @@ def migrate_one(path: Path, hero_manifest: List[Dict[str, str]]) -> Tuple[bool, 
 
     yy, mm = parts[0], parts[1]
     slug = path.stem
-    out_file = DST_ENTRIES_DIR / yy / mm / f"{slug}.md"
+    out_file = DST_ENTRIES_DIR / f"{yy}-{mm}-{slug}.md"
 
     raw = read_text(path)
     fm, body = parse_frontmatter(raw)
@@ -473,7 +475,7 @@ def migrate_one(path: Path, hero_manifest: List[Dict[str, str]]) -> Tuple[bool, 
 
     hero_src = alias_to_source(hero_image)
     if hero_src:
-        hero_dst = DST_HERO_DIR / yy / mm / f"{slug}.webp"
+        hero_dst = DST_HERO_DIR / f"hero__{yy}__{mm}__{slug}.webp"
         enqueue_hero_resize(hero_manifest, hero_src, hero_dst)
         hero_rel = relpath_from_entry(out_file, hero_dst)
         converted_body = f"![{title}]({hero_rel})\n\n" + converted_body.lstrip()
