@@ -3,19 +3,31 @@ import ListCategories from '@/components/widgets/ListCategories'
 import ListPosts from '@/components/widgets/ListPosts'
 import Pagination from '@/components/widgets/Pagination'
 import TitlePage from '@/components/widgets/TitlePage'
+import { siteConfig } from '@/data/site.config'
 import BaseLayout from '@/layouts/BaseLayout'
-import { getPosts } from '@/utils'
+import { getPermalink, getPosts } from '@/utils'
 
-const MAX_POSTS = 6
-const posts = await getPosts(MAX_POSTS)
+const allPosts = await getPosts()
+const posts = allPosts.slice(0, siteConfig.paginationSize)
+const lastPage = Math.ceil(allPosts.length / siteConfig.paginationSize)
+
+const page = {
+  start: 0,
+  currentPage: 1,
+  lastPage,
+  url: {
+    prev: undefined,
+    next: lastPage > 1 ? getPermalink('all/2', 'category') : undefined
+  }
+}
 ---
 
 <BaseLayout title='neputa note'>
   <TitlePage title='neputa note' />
-  <ListCategories />
+  <ListCategories activeCategory='all' />
 
   <div>
     <ListPosts FirstBig={false} posts={posts} />
-    <Pagination page={posts} />
+    <Pagination page={page} />
   </div>
 </BaseLayout>

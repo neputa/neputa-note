@@ -1,19 +1,77 @@
 ---
 const gaId: string = import.meta.env.VITE_GA_ID ?? process.env.VITE_GA_ID
+const isProd = import.meta.env.PROD
 ---
 
-<>
-  <script
-    is:inline
-    data-astro-rerun
-    type='text/partytown'
-    src=`https://www.googletagmanager.com/gtag/js?id=${gaId}`></script>
-  <script is:inline data-astro-rerun type='text/partytown' define:vars={{ gaId }}>
-    window.dataLayer = window.dataLayer || []
-    function gtag() {
-      dataLayer.push(arguments)
-    }
-    gtag('js', new Date())
-    gtag('config', gaId)
-  </script>
-</>
+{
+  isProd && gaId && (
+    <script is:inline data-astro-rerun define:vars={{ gaId }}>
+      (() => {
+        const w = window
+        const d = document
+        const gaState = (w.__gaState = w.__gaState || {
+          configured: false,
+          listenerAttached: false,
+          lastTrackedHref: ''
+        })
+
+        w.dataLayer = w.dataLayer || []
+        w.gtag = w.gtag || function () {
+          w.dataLayer.push(arguments)
+        }
+
+        if (!gaState.configured) {
+          w.gtag('js', new Date())
+          // We send page_view manually to avoid duplicate/missed events on client transitions.
+          w.gtag('config', gaId, { send_page_view: false })
+          gaState.configured = true
+        }
+
+        const trackPageView = () => {
+          const href = w.location.href
+          if (gaState.lastTrackedHref === href) return
+          gaState.lastTrackedHref = href
+
+          w.gtag('event', 'page_view', {
+            page_title: d.title,
+            page_location: href,
+            page_path: `${w.location.pathname}${w.location.search}`
+          })
+        }
+
+        // Initial page view.
+        trackPageView()
+
+        const loadScript = () => {
+          if (d.querySelector('script[data-ga-loader="1"]')) return
+
+          const s = d.createElement('script')
+          s.async = true
+          s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`
+          s.setAttribute('data-ga-loader', '1')
+          d.head.appendChild(s)
+        }
+
+        if ('requestIdleCallback' in w) {
+          w.requestIdleCallback(loadScript, { timeout: 3000 })
+        } else {
+          w.addEventListener(
+            'load',
+            () => {
+              setTimeout(loadScript, 1)
+            },
+            { once: true }
+          )
+        }
+
+        if (!gaState.listenerAttached) {
+          gaState.listenerAttached = true
+          d.addEventListener('astro:after-swap', () => {
+            // Wait one tick so title/url are updated after transition swap.
+            setTimeout(trackPageView, 0)
+          })
+        }
+      })()
+    </script>
+  )
+}

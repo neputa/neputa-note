@@ -8,47 +8,54 @@ interface PostLink {
   title: string
   link: string
   year: string
+  month: string
+  dateLabel: string
   pubDate: Date
 }
 
-interface LinkList {
-  year: string
+interface MonthGroup {
+  month: string
   posts: PostLink[]
+}
+
+interface YearGroup {
+  year: string
+  months: MonthGroup[]
 }
 
 const target: PostLink[] = posts.map(
   (post): PostLink => ({
     title: post.data.title,
     link: post.slug,
-    year: post.slug.substring(0, 4),
+    year: String(post.data.pubDate.getFullYear()),
+    month: String(post.data.pubDate.getMonth() + 1).padStart(2, '0'),
+    dateLabel: `${String(post.data.pubDate.getMonth() + 1).padStart(2, '0')}/${String(post.data.pubDate.getDate()).padStart(2, '0')}`,
     pubDate: post.data.pubDate
   })
 )
 
 const linkLists = buildLists(target)
 
-function buildLists(posts: PostLink[]): LinkList[] {
-  const lists: LinkList[] = []
-  let currentList: LinkList | null = null
+function buildLists(posts: PostLink[]): YearGroup[] {
+  const yearGroups: YearGroup[] = []
 
   posts.forEach((post) => {
-    const currentYear = post.year
-
-    if (!currentList || currentList.year !== currentYear) {
-      if (currentList) {
-        lists.push(currentList)
-      }
-      currentList = { year: currentYear, posts: [] }
+    let yearGroup = yearGroups[yearGroups.length - 1]
+    if (!yearGroup || yearGroup.year !== post.year) {
+      yearGroup = { year: post.year, months: [] }
+      yearGroups.push(yearGroup)
     }
 
-    currentList.posts.push(post)
+    let monthGroup = yearGroup.months[yearGroup.months.length - 1]
+    if (!monthGroup || monthGroup.month !== post.month) {
+      monthGroup = { month: post.month, posts: [] }
+      yearGroup.months.push(monthGroup)
+    }
+
+    monthGroup.posts.push(post)
   })
 
-  if (currentList) {
-    lists.push(currentList)
-  }
-
-  return lists
+  return yearGroups
 }
 
 const title = '投稿一覧'
@@ -57,16 +64,23 @@ const description = 'このブログに投稿したすべての記事のアー�
 
 <SinglePageLayout title={title} description={description}>
   {
-    linkLists.map((list) => (
+    linkLists.map((yearGroup) => (
       <>
-        <h2 class='border-b-2 border-b-gray-500 pl-4'>{list.year}年</h2>
-        <ul>
-          {list.posts.map((post) => (
-            <li>
-              <a href={getPermalink(post.link, 'post')}>{post.title}</a>
-            </li>
-          ))}
-        </ul>
+        <h2 class='border-b-2 border-b-gray-500 pl-4'>{yearGroup.year}年</h2>
+        {yearGroup.months.map((monthGroup) => (
+          <>
+            <h3 class='pl-6 text-sm font-semibold text-gray-600'>{monthGroup.month}月</h3>
+            <ul>
+              {monthGroup.posts.map((post) => (
+                <li>
+                  <a href={getPermalink(post.link, 'post')}>
+                    {post.title}（{post.dateLabel}）
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        ))}
       </>
     ))
   }
