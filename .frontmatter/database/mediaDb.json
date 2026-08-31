@@ -1,1 +1,10 @@
-{ "test": {}, "src": { "assets": { "images": { "blog": {} } } } }
+{
+  "src": {
+    "assets": {
+      "images": {
+        "blog": {}
+      }
+    }
+  },
+  "test": {}
+}
