@@ -1,0 +1,399 @@
+---
+Title: '【Astro】Contact FormにValidationとreCAPTCHA v3を追加する'
+Date: 2024-07-22T22:03:13+09:00
+CustomPath: 2024/07/22/astro-contactform-recaptchav3-validation
+Category:
+  - 'DEV'
+  - 'Astro'
+  - 'contact form'
+  - 'reCAPTCHA'
+---
+
+> [!CAUTION]
+> この記事で紹介している「Newt」のサービスは2026年11月24日をもって終了します。
+
+Newtに代わりFormspreeを利用した記事を公開しました。
+
+- [AstroとFormspreeで簡単な問い合わせフォーム作成](https://www.neputa-note.net/2025/08/astro-formspree-contact-form/)
+
+## 記事概要
+
+- 先日のBloggerからAstroへ移行した記事の別途詳細
+
+**※参考 - Blog移行記事**
+
+[https://www.neputa-note.net/2024/07/migrated-blogger-to-astro/:embed:cite]
+
+### 目的
+
+- Astroで構築したWebサイトにContact Formを設置する
+- React用のパッケージ「React Hook Form」でValidationを行う
+  - AstroはReactのコンポーネントも使える（[Astroアイランド](https://docs.astro.build/ja/concepts/islands/)）
+- reCAPTCHA v3を導入しスパム対策を行う
+- reCAPTCHAのサーバサイド検証をNewtのForm Appというサービスで行う
+
+## 用語説明
+
+### Astro とは？
+
+> astroは、ブログやマーケティング、eコマースなど、コンテンツ駆動のウェブサイトを作成するためのウェブフレームワークです。astroは、新しいフロントエンドアーキテクチャを開拓し、他のフレームワークと比較してjavascriptのオーバーヘッドと複雑さを低減することで知られています。高速でseoに優れたウェブサイトが必要なら、astroが最適です。<br>
+> -- [astro公式docs](https://docs.astro.build/ja/concepts/why-astro/) より引用を[DeepL](https://www.deepl.com/ja/translator)で翻訳
+
+### reCAPTCHA とは？
+
+> reCAPTCHA は、スパムや不正行為からサイトを保護する無料のサービスです。高度なリスク分析手法を使用して、人間と bot を区別します。<br>
+> -- [reCAPTCHA | Google for Developers](https://developers.google.com/recaptcha?hl=ja)より引用
+
+### React Hook Form とは？
+
+- React用のValidation機能を提供するプラグイン
+
+> パフォーマンス、柔軟性、拡張性に優れたフォームと、使いやすいバリデーション。<br>
+> -- [React Hook Form](https://react-hook-form.com/)より引用 を[DeepL](https://www.deepl.com/ja/translator)で翻訳
+
+### Newtとは？
+
+- 2021年創業のスタートアップ企業
+- ヘッドレスCMS、フォーム構築サービスを提供している
+- 無料のEntryプランのスペックは以下のとおり
+  - フォーム作成数：無制限
+  - 月間メッセージ数：30
+  - 自動返信メール
+  - CSVダウンロード
+  - スパム対策
+- [Form App料金プラン | ヘッドレスCMS「Newt」](https://www.newt.so/plan/form-app)
+
+[https://www.newt.so/:embed:cite]
+
+## 作業環境
+
+- OS - Ubuntu-22.04LTS on WSL2
+- Node.js - v20.14.0
+- pnpm - v9.4.0
+- Astro - v4.11.3
+- TailwindCSS - v3.4.4
+
+## 作業手順
+
+1. reCAPTCHA v3を登録
+1. NewtにForm Appを追加
+1. react、react-hook-formをインストール
+1. Reactコンポーネント（Contact Form）の実装
+1. Contactページを作成
+
+## 作業詳細
+
+### reCAPTCHA v3を登録
+
+- reCAPTCHAのドキュメント
+  - [reCAPTCHA  |  Google for Developers](https://developers.google.com/recaptcha?hl=ja)
+- Googleアカウントが必要
+- 以下URLにアクセスし、登録を行う
+  - [reCAPTCHA](https://www.google.com/recaptcha/admin/create?hl=ja)
+- 入力する項目は以下のとおり
+
+| 項目                  | 説明               |
+| --------------------- | ------------------ |
+| ラベル                | 識別しやすい名前   |
+| reCAPTCHA タイプ      | v3 推奨            |
+| ドメイン              | サイトのドメイン   |
+| Google Cloud Platform | プロジェクトを指定 |
+
+- 注意事項
+  - ローカルでテストする場合はドメインにlocalhost等も追加しておく
+  - ここでの情報はGoogle Cloud Platform（以降、GCP）のプロジェクトに保存される
+  - あらかじめGCPのプロジェクトを用意する、あるいはこの画面で新規作成する
+- 送信ボタンをクリックし、表示された**reCAPTCHA のキー**を保存しておく
+  - サイトキー: Astroのcomponentで使用する
+  - シークレットキー: NewtのForm Appで使用する
+  - 画面遷移してしまった場合は「歯車アイコン → reCAPTCHAのキー」で確認できる
+
+以上でreCAPTCHAの登録作業は完了。
+
+### NewtにForm Appを追加
+
+- Newt Form Appのドキュメント
+  - [イントロダクション | ガイド: Form App](https://www.newt.so/docs/form-app-introduction)
+
+#### Form App 登録
+
+- 次のURLにアクセスし、アカウントを登録する
+  - [アカウント登録 - Newt](https://app.newt.so/sign-up)
+- 次のドキュメントの「Step 1」に従いForm Appとフォームを追加し、エンドポイントのURLを保存しておく
+  - こんな感じ → https://example.form.newt.so/v1/abcdefghi
+- サイドバーの先ほど登録したForm Appの右端「...」をクリックし、App設定を開く
+- サイドバーのフォームをクリックし、スパム対策の有効にする、reCAPTCHAシークレットキーを入力
+- 画面右上の「保存」をクリック
+
+#### 受信通知メールの設定
+
+- 問い合わせを受信する設定を行う
+- 同じ画面の「メール設定」を開き以下を設定する
+  - 受信通知メールを有効にする： をオンにする
+  - 通知を受け取るメールアドレス： 受信したいメールアドレスを入力
+  - 件名： メールの件名
+  - 本文： 下記コードブロックを参照
+  - \{submission.xxxxxx\} でフォームから送信された値を使用できる
+- 画面右上の「保存」をクリックする
+
+```text 本文の例
+以下のお問い合わせを受信しました。
+
+■お名前
+{submission.name}
+
+■メールアドレス
+{submission.email}
+
+■お問い合わせ内容
+{submission.message}
+
+```
+
+以上でNewtにForm Appを追加する作業は完了。
+
+### react、react-hook-formをインストール
+
+#### react インストール
+
+1. 以下コマンドでパッケージをインストールする
+
+```bash install-react
+pnpm astro add react
+```
+
+2. 複数の関連パッケージの追加を聞かれるのでyes
+
+```bash install-react
+✔ Resolving packages...
+23:00:01
+  Astro will run the following command:
+  If you skip this step, you can always run it yourself later
+
+ ╭───────────────────────────────────────────────────────╮
+ │ pnpm add @astrojs/react@^3.6.0 @types/react@^18.3.3 @types/react-dom@^18.3.0 react@^18.3.1 react-dom@^18.3.1  │
+ ╰────────────────────────────────────────────────────────╯
+
+✔ Continue?
+```
+
+3. astro.config.mjsの自動変更を聞かれるのでyes
+
+```bash
+Astro will make the following changes to your config file:
+
+ ╭ astro.config.mjs ───────────────────────╮
+ │ import { defineConfig } from 'astro/config';                   │
+ │ import mdx from '@astrojs/mdx';                                │
+ │ import sitemap from '@astrojs/sitemap';                        │
+ │ import tailwind from '@astrojs/tailwind';                      │
+ │ import { never } from 'astro/zod';                             │
+ │                                                                │
+ │ import react from "@astrojs/react";                            │
+ │                                                                │
+
+? Continue?
+```
+
+4. tsconfig.jsonの自動更新を聞かれるのでyes
+
+```bash
+  Astro will make the following changes to your tsconfig.json:
+
+ ╭ tsconfig.json  ───────────────────────╮
+ │ {                                                            │
+ │   "extends": "astro/tsconfigs/strict",                       │
+ │   "compilerOptions": {                                       │
+ │     "jsx": "react-jsx",                                      │
+ │     "jsxImportSource": "react"                               │
+
+? Continue?
+```
+
+5. 完了
+
+```bash
+ success  Successfully updated TypeScript settings
+```
+
+#### react-hook-form インストール
+
+1. 以下コマンドでreact-hook-formをインストール
+
+```bash react-hook-form
+pnpm add react-hook-form
+```
+
+2. 完了
+
+```bash react-hook-form
+Packages: +1
++
+Progress: resolved 1613, reused 1538, downloaded 1, added 1, done
+
+dependencies:
++ react-hook-form 7.52.0
+
+Done in 4.1s
+```
+
+### Reactコンポーネント（Contact Form）の実装
+
+- 仕様は以下のとおり
+  - reCAPTCHのサイトキーと、Newt Form Appのエンドポイントをpropsで受ける
+  - react-hook-formのValidationを埋め込んだフォームをレンダリングする
+  - ユーザが送信を実行すると、フォームデータとreCAPTCHAのtokenをNewt Form AppにPOSTする
+  - Newt側でreCAPTCHAサーバと認証処理を行う
+  - レスポンスがOkなら/thanks/ページ、エラーなら/error/ページへ遷移する
+
+```jsx ContactForm.tsx
+
+type FormValues = {
+  name: string
+  email: string
+  message: string
+}
+
+interface FormProps {
+  formUrl: string
+  siteKey: string
+}
+
+export default function ContactForm(props: FormProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<FormValues>({ mode: 'onChange' })
+
+  const onSubmit = handleSubmit(async (data) => {
+    grecaptcha.ready(() => {
+      grecaptcha.execute(props.siteKey, { action: 'submit' }).then(async (token) => {
+        const formData = new FormData()
+        Object.entries(data).forEach(([key, value]) => {
+          formData.append(key, value)
+        })
+
+        formData.append('googleReCaptchaToken', token)
+
+        try {
+          const response = await fetch(props.formUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              Accept: 'application/json'
+            }
+          })
+
+          if (response.ok) {
+            location.href = '/thanks/'
+          } else {
+            location.href = '/error/'
+          }
+        } catch (err) {
+          location.href = '/error/'
+        }
+      })
+    })
+  })
+
+  return (
+    <form onSubmit={onSubmit}>
+      <div className='mb-6'>
+        <label htmlFor='name' className='block text-sm font-medium mb-2'>
+          Name
+          <span className='text-red-800 mx-1 text-sm'>*</span>
+          {errors?.name && (
+            <span id='error-name-required' aria-live='assertive' className='ml-4 text-red-700'>
+              {errors.name.message}
+            </span>
+          )}
+        </label>
+        <input
+          id='name'
+          className='p-4 block w-full text-md rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-900 '
+          {...register('name', { required: '※Name は必須項目です。' })}
+          aria-describedby='error-name-required'
+          placeholder='名前'
+        />
+      </div>
+      <div className='mb-6'>
+        <label htmlFor='email' className='block text-sm font-medium mb-2'>
+          Email
+          <span className='text-red-800 mx-1 text-sm'>*</span>
+          {errors?.email && (
+            <span id='error-email-required' aria-live='assertive' className='ml-4 text-red-700'>
+              {errors.email.message}
+            </span>
+          )}
+        </label>
+        <input
+          id='email'
+          className='p-4 md:p-4 block w-full text-md rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-900'
+          {...register('email', { required: '※Emailは必須項目です。' })}
+          placeholder='example@example.com'
+        />
+      </div>
+      <div className='mb-8'>
+        <label htmlFor='message' className='block text-sm font-medium mb-2'>
+          Message
+          <span className='text-red-800 mx-1 text-sm'>*</span>
+          {errors?.message && (
+            <span id='error-message-required' aria-live='assertive' className='ml-4 text-red-700'>
+              {errors.message.message}
+            </span>
+          )}
+        </label>
+        <textarea
+          id='message'
+          rows={5}
+          className='p-4 md:p-4 block w-full text-md rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-900'
+          {...register('message', { required: '※Message は必須項目です。' })}
+          placeholder='メッセージ'
+        ></textarea>
+      </div>
+      <div className='flex justify-center items-center mb-4'>
+        <button type='submit' className='primary-btn mx-auto w-full'>
+          送信
+        </button>
+      </div>
+    </form>
+  )
+}
+
+```
+
+### Contactページを作成
+
+- siteKeyはreCAPTCHA作成後に表示された**サイトキー**を使用
+- formUrlはNewtのForm App作成後に表示された**エンドポイント**を使用
+
+```astro contact.astro
+---
+
+const title = 'お問い合わせ'
+const description = 'このブログに関する問い合わせフォームのページです。'
+
+const siteKey: string = import.meta.env.VITE_NEWT_KEY
+const id: string = import.meta.env.VITE_NEWT_ID
+const formUrl = `https://neputa-note.form.newt.so/v1/${id}`
+---
+
+<BaseLayout title={title} description={description}>
+  <div class='mx-auto w-full max-w-3xl'>
+    <div
+      class='mx-auto flex flex-col rounded-lg border border-gray-200 bg-gray-100 p-4 shadow backdrop-blur dark:border-gray-700 dark:bg-slate-900 sm:p-6 lg:p-8'
+    >
+      <ContactForm siteKey={siteKey} formUrl={formUrl} client:load />
+    </div>
+  </div>
+</BaseLayout>
+
+<script is:inline src=`https://www.google.com/recaptcha/api.js?render=${siteKey}&hl=ja`></script>
+```
+
+以上で実装は完了。
+
+## 参考サイト
+
+- [NewtとAstroを利用して、問い合わせフォームを作成する](https://www.newt.so/docs/tutorials/contact-form-in-astro)

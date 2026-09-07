@@ -1,0 +1,102 @@
+---
+Title: 'MoqでExpressionを引数に取るメソッドのMock設定方法'
+Date: 2020-12-08T05:04:00+09:00
+CustomPath: 2020/12/08/dotnet-moq
+Category:
+  - 'DEV'
+---
+![アイキャッチ画像](../assets/images/hero__2020__12__dotnet-moq.webp)
+
+## 背景
+
+引数に条件式（Expression）を取るメソッドをMoqにSetupしようとした際に少しハマったのでメモ。
+
+## 環境
+
+- IDE：Visual Studio Community 2019 Ver.16.8.2
+- .NET Version：Core 3.1
+- 言語：C#
+- TestFramework：xUnit 2.4.1
+- Moq Version：4.15.2
+
+## Moqについて
+
+### Moqとは
+
+> Moqは. Net用の模擬ライブラリです。 ユニットテストを容易にするために、依存関係との対話をシミュレートして検証することができます。<br>
+> -- [moq Tutorial => Getting started with moq](https://riptutorial.com/moq)
+
+### Moq Github
+
+[Quickstart · devlooped/moq Wiki](https://github.com/devlooped/moq/wiki/Quickstart)
+
+## 本題
+
+たとえばこのようなUserクラスがあります。
+
+```csharp
+internal class User
+{
+  public User(UserId userId, UserName userName, UserAge userAge)
+  {
+    Id = userId ?? throw new ArgumentNullException(nameof(userId));
+    Name = userName ?? throw new ArgumentNullException(nameof(userName));
+    Age = userAge ?? throw new ArgumentNullException(nameof(userAge));
+  }
+
+  public UserId Id { get; }
+  public UserName Name { get; }
+  public UserAge Age { get; }
+}
+```
+
+そしてこのような条件式を引数に取るメソッドがあります。
+
+```csharp
+internal interface IUserRepository
+{
+  IEnumerable<User> FindWithCondition(Expression<Func<User, bool>> predicate);
+}
+```
+
+このメソッドをMoqにSetupで追加するにはこのように書く。
+
+```csharp
+var moq = new Mock<IUserRepository>(); moq.Setup(x =>
+    x.FindWithCondition(It.IsAny<Expression<Func<User, bool>>>()))
+.Returns(users);
+```
+
+ただこれだとIt.IsAny()を使用しているため、どのような条件でも返す値は同じとなります。
+
+It.Is()で条件によって異なる値を返せないかやってみると、
+
+```csharp
+moq.Setup(x => x.FindWithCondition(It.Is<Expression<Func<User, bool>>>(
+              x => x.Age.Value >= 20 && x.Age.Value <= 29)))
+    .Returns(users20);
+
+moq.Setup(x => x.FindWithCondition(It.Is<Expression<Func<User, bool>>>(
+              x => x.Age.Value >= 30 && x.Age.Value <= 39)))
+    .Returns(users30);
+```
+
+インテリセンスも効くし普通に書けますが、「Ageの定義が含まれていない」と怒られます。
+理由としては、Moqが式の等価の評価を実装していないから。
+
+ではどうするかというと、Returnsの中に条件を書く。
+
+```csharp
+moq.Setup(x => x.FindWithCondition(It.IsAny<Expression<Func<User, bool>>>()))
+    .Returns((Expression<Func<User, bool>> predicate) =>
+                 users.AsQueryable().Where(predicate));
+var userAppService = new UserApplicationService(moq.Object);
+```
+
+以上で解決。
+
+<div data-vc_mylinkbox_id='887423761'></div>
+
+## 参考サイト
+
+- [c# - Moq.Mock\<T\> - how to set up a method that takes an expression - Stack Overflow](https://stackoverflow.com/questions/2751935/moq-mockt-how-to-set-up-a-method-that-takes-an-expression)

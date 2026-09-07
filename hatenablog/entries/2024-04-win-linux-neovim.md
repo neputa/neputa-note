@@ -1,0 +1,53 @@
+---
+Title: 'Win-Linux間のコピペ「^M」問題の対処について'
+Date: 2024-04-23T11:30:00+09:00
+CustomPath: 2024/04/23/win-linux-neovim
+Category:
+  - 'DEV'
+---
+
+## 記事概要
+
+WSL2が非常に使いやすく、WindowsとLinux間におけるデータのやり取りが増えた。
+
+しかし異なる環境ゆえに起こる問題もある。当初ストレスに感じていたのがこれ。
+
+> Windowsで作成したファイルの改行コードはCR＋LFだ。これに対して、Linuxの改行コードはLFだけなので、ファイルの転送方法によってはWindowsで作成したテキストファイルをviで開くと、すべての行末に「^M」が表示される場合がある。<br>
+> -- [ITmedia](https://atmarkit.itmedia.co.jp/flinux/rensai/linuxtips/164linendm.html)より引用
+
+いま行っている対処を記しておく。
+
+## 「^M」発生シチュエーション例
+
+私のよくある例として、Windowsで起動しているブラウザ上のテキストを、WSL2で起動しているVSCode+Neovim拡張機能のエディタにコピペする場合。
+
+ブラウザは「CR＋LF」、VSCodeは「LF」。
+
+よって、うっかり「p」コマンドで貼り付けてしまったりすると、もれなく改行部分に「^M」が付されてしまう。
+
+## 対処方法
+
+### ペースト後の対処
+
+すでに貼り付けてしまった場合、undoしたりむやみに削除するとNeovimが認識する状態と表示状態に齟齬が生じ、詰む。
+
+速やかに置換コマンドを実行し、「^M」を一括削除する。
+
+```vim
+:%s/\r//g
+```
+
+^M（\r）を、空文字「//」で、一括置換「g」する
+
+### ペースト前の対処
+
+- 「shift + insert」でペーストする。
+- VSCodeのペースト「ctrl + shift + v」でペーストする。
+
+## まとめ
+
+現状これで対処している。 普通に「p」でペーストし改行コードの差を設定で吸収できたらと思うが実現できていない。
+
+## 参考サイト
+
+[clipboard - How do you know when to use SHIFT+INSERT vs CTRL-V vs right-click-paste to paste? - Ask Ubuntu](https://askubuntu.com/questions/26655/how-do-you-know-when-to-use-shiftinsert-vs-ctrl-v-vs-right-click-paste-to-paste)
