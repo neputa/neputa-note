@@ -1,0 +1,25 @@
+---
+Title: 'BloggerのカスタムドメインCNAMEを再度確認する方法'
+Date: 2024-04-04T16:24:00+09:00
+CustomPath: 2024/04/04/blogger-cname
+Category:
+  - 'DEV'
+---
+
+このブログ（Google Blogger）にCloudflareを導入しようと設定を進めていたところ、かつてカスタムドメインを設定した際に発行されたCNAMEが分からず困っていた。
+
+Bloggerのカスタムドメイン設定で使用するCNAMEを、再度確認する方法の備忘録。
+
+- Google Search Consoleを開く。: [https://search.google.com/search-console/](https://search.google.com/search-console/)
+- 「プロパティを検索」をクリック。
+- ドメインまたはURLプロパティ（ルートドメインのもの、wwwなし）を選択します。
+- 左サイドバーを下にスクロール
+- 「設定」をクリック。
+- 「ユーザーと権限」を選択。
+- 「（自分）」とマークされたメールアドレスの横にある3点ドットをクリック。
+- 所有権の確認詳細を選択。
+- CNAMEラベルと宛先が表示される。
+
+参考サイト
+
+[Blogger not showing Cname address while saving custom domain. but saves it. - Blogger Community](https://support.google.com/blogger/thread/237602506/blogger-not-showing-cname-address-while-saving-custom-domain-but-saves-it?hl=en)

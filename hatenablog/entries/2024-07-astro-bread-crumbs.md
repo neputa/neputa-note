@@ -1,0 +1,193 @@
+---
+Title: 'Astroにパンくずリスト（breadcrumb list）を追加する'
+Date: 2024-07-21T15:54:36+09:00
+CustomPath: 2024/07/21/astro-bread-crumbs
+Category:
+  - 'DEV'
+  - 'Astro'
+  - 'パンくずリスト'
+---
+
+## 記事概要
+
+- 先日のBloggerからAstroへ移行した記事の別途詳細
+
+※参考 - Blog移行記事
+
+[https://www.neputa-note.net/2024/07/migrated-blogger-to-astro/:embed:cite]
+
+### 目的
+
+- Astroで構築したWebサイトにパンくずリストを追加する
+- astro-breadcrumbsというパッケージを使用して実装する
+- ~~URLに日本語が含まれる場合、URLエンコードした値がパンくずリストに表示される~~
+- ~~パッケージをForkし、この問題に対処する例についてもまとめる~~
+
+## 用語説明
+
+### Astro とは？
+
+> Astroは、ブログやマーケティング、eコマースなど、コンテンツ駆動のウェブサイトを作成するためのウェブフレームワークです。Astroは、新しいフロントエンドアーキテクチャを開拓し、他のフレームワークと比較してJavaScriptのオーバーヘッドと複雑さを低減することで知られています。高速でSEOに優れたウェブサイトが必要なら、Astroが最適です。<br>
+> -- [Astro公式Docs](https://docs.astro.build/ja/concepts/why-astro/) より引用をDeepLで翻訳
+
+- 参考記事
+  - [Webフレームワーク「Astro」とは？開発初心者からベテランまで注目する理由](https://codezine.jp/article/detail/17883)
+
+## 作業環境
+
+- OS - Ubuntu-22.04LTS on WSL2
+- Node.js - v20.14.0
+- pnpm - v9.4.0
+- Astro - v4.11.3
+
+## 作業詳細
+
+### astro-breadcrumbsをインストールする
+
+- astro-breadcrumbsについて
+  - [Astro Breadcrumbs](https://docs.astro-breadcrumbs.kasimir.dev/start-here/getting-started/)
+
+```bash install
+pnpm add -D astro-breadcrumbs
+```
+
+### レイアウトにパンくずリストを追加する
+
+- astro-breadcrumbsをインポートしタグを追加するだけで設置できる
+- Header componentに追加する例を示す
+
+```astro Header.astro
+---
+
+// [!code ++]
+
+// [!code ++]
+
+---
+
+<header>
+  <nav>
+    <h2><a href='/'>{SITE_TITLE}</a></h2>
+    <div class='internal-links'>
+      <HeaderLink href='/'>Home</HeaderLink>
+      <HeaderLink href='/blog'>Blog</HeaderLink>
+      <HeaderLink href='/about'>About</HeaderLink>
+    </div>
+  </nav>
+// [!code ++]
+  <Breadcrumbs />
+</header>
+```
+
+### パンくずリストをカスタマイズする
+
+- このBlogのastro-breadcrumbsの設定を以下に示す
+
+```astro Header.astro
+---
+
+---
+
+<Breadcrumbs linkTextFormat='lower' ariaLabel='Breadcrumbs' truncated='true'>
+  <svg
+    slot='index'
+    aria-label='Home Page'
+    xmlns='http://www.w3.org/2000/svg'
+    width='24'
+    height='24'
+    viewBox='0 0 24 24'
+    fill='none'
+    stroke='currentColor'
+    stroke-width='2'
+    stroke-linecap='round'
+    stroke-linejoin='round'
+    ><path d='m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'> </path><polyline
+      points='9 22 9 12 15 12 15 22'></polyline>
+  </svg>
+  <svg
+    slot='separator'
+    xmlns='http://www.w3.org/2000/svg'
+    width='24'
+    height='24'
+    viewBox='0 0 24 24'
+    fill='none'
+    stroke='currentColor'
+    stroke-width='2'
+    stroke-linecap='round'
+    stroke-linejoin='round'
+    ><polyline points='9 18 15 12 9 6'></polyline>
+  </svg>
+</Breadcrumbs>
+```
+
+- linkTextFormatでアルファベットを小文字に変換
+- truncatedの説明は以下のとおり
+
+> trueを設定すると、1行に収まらなくなったパンくずは切り捨てられ、省略記号ボタンが表示されます。最初の要素と最後の要素だけが表示され、その間に省略記号ボタンが表示されます。省略記号ボタンをクリックすると、切り捨てられたすべての要素が表示されます。<br>
+> -- [Properties | Astro Breadcrumbs](https://docs.astro-breadcrumbs.kasimir.dev/configuration/properties/#truncated) > より引用を[DeepL](https://www.deepl.com/ja/translator)で翻訳
+
+- 1つ目のsvgは、ルートをHomeアイコン表示にするため
+- 2つ目のsvgは、セパレータを山カッコにするため
+- この他、色の変更などはドキュメントを参照
+  - [CSS Styles | Astro Breadcrumbs](https://docs.astro-breadcrumbs.kasimir.dev/styling/css-api/)
+
+### URLエンコード対策
+
+> [!NOTE]
+> 2024/08/16 astro-breadcrumbsの開発者からversion 3.0.1でこの問題は解決したと連絡がありました。よって以降の作業はForkしたパッケージの使用例として参照してください。
+
+- astro-breadcrumbsは、URLパスの値をパンくずリストに表示している
+- URLに日本語が含まれる場合、そのパスはURLエンコードした値で表示される
+  - 例えば日本語のタグやカテゴリを使用している場合
+
+![URLエンコードされた日本語タグ](../assets/images/url-encoded-breadcrumbs.webp 'URLエンコードされた日本語タグ')
+
+- 対処方法としてastro-breadcrumbsのリポジトリをForkし、修正したパッケージを使用する（Githubアカウントが必要）
+
+1.[astro-breadcrumbsのリポジトリ](https://github.com/felix-berlin/astro-breadcrumbs)にアクセスする
+2.画面右上の「Fork」をクリックし、「Create new Fork」を選択する
+3.src/Breadcrumbs.astroを次のとおりに修正する（ここ1か所なのでGithub上で修正した）
+
+```astro src/Breadcrumbs.astro
+<!-- 省略 -->
+
+<BreadcrumbLink
+  attrs={attrs}
+  mainBemClass={mainBemClass}
+  isIndex={index === 0}
+  isCurrent={lastElement}
+>
+  {Astro.slots.has("index") && index === 0 ? (
+    <slot name="index" slot="index" />
+  ) : (
+// [!code --]
+    text
+// [!code ++]
+    decodeURI(text)
+  )}
+</BreadcrumbLink>
+
+<!-- 省略 -->
+```
+
+4.修正をコミットし、リポジトリのURL（HTTPS）をコピーする
+5.package.jsonを以下のとおり修正する（バージョン番号をgit+コピーしたURLに修正）
+
+```json package.json
+{
+  "devDependencies": {
+// [!code --]
+    "astro-breadcrumbs": "^2.3.1",
+// [!code ++]
+    "astro-breadcrumbs": "git+https://github.com/neputa/astro-breadcrumbs-fork.git"
+  }
+}
+```
+
+6.pnpm install（npm install）を実行し、package.jsonの修正を反映
+
+以上
+
+## 参考サイト
+
+- [npmライブラリをGitHubでFork・修正した自前バージョンに差し替えて使う | Qookie Tech](https://tech.qookie.jp/posts/use-npm-package-github-fork/)
