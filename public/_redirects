@@ -1,9 +1,3 @@
-# Auto-generated redirect rules for Hatena migration
-# Order: Blogger legacy first, Astro canonical second
-# Generated from:
-# - hatenablog/entries/blogger_to_hatena_direct_redirects.txt
-# - hatenablog/entries/astro_to_hatena_redirects_final.txt
-
 /2010/03/blog-post.html /entry/2010/03/09/hahakigi-hosei-closed-ward 301
 /2010/03/blog-post/ /entry/2010/03/09/hahakigi-hosei-closed-ward 301
 /2010/03/hahakigi-hosei.closed-ward.html /entry/2010/03/09/hahakigi-hosei-closed-ward 301
